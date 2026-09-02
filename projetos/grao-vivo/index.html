@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Grão Vivo Torrefação</title>
+<meta name="description" content="Café especial em torra média — Blend Bourbon Amarelo, 250g.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Karla:wght@400;500;600;700&display=swap">
+<style>
+  :root{
+    --ink:#2c1c12;
+    --ink-soft:#6e5946;
+    --surface:#f1e6d3;
+    --surface-raise:#f9f3e7;
+    --line:#ddccac;
+    --accent:#4a5d3a;
+    --accent-soft:#dde3d2;
+    --roast:#8a4a24;
+    --on-accent:#f6f8f0;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --ink:#f1e6d6;
+      --ink-soft:#c2ac93;
+      --surface:#1b140d;
+      --surface-raise:#241b12;
+      --line:#3b2d1d;
+      --accent:#9db386;
+      --accent-soft:#2a3322;
+      --roast:#d68a52;
+      --on-accent:#1b140d;
+    }
+  }
+  *{box-sizing:border-box;}
+  html{-webkit-font-smoothing:antialiased;}
+  body{margin:0;background:var(--surface);color:var(--ink);font-family:'Karla',system-ui,sans-serif;line-height:1.6;}
+  img{max-width:100%;display:block;}
+  a{color:inherit;}
+  .wrap{max-width:1040px;margin:0 auto;padding:0 28px;}
+  h1,h2,h3{font-family:'Instrument Serif',Georgia,serif;font-weight:400;text-wrap:balance;margin:0;}
+  .eyebrow{font-family:'Karla',sans-serif;font-size:0.76rem;letter-spacing:0.16em;text-transform:uppercase;color:var(--roast);font-weight:700;}
+  .lede{color:var(--ink-soft);font-size:1.06rem;max-width:54ch;}
+
+  .btn{display:inline-flex;align-items:center;gap:10px;font-family:'Karla',sans-serif;font-weight:700;font-size:1rem;padding:15px 28px;border-radius:30px;text-decoration:none;transition:transform .15s ease, filter .15s ease;}
+  .btn:hover{transform:translateY(-1px);filter:brightness(1.05);}
+  .btn:focus-visible{outline:3px solid var(--roast);outline-offset:3px;}
+  .btn-primary{background:var(--roast);color:var(--on-accent);}
+  .btn-ghost{background:transparent;border:1.5px solid var(--line);color:var(--ink);}
+
+  header{padding:20px 0;}
+  .nav{display:flex;align-items:center;justify-content:space-between;}
+  .logo{font-family:'Instrument Serif',serif;font-size:1.5rem;}
+
+  .hero{padding:36px 0 20px;}
+  .hero-grid{display:grid;gap:36px;align-items:center;}
+  @media(min-width:820px){.hero-grid{grid-template-columns:1fr 1fr;}}
+  .hero h1{font-size:clamp(2.4rem,5.6vw,3.6rem);line-height:1.06;}
+  .price-tag{font-family:'Karla',sans-serif;font-weight:700;font-size:1.6rem;font-variant-numeric:tabular-nums;margin-top:6px;}
+  .price-tag small{font-weight:500;font-size:0.9rem;color:var(--ink-soft);}
+  .bag-visual{
+    aspect-ratio:4/5;border-radius:18px;
+    background:
+      radial-gradient(circle at 25% 15%, color-mix(in srgb, var(--roast) 35%, transparent), transparent 55%),
+      linear-gradient(160deg, var(--surface-raise), var(--accent-soft));
+    border:1px solid var(--line);
+    display:flex;align-items:flex-end;padding:24px;
+  }
+  .bag-visual span{font-family:'Karla',sans-serif;font-size:0.78rem;color:var(--ink-soft);}
+
+  section{padding:70px 0;border-top:1px solid var(--line);}
+  .hero{border-top:none;}
+  .section-head{max-width:600px;margin-bottom:36px;}
+  .section-head h2{font-size:clamp(1.7rem,3.2vw,2.3rem);margin-top:8px;}
+
+  .specs{display:grid;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden;}
+  @media(min-width:700px){.specs{grid-template-columns:repeat(2,1fr);}}
+  .spec{background:var(--surface-raise);padding:20px 22px;display:flex;justify-content:space-between;gap:14px;}
+  .spec span:first-child{color:var(--ink-soft);}
+  .spec span:last-child{font-weight:600;text-align:right;}
+
+  .notes{display:flex;gap:12px;flex-wrap:wrap;margin-top:8px;}
+  .note-pill{background:var(--accent-soft);color:var(--accent);font-weight:700;font-size:0.85rem;padding:8px 18px;border-radius:30px;}
+
+  .brew{display:grid;gap:22px;counter-reset:brew;}
+  @media(min-width:800px){.brew{grid-template-columns:repeat(3,1fr);}}
+  .brew-step{background:var(--surface-raise);border:1px solid var(--line);border-radius:14px;padding:24px;}
+  .brew-num{font-family:'Karla',sans-serif;font-weight:700;color:var(--roast);font-size:0.85rem;letter-spacing:0.08em;}
+  .brew-step h3{font-size:1.15rem;margin-top:8px;}
+  .brew-step p{color:var(--ink-soft);font-size:0.92rem;margin-top:8px;}
+
+  .faq-item{border-bottom:1px solid var(--line);padding:18px 0;}
+  .faq-item summary{cursor:pointer;font-weight:600;font-size:1rem;list-style:none;display:flex;justify-content:space-between;gap:16px;align-items:center;}
+  .faq-item summary::-webkit-details-marker{display:none;}
+  .faq-item summary::after{content:"+";font-size:1.3rem;color:var(--roast);}
+  .faq-item[open] summary::after{content:"–";}
+  .faq-item p{color:var(--ink-soft);margin:10px 0 0;max-width:60ch;}
+
+  .cta-final{background:var(--ink);color:var(--surface-raise);border-radius:20px;padding:56px 40px;text-align:center;display:flex;flex-direction:column;gap:18px;align-items:center;}
+  .cta-final h2{color:inherit;font-size:clamp(1.9rem,4vw,2.6rem);}
+  .cta-final .lede{color:color-mix(in srgb, var(--surface-raise) 68%, var(--ink-soft));margin:0 auto;text-align:center;}
+
+  footer{padding:36px 0 56px;}
+  .foot-row{display:flex;flex-wrap:wrap;gap:14px;justify-content:space-between;align-items:center;font-size:0.85rem;color:var(--ink-soft);}
+  .demo-note{font-family:'Karla',sans-serif;font-size:0.72rem;color:var(--ink-soft);opacity:0.75;margin-top:16px;}
+</style>
+</head>
+<body>
+
+<header class="wrap">
+  <div class="nav">
+    <div class="logo">Grão Vivo</div>
+    <a class="btn btn-ghost" style="padding:10px 20px;font-size:0.88rem;" href="#comprar">Comprar</a>
+  </div>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="wrap hero-grid">
+      <div>
+        <span class="eyebrow">Torra média · Lote limitado</span>
+        <h1>Blend Bourbon Amarelo</h1>
+        <p class="lede" style="margin-top:16px;">Café de origem única do Sul de Minas, torrado em pequenos lotes toda semana pra chegar fresco na sua xícara — não no seu estoque.</p>
+        <div class="price-tag">R$ 42,90 <small>/ pacote de 250g</small></div>
+        <a class="btn btn-primary" style="margin-top:22px;" id="comprar" href="https://wa.me/5500000000000?text=Quero%20pedir%20o%20Blend%20Bourbon%20Amarelo%20250g">Pedir pelo WhatsApp</a>
+      </div>
+      <div class="bag-visual"><span>BLEND BOURBON AMARELO · 250G · TORRA MÉDIA</span></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow">Notas de prova</span>
+        <h2>O que você sente na xícara</h2>
+      </div>
+      <div class="notes">
+        <span class="note-pill">Caramelo</span>
+        <span class="note-pill">Castanha</span>
+        <span class="note-pill">Laranja</span>
+        <span class="note-pill">Corpo aveludado</span>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow">Ficha técnica</span>
+        <h2>De onde vem esse café</h2>
+      </div>
+      <div class="specs">
+        <div class="spec"><span>Origem</span><span>Sul de Minas Gerais</span></div>
+        <div class="spec"><span>Altitude</span><span>1.100m</span></div>
+        <div class="spec"><span>Variedade</span><span>Bourbon Amarelo</span></div>
+        <div class="spec"><span>Processo</span><span>Natural</span></div>
+        <div class="spec"><span>Torra</span><span>Média</span></div>
+        <div class="spec"><span>Validade após torra</span><span>60 dias</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow">Como preparar</span>
+        <h2>Três métodos que funcionam bem com esse blend</h2>
+      </div>
+      <div class="brew">
+        <div class="brew-step"><span class="brew-num">COADO</span><h3>V60 ou coador</h3><p>18g de café pra 300ml de água a 92°C, em espiral, tempo total de 3 minutos.</p></div>
+        <div class="brew-step"><span class="brew-num">PRENSA FRANCESA</span><h3>French press</h3><p>20g de café pra 300ml de água, 4 minutos de infusão antes de prensar.</p></div>
+        <div class="brew-step"><span class="brew-num">ESPRESSO</span><h3>Máquina espresso</h3><p>18g na cesta dupla, extração de 30ml em cerca de 28 segundos.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow">Dúvidas</span>
+        <h2>Antes de pedir</h2>
+      </div>
+      <details class="faq-item" open>
+        <summary>Em quanto tempo o café chega?</summary>
+        <p>Enviamos em até 2 dias úteis após a confirmação do pedido, sempre torrado na mesma semana do envio.</p>
+      </details>
+      <details class="faq-item">
+        <summary>O grão vem inteiro ou moído?</summary>
+        <p>Vem em grão inteiro por padrão. Se preferir moído pro seu método de preparo, é só avisar no pedido.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Tem desconto pra assinatura mensal?</summary>
+        <p>Sim, pedidos recorrentes mensais têm condição especial — pergunte ao fazer o primeiro pedido.</p>
+      </details>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <div class="cta-final">
+        <span class="eyebrow" style="color:var(--surface-raise);opacity:0.7;">Lote fresco toda semana</span>
+        <h2>Peça o seu antes que esse lote acabe.</h2>
+        <p class="lede">250g · R$ 42,90 · envio em até 2 dias úteis</p>
+        <a class="btn btn-primary" href="https://wa.me/5500000000000?text=Quero%20pedir%20o%20Blend%20Bourbon%20Amarelo%20250g">Pedir pelo WhatsApp</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-row">
+      <span>Grão Vivo Torrefação</span>
+      <span>seg. a sáb. · 8h às 18h</span>
+    </div>
+    <p class="demo-note">Página modelo de demonstração, criada como exemplo de portfólio. Marca e produto são fictícios.</p>
+  </div>
+</footer>
+</body>
+</html>

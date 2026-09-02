@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Adriano Cardozo — Sites e Landing Pages</title>
+<meta name="description" content="Sites institucionais e landing pages sob medida para pequenos negócios e profissionais liberais.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700&family=Public+Sans:wght@400;500;600&family=Space+Mono:wght@400;700&display=swap">
+<style>
+  :root{
+    --ink:#14151a;
+    --ink-soft:#5b5e6b;
+    --surface:#f6f6f3;
+    --surface-raise:#ffffff;
+    --line:#e2e1da;
+    --accent:#2b3eff;
+    --accent-soft:#e4e6ff;
+    --on-accent:#f6f6ff;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --ink:#eef0f5;
+      --ink-soft:#a3a7b5;
+      --surface:#0e0f13;
+      --surface-raise:#16171d;
+      --line:#282a33;
+      --accent:#7c89ff;
+      --accent-soft:#20234a;
+      --on-accent:#0e0f13;
+    }
+  }
+  *{box-sizing:border-box;}
+  html{-webkit-font-smoothing:antialiased;}
+  body{
+    margin:0;background:var(--surface);color:var(--ink);
+    font-family:'Public Sans', system-ui, sans-serif;
+    line-height:1.6;
+  }
+  img{max-width:100%;display:block;}
+  a{color:inherit;}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 28px;}
+  h1,h2,h3{font-family:'Bricolage Grotesque',sans-serif;font-weight:600;text-wrap:balance;margin:0;letter-spacing:-0.01em;}
+  .eyebrow{font-family:'Space Mono',monospace;font-size:0.75rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--accent);font-weight:700;}
+  .lede{color:var(--ink-soft);font-size:1.08rem;max-width:56ch;}
+
+  .btn{display:inline-flex;align-items:center;gap:8px;font-weight:600;font-size:0.98rem;padding:14px 26px;border-radius:8px;text-decoration:none;transition:transform .15s ease, filter .15s ease;}
+  .btn:hover{transform:translateY(-1px);filter:brightness(1.05);}
+  .btn:focus-visible{outline:3px solid var(--accent);outline-offset:3px;}
+  .btn-primary{background:var(--accent);color:var(--on-accent);}
+  .btn-ghost{background:transparent;border:1px solid var(--line);color:var(--ink);}
+
+  header{position:sticky;top:0;z-index:20;background:color-mix(in srgb, var(--surface) 85%, transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);}
+  .nav{display:flex;align-items:center;justify-content:space-between;padding:18px 28px;}
+  .logo{font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:1.15rem;}
+  .nav-links{display:none;gap:28px;font-size:0.92rem;font-weight:500;}
+  .nav-links a{text-decoration:none;color:var(--ink-soft);}
+  .nav-links a:hover{color:var(--ink);}
+  @media(min-width:760px){.nav-links{display:flex;}}
+
+  .hero{padding:88px 0 56px;}
+  .hero h1{font-size:clamp(2.4rem,6vw,4.2rem);line-height:1.04;margin-top:14px;}
+  .hero-foot{display:flex;flex-wrap:wrap;gap:24px;align-items:center;margin-top:34px;}
+
+  section{padding:80px 0;border-top:1px solid var(--line);}
+  .section-head{max-width:620px;margin-bottom:44px;}
+  .section-head h2{font-size:clamp(1.7rem,3.2vw,2.3rem);margin-top:10px;}
+
+  .about-grid{display:grid;gap:40px;}
+  @media(min-width:800px){.about-grid{grid-template-columns:0.9fr 1.1fr;}}
+  .stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-top:28px;}
+  .stat{background:var(--surface-raise);padding:18px 16px;}
+  .stat-num{font-family:'Space Mono',monospace;font-weight:700;font-size:1.3rem;color:var(--accent);}
+  .stat-label{font-size:0.78rem;color:var(--ink-soft);margin-top:4px;}
+
+  .services{display:grid;gap:20px;}
+  @media(min-width:800px){.services{grid-template-columns:repeat(3,1fr);}}
+  .service{background:var(--surface-raise);border:1px solid var(--line);border-radius:12px;padding:26px 24px;display:flex;flex-direction:column;gap:10px;}
+  .service h3{font-size:1.1rem;font-weight:600;}
+  .service p{color:var(--ink-soft);font-size:0.93rem;margin:0;flex:1;}
+  .service .price{font-family:'Space Mono',monospace;font-size:0.88rem;color:var(--accent);font-weight:700;}
+
+  .cases{display:flex;flex-direction:column;}
+  .case{display:grid;gap:18px;padding:32px 0;border-top:1px solid var(--line);text-decoration:none;color:inherit;transition:padding-left .18s ease;}
+  .case:first-child{border-top:none;}
+  .case:hover{padding-left:10px;}
+  @media(min-width:760px){.case{grid-template-columns:70px 1fr auto;align-items:center;}}
+  .case-num{font-family:'Space Mono',monospace;color:var(--accent);font-weight:700;font-size:0.95rem;}
+  .case h3{font-size:1.35rem;font-weight:600;}
+  .case p{color:var(--ink-soft);margin:8px 0 0;font-size:0.95rem;max-width:52ch;}
+  .case-tags{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;}
+  .tag{font-family:'Space Mono',monospace;font-size:0.72rem;color:var(--ink-soft);border:1px solid var(--line);padding:3px 9px;border-radius:20px;}
+  .case-arrow{font-size:1.4rem;color:var(--accent);justify-self:end;}
+
+  .steps{display:grid;gap:22px;}
+  @media(min-width:800px){.steps{grid-template-columns:repeat(4,1fr);}}
+  .step{padding:22px 20px;border:1px solid var(--line);border-radius:12px;background:var(--surface-raise);}
+  .step-num{font-family:'Space Mono',monospace;color:var(--accent);font-weight:700;font-size:0.85rem;}
+  .step h3{font-size:1.02rem;font-weight:600;margin-top:10px;}
+  .step p{color:var(--ink-soft);font-size:0.88rem;margin-top:6px;}
+
+  .cta-final{background:var(--ink);color:var(--surface);border-radius:18px;padding:60px 40px;display:flex;flex-direction:column;gap:22px;align-items:flex-start;}
+  .cta-final h2{color:inherit;font-size:clamp(1.9rem,4vw,2.6rem);}
+  .cta-final .lede{color:color-mix(in srgb, var(--surface) 65%, var(--ink-soft));}
+  .cta-final .btn-primary{background:var(--accent);color:var(--on-accent);}
+
+  footer{padding:40px 0 60px;}
+  .foot-row{display:flex;flex-wrap:wrap;gap:16px;justify-content:space-between;align-items:center;font-size:0.85rem;color:var(--ink-soft);}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="nav wrap">
+    <div class="logo">Adriano Cardozo</div>
+    <nav class="nav-links">
+      <a href="#servicos">Serviços</a>
+      <a href="#projetos">Projetos</a>
+      <a href="#processo">Como funciona</a>
+      <a href="#contato">Contato</a>
+    </nav>
+    <a class="btn btn-primary" href="https://wa.me/5500000000000?text=Vim%20pelo%20site%2C%20quero%20um%20or%C3%A7amento" style="padding:11px 20px;font-size:0.9rem;">Falar no WhatsApp</a>
+  </div>
+</header>
+
+<main>
+  <section class="hero" style="border-top:none;">
+    <div class="wrap">
+      <span class="eyebrow">Sites &amp; Landing Pages</span>
+      <h1>Site que vira cliente,<br>não só visita.</h1>
+      <p class="lede" style="margin-top:20px;">Sou o Adriano — venho da área de TI e infraestrutura e uso essa base técnica pra construir sites e landing pages rápidos, estáveis e pensados pra converter, feitos sob medida pra pequenos negócios e profissionais liberais.</p>
+      <div class="hero-foot">
+        <a class="btn btn-primary" href="#projetos">Ver projetos</a>
+        <a class="btn btn-ghost" href="#contato">Pedir orçamento</a>
+      </div>
+
+      <div class="stat-row">
+        <div class="stat"><div class="stat-num">TI</div><div class="stat-label">Formação + infraestrutura</div></div>
+        <div class="stat"><div class="stat-num">AZ-900</div><div class="stat-label">Certificação Microsoft Azure</div></div>
+        <div class="stat"><div class="stat-num">1 a 1</div><div class="stat-label">Acompanhamento direto do projeto</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="servicos">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow">Serviços</span>
+        <h2>Três formas de trabalharmos juntos</h2>
+      </div>
+      <div class="services">
+        <div class="service">
+          <h3>Landing Page</h3>
+          <p>Página única, direto ao ponto: benefícios, prova social e botão de contato. Ideal pra quem vive de indicação ou WhatsApp.</p>
+          <span class="price">R$ 497 – R$ 1.500</span>
+        </div>
+        <div class="service">
+          <h3>Site Institucional</h3>
+          <p>Várias páginas (home, sobre, serviços, contato), pra negócios que precisam de presença completa e profissional.</p>
+          <span class="price">R$ 1.500 – R$ 3.000</span>
+        </div>
+        <div class="service">
+          <h3>Manutenção Mensal</h3>
+          <p>Hospedagem, pequenos ajustes de texto e imagem, e suporte direto comigo sempre que precisar.</p>
+          <span class="price">R$ 97 – R$ 197/mês</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="projetos">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow">Projetos</span>
+        <h2>Exemplos do que eu construo</h2>
+      </div>
+      <div class="cases">
+        <a class="case" href="projetos/fibra/" target="_blank" rel="noopener">
+          <span class="case-num">01</span>
+          <div>
+            <h3>Fibra Treinamento Funcional</h3>
+            <p>Landing page para personal trainer: proposta clara, programa em fases e CTA direto pro WhatsApp.</p>
+            <div class="case-tags"><span class="tag">Landing Page</span><span class="tag">Serviço local</span></div>
+          </div>
+          <span class="case-arrow">→</span>
+        </a>
+        <a class="case" href="projetos/traco-arquitetura/" target="_blank" rel="noopener">
+          <span class="case-num">02</span>
+          <div>
+            <h3>Traço Arquitetura</h3>
+            <p>Site institucional multi-página para um estúdio de arquitetura: home, sobre, projetos e contato.</p>
+            <div class="case-tags"><span class="tag">Site Institucional</span><span class="tag">Multi-página</span></div>
+          </div>
+          <span class="case-arrow">→</span>
+        </a>
+        <a class="case" href="projetos/grao-vivo/" target="_blank" rel="noopener">
+          <span class="case-num">03</span>
+          <div>
+            <h3>Grão Vivo Torrefação</h3>
+            <p>Página de vendas de produto único, com narrativa de marca e CTA de compra.</p>
+            <div class="case-tags"><span class="tag">Página de Vendas</span><span class="tag">Produto único</span></div>
+          </div>
+          <span class="case-arrow">→</span>
+        </a>
+      </div>
+      <p class="foot-note" style="margin-top:24px;color:var(--ink-soft);font-size:0.82rem;font-family:'Space Mono',monospace;">Projetos acima são demonstrações de portfólio — marcas e nomes fictícios.</p>
+    </div>
+  </section>
+
+  <section id="processo">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow">Como funciona</span>
+        <h2>Do briefing ao site no ar</h2>
+      </div>
+      <div class="steps">
+        <div class="step"><span class="step-num">01</span><h3>Briefing</h3><p>Você me conta o negócio, o público e o que a página precisa fazer.</p></div>
+        <div class="step"><span class="step-num">02</span><h3>Primeira versão</h3><p>Eu construo a página já publicada num link funcional.</p></div>
+        <div class="step"><span class="step-num">03</span><h3>Ajustes</h3><p>Você revisa e eu ajusto até ficar do jeito certo.</p></div>
+        <div class="step"><span class="step-num">04</span><h3>No ar</h3><p>Publicação final, domínio próprio e, se quiser, manutenção mensal.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="contato">
+    <div class="wrap">
+      <div class="cta-final">
+        <span class="eyebrow" style="color:var(--accent);">Vamos conversar</span>
+        <h2>Me conta o que você precisa.</h2>
+        <p class="lede">Resposta rápida, orçamento claro, sem compromisso.</p>
+        <a class="btn btn-primary" href="https://wa.me/5500000000000?text=Vim%20pelo%20site%2C%20quero%20um%20or%C3%A7amento">Chamar no WhatsApp</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-row">
+      <span>Adriano Cardozo — Sites e Landing Pages</span>
+      <span>contato@exemplo.com</span>
+    </div>
+  </div>
+</footer>
+</body>
+</html>
