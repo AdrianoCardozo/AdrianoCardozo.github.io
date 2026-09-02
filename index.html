@@ -6,7 +6,7 @@
 <title>Adriano Cardozo — Sites e Landing Pages</title>
 <meta name="description" content="Sites institucionais e landing pages sob medida para pequenos negócios e profissionais liberais.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700&family=Public+Sans:wght@400;500;600&family=Space+Mono:wght@400;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Public+Sans:wght@400;500;600&family=Space+Mono:wght@400;700&display=swap">
 <style>
   :root{
     --ink:#14151a;
@@ -15,6 +15,7 @@
     --surface-raise:#ffffff;
     --line:#e2e1da;
     --accent:#2b3eff;
+    --accent-2:#ff4d6d;
     --accent-soft:#e4e6ff;
     --on-accent:#f6f6ff;
   }
@@ -26,80 +27,125 @@
       --surface-raise:#16171d;
       --line:#282a33;
       --accent:#7c89ff;
+      --accent-2:#ff7186;
       --accent-soft:#20234a;
       --on-accent:#0e0f13;
     }
   }
   *{box-sizing:border-box;}
-  html{-webkit-font-smoothing:antialiased;}
+  html{-webkit-font-smoothing:antialiased;scroll-behavior:smooth;}
   body{
     margin:0;background:var(--surface);color:var(--ink);
     font-family:'Public Sans', system-ui, sans-serif;
     line-height:1.6;
+    overflow-x:hidden;
   }
   img{max-width:100%;display:block;}
   a{color:inherit;}
   .wrap{max-width:1080px;margin:0 auto;padding:0 28px;}
-  h1,h2,h3{font-family:'Bricolage Grotesque',sans-serif;font-weight:600;text-wrap:balance;margin:0;letter-spacing:-0.01em;}
+  h1,h2,h3{font-family:'Bricolage Grotesque',sans-serif;font-weight:700;text-wrap:balance;margin:0;letter-spacing:-0.015em;}
   .eyebrow{font-family:'Space Mono',monospace;font-size:0.75rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--accent);font-weight:700;}
   .lede{color:var(--ink-soft);font-size:1.08rem;max-width:56ch;}
 
-  .btn{display:inline-flex;align-items:center;gap:8px;font-weight:600;font-size:0.98rem;padding:14px 26px;border-radius:8px;text-decoration:none;transition:transform .15s ease, filter .15s ease;}
-  .btn:hover{transform:translateY(-1px);filter:brightness(1.05);}
+  .btn{display:inline-flex;align-items:center;gap:8px;font-weight:600;font-size:0.98rem;padding:14px 26px;border-radius:8px;text-decoration:none;transition:transform .15s ease, filter .15s ease, box-shadow .15s ease;}
+  .btn:hover{transform:translateY(-2px);filter:brightness(1.05);box-shadow:0 12px 24px -12px color-mix(in srgb, var(--accent) 60%, transparent);}
   .btn:focus-visible{outline:3px solid var(--accent);outline-offset:3px;}
   .btn-primary{background:var(--accent);color:var(--on-accent);}
   .btn-ghost{background:transparent;border:1px solid var(--line);color:var(--ink);}
 
   header{position:sticky;top:0;z-index:20;background:color-mix(in srgb, var(--surface) 85%, transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);}
   .nav{display:flex;align-items:center;justify-content:space-between;padding:18px 28px;}
-  .logo{font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:1.15rem;}
+  .logo{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:1.15rem;}
   .nav-links{display:none;gap:28px;font-size:0.92rem;font-weight:500;}
-  .nav-links a{text-decoration:none;color:var(--ink-soft);}
+  .nav-links a{text-decoration:none;color:var(--ink-soft);position:relative;}
+  .nav-links a::after{content:"";position:absolute;left:0;right:0;bottom:-4px;height:2px;background:var(--accent);transform:scaleX(0);transition:transform .18s ease;}
   .nav-links a:hover{color:var(--ink);}
+  .nav-links a:hover::after{transform:scaleX(1);}
   @media(min-width:760px){.nav-links{display:flex;}}
 
-  .hero{padding:88px 0 56px;}
-  .hero h1{font-size:clamp(2.4rem,6vw,4.2rem);line-height:1.04;margin-top:14px;}
+  /* hero */
+  .hero{padding:96px 0 0;position:relative;overflow:hidden;}
+  .blob{
+    position:absolute;top:-220px;right:-160px;width:560px;height:560px;border-radius:50%;
+    background:radial-gradient(circle at 40% 40%, color-mix(in srgb, var(--accent) 55%, transparent), transparent 70%);
+    filter:blur(10px);
+    animation:float 14s ease-in-out infinite;
+    z-index:0;pointer-events:none;
+  }
+  .blob-2{
+    position:absolute;top:60px;right:220px;width:280px;height:280px;border-radius:50%;
+    background:radial-gradient(circle at 40% 40%, color-mix(in srgb, var(--accent-2) 50%, transparent), transparent 70%);
+    filter:blur(10px);
+    animation:float 10s ease-in-out infinite reverse;
+    z-index:0;pointer-events:none;
+  }
+  @keyframes float{0%,100%{transform:translate(0,0) scale(1);}50%{transform:translate(-30px,40px) scale(1.08);}}
+  @media (prefers-reduced-motion: reduce){.blob,.blob-2{animation:none;}}
+
+  .hero-inner{position:relative;z-index:1;}
+  .hero h1{font-size:clamp(2.5rem,6.4vw,4.6rem);line-height:1.02;margin-top:14px;}
+  .hero h1 em{font-style:normal;color:var(--accent);}
   .hero-foot{display:flex;flex-wrap:wrap;gap:24px;align-items:center;margin-top:34px;}
 
-  section{padding:80px 0;border-top:1px solid var(--line);}
-  .section-head{max-width:620px;margin-bottom:44px;}
-  .section-head h2{font-size:clamp(1.7rem,3.2vw,2.3rem);margin-top:10px;}
+  .marquee{border-top:1px solid var(--line);border-bottom:1px solid var(--line);overflow:hidden;margin-top:64px;background:var(--ink);}
+  .marquee-track{display:flex;white-space:nowrap;animation:scroll 22s linear infinite;width:max-content;}
+  @media (prefers-reduced-motion: reduce){.marquee-track{animation:none;}}
+  .marquee span{font-family:'Space Mono',monospace;font-size:0.85rem;letter-spacing:0.08em;color:var(--surface);opacity:0.85;padding:16px 28px;text-transform:uppercase;}
+  @keyframes scroll{from{transform:translateX(0);}to{transform:translateX(-50%);}}
 
-  .about-grid{display:grid;gap:40px;}
-  @media(min-width:800px){.about-grid{grid-template-columns:0.9fr 1.1fr;}}
-  .stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-top:28px;}
-  .stat{background:var(--surface-raise);padding:18px 16px;}
-  .stat-num{font-family:'Space Mono',monospace;font-weight:700;font-size:1.3rem;color:var(--accent);}
-  .stat-label{font-size:0.78rem;color:var(--ink-soft);margin-top:4px;}
+  section{padding:88px 0;border-top:1px solid var(--line);}
+  .section-head{max-width:620px;margin-bottom:44px;}
+  .section-head h2{font-size:clamp(1.8rem,3.4vw,2.5rem);margin-top:10px;}
+
+  .reveal{opacity:0;transform:translateY(24px);transition:opacity .7s ease, transform .7s ease;}
+  .reveal.is-visible{opacity:1;transform:translateY(0);}
+  @media (prefers-reduced-motion: reduce){.reveal{opacity:1;transform:none;transition:none;}}
+
+  .about-strip{display:grid;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-top:28px;}
+  @media(min-width:720px){.about-strip{grid-template-columns:repeat(3,1fr);}}
+  .about-item{background:var(--surface-raise);padding:22px 20px;}
+  .about-item strong{font-family:'Bricolage Grotesque',sans-serif;font-size:1.02rem;display:block;}
+  .about-item span{font-size:0.85rem;color:var(--ink-soft);}
 
   .services{display:grid;gap:20px;}
   @media(min-width:800px){.services{grid-template-columns:repeat(3,1fr);}}
-  .service{background:var(--surface-raise);border:1px solid var(--line);border-radius:12px;padding:26px 24px;display:flex;flex-direction:column;gap:10px;}
-  .service h3{font-size:1.1rem;font-weight:600;}
+  .service{background:var(--surface-raise);border:1px solid var(--line);border-radius:12px;padding:26px 24px;display:flex;flex-direction:column;gap:10px;transition:transform .2s ease, box-shadow .2s ease;}
+  .service:hover{transform:translateY(-4px);box-shadow:0 20px 36px -24px rgba(0,0,0,0.25);}
+  .service h3{font-size:1.1rem;font-weight:700;}
   .service p{color:var(--ink-soft);font-size:0.93rem;margin:0;flex:1;}
   .service .price{font-family:'Space Mono',monospace;font-size:0.88rem;color:var(--accent);font-weight:700;}
 
-  .cases{display:flex;flex-direction:column;}
-  .case{display:grid;gap:18px;padding:32px 0;border-top:1px solid var(--line);text-decoration:none;color:inherit;transition:padding-left .18s ease;}
-  .case:first-child{border-top:none;}
-  .case:hover{padding-left:10px;}
-  @media(min-width:760px){.case{grid-template-columns:70px 1fr auto;align-items:center;}}
-  .case-num{font-family:'Space Mono',monospace;color:var(--accent);font-weight:700;font-size:0.95rem;}
-  .case h3{font-size:1.35rem;font-weight:600;}
-  .case p{color:var(--ink-soft);margin:8px 0 0;font-size:0.95rem;max-width:52ch;}
-  .case-tags{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;}
-  .tag{font-family:'Space Mono',monospace;font-size:0.72rem;color:var(--ink-soft);border:1px solid var(--line);padding:3px 9px;border-radius:20px;}
-  .case-arrow{font-size:1.4rem;color:var(--accent);justify-self:end;}
+  /* project preview cards */
+  .cases{display:grid;gap:26px;}
+  @media(min-width:760px){.cases{grid-template-columns:repeat(3,1fr);}}
+  .case{
+    display:block;text-decoration:none;color:inherit;
+    background:var(--surface-raise);border:1px solid var(--line);border-radius:14px;overflow:hidden;
+    transition:transform .25s ease, box-shadow .25s ease;
+  }
+  .case:hover{transform:translateY(-6px);box-shadow:0 28px 44px -26px rgba(0,0,0,0.32);}
+  .case-shot{position:relative;aspect-ratio:16/11;overflow:hidden;border-bottom:1px solid var(--line);background:var(--surface);}
+  .case-shot img{width:100%;height:100%;object-fit:cover;object-position:top;transition:transform .4s ease;}
+  .case:hover .case-shot img{transform:scale(1.05);}
+  .case-overlay{position:absolute;inset:0;background:linear-gradient(0deg, color-mix(in srgb, var(--ink) 75%, transparent), transparent 55%);opacity:0;display:flex;align-items:flex-end;padding:16px;transition:opacity .25s ease;}
+  .case:hover .case-overlay{opacity:1;}
+  .case-overlay span{font-family:'Space Mono',monospace;font-size:0.8rem;color:#fff;letter-spacing:0.04em;}
+  .case-body{padding:20px 22px 24px;}
+  .case-num{font-family:'Space Mono',monospace;color:var(--accent);font-weight:700;font-size:0.85rem;}
+  .case h3{font-size:1.2rem;font-weight:700;margin-top:6px;}
+  .case p{color:var(--ink-soft);margin:8px 0 0;font-size:0.92rem;}
+  .case-tags{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;}
+  .tag{font-family:'Space Mono',monospace;font-size:0.7rem;color:var(--ink-soft);border:1px solid var(--line);padding:3px 9px;border-radius:20px;}
 
   .steps{display:grid;gap:22px;}
   @media(min-width:800px){.steps{grid-template-columns:repeat(4,1fr);}}
-  .step{padding:22px 20px;border:1px solid var(--line);border-radius:12px;background:var(--surface-raise);}
+  .step{padding:22px 20px;border:1px solid var(--line);border-radius:12px;background:var(--surface-raise);transition:transform .2s ease;}
+  .step:hover{transform:translateY(-3px);}
   .step-num{font-family:'Space Mono',monospace;color:var(--accent);font-weight:700;font-size:0.85rem;}
-  .step h3{font-size:1.02rem;font-weight:600;margin-top:10px;}
+  .step h3{font-size:1.02rem;font-weight:700;margin-top:10px;}
   .step p{color:var(--ink-soft);font-size:0.88rem;margin-top:6px;}
 
-  .cta-final{background:var(--ink);color:var(--surface);border-radius:18px;padding:60px 40px;display:flex;flex-direction:column;gap:22px;align-items:flex-start;}
+  .cta-final{background:var(--ink);color:var(--surface);border-radius:18px;padding:60px 40px;display:flex;flex-direction:column;gap:22px;align-items:flex-start;position:relative;overflow:hidden;}
   .cta-final h2{color:inherit;font-size:clamp(1.9rem,4vw,2.6rem);}
   .cta-final .lede{color:color-mix(in srgb, var(--surface) 65%, var(--ink-soft));}
   .cta-final .btn-primary{background:var(--accent);color:var(--on-accent);}
@@ -125,30 +171,39 @@
 
 <main>
   <section class="hero" style="border-top:none;">
-    <div class="wrap">
-      <span class="eyebrow">Sites &amp; Landing Pages</span>
-      <h1>Site que vira cliente,<br>não só visita.</h1>
-      <p class="lede" style="margin-top:20px;">Sou o Adriano — venho da área de TI e infraestrutura e uso essa base técnica pra construir sites e landing pages rápidos, estáveis e pensados pra converter, feitos sob medida pra pequenos negócios e profissionais liberais.</p>
+    <div class="blob"></div>
+    <div class="blob-2"></div>
+    <div class="wrap hero-inner">
+      <span class="eyebrow">Sites &amp; Landing Pages sob medida</span>
+      <h1>Seu próximo cliente já está te procurando.<br>Falta um site pra te <em>achar</em>.</h1>
+      <p class="lede" style="margin-top:20px;">Eu construo sites e landing pages feitos pra fazer uma coisa só: transformar quem visita em mensagem no WhatsApp — e mensagem em cliente. Sem modelo genérico, sem enrolação.</p>
       <div class="hero-foot">
         <a class="btn btn-primary" href="#projetos">Ver projetos</a>
         <a class="btn btn-ghost" href="#contato">Pedir orçamento</a>
       </div>
 
-      <div class="stat-row">
-        <div class="stat"><div class="stat-num">TI</div><div class="stat-label">Formação + infraestrutura</div></div>
-        <div class="stat"><div class="stat-num">AZ-900</div><div class="stat-label">Certificação Microsoft Azure</div></div>
-        <div class="stat"><div class="stat-num">1 a 1</div><div class="stat-label">Acompanhamento direto do projeto</div></div>
+      <div class="about-strip reveal">
+        <div class="about-item"><strong>Feito sob medida</strong><span>Nada de template genérico reaproveitado</span></div>
+        <div class="about-item"><strong>Direto com quem constrói</strong><span>Sem agência, sem intermediário no meio</span></div>
+        <div class="about-item"><strong>Rápido do jeito certo</strong><span>Primeira versão no ar em poucos dias</span></div>
+      </div>
+    </div>
+
+    <div class="marquee">
+      <div class="marquee-track">
+        <span>LANDING PAGES</span><span>SITES INSTITUCIONAIS</span><span>MANUTENÇÃO MENSAL</span><span>FOCO EM CONVERSÃO</span>
+        <span>LANDING PAGES</span><span>SITES INSTITUCIONAIS</span><span>MANUTENÇÃO MENSAL</span><span>FOCO EM CONVERSÃO</span>
       </div>
     </div>
   </section>
 
   <section id="servicos">
     <div class="wrap">
-      <div class="section-head">
+      <div class="section-head reveal">
         <span class="eyebrow">Serviços</span>
         <h2>Três formas de trabalharmos juntos</h2>
       </div>
-      <div class="services">
+      <div class="services reveal">
         <div class="service">
           <h3>Landing Page</h3>
           <p>Página única, direto ao ponto: benefícios, prova social e botão de contato. Ideal pra quem vive de indicação ou WhatsApp.</p>
@@ -170,50 +225,59 @@
 
   <section id="projetos">
     <div class="wrap">
-      <div class="section-head">
+      <div class="section-head reveal">
         <span class="eyebrow">Projetos</span>
         <h2>Exemplos do que eu construo</h2>
       </div>
-      <div class="cases">
+      <div class="cases reveal">
         <a class="case" href="projetos/fibra/" target="_blank" rel="noopener">
-          <span class="case-num">01</span>
-          <div>
+          <div class="case-shot">
+            <img src="assets/preview-fibra.png" alt="Prévia do site Fibra Treinamento Funcional" loading="lazy">
+            <div class="case-overlay"><span>Ver projeto →</span></div>
+          </div>
+          <div class="case-body">
+            <span class="case-num">01</span>
             <h3>Fibra Treinamento Funcional</h3>
             <p>Landing page para personal trainer: proposta clara, programa em fases e CTA direto pro WhatsApp.</p>
             <div class="case-tags"><span class="tag">Landing Page</span><span class="tag">Serviço local</span></div>
           </div>
-          <span class="case-arrow">→</span>
         </a>
         <a class="case" href="projetos/traco-arquitetura/" target="_blank" rel="noopener">
-          <span class="case-num">02</span>
-          <div>
+          <div class="case-shot">
+            <img src="assets/preview-traco.png" alt="Prévia do site Traço Arquitetura" loading="lazy">
+            <div class="case-overlay"><span>Ver projeto →</span></div>
+          </div>
+          <div class="case-body">
+            <span class="case-num">02</span>
             <h3>Traço Arquitetura</h3>
             <p>Site institucional multi-página para um estúdio de arquitetura: home, sobre, projetos e contato.</p>
             <div class="case-tags"><span class="tag">Site Institucional</span><span class="tag">Multi-página</span></div>
           </div>
-          <span class="case-arrow">→</span>
         </a>
         <a class="case" href="projetos/grao-vivo/" target="_blank" rel="noopener">
-          <span class="case-num">03</span>
-          <div>
+          <div class="case-shot">
+            <img src="assets/preview-grao-vivo.png" alt="Prévia do site Grão Vivo Torrefação" loading="lazy">
+            <div class="case-overlay"><span>Ver projeto →</span></div>
+          </div>
+          <div class="case-body">
+            <span class="case-num">03</span>
             <h3>Grão Vivo Torrefação</h3>
             <p>Página de vendas de produto único, com narrativa de marca e CTA de compra.</p>
             <div class="case-tags"><span class="tag">Página de Vendas</span><span class="tag">Produto único</span></div>
           </div>
-          <span class="case-arrow">→</span>
         </a>
       </div>
-      <p class="foot-note" style="margin-top:24px;color:var(--ink-soft);font-size:0.82rem;font-family:'Space Mono',monospace;">Projetos acima são demonstrações de portfólio — marcas e nomes fictícios.</p>
+      <p style="margin-top:24px;color:var(--ink-soft);font-size:0.82rem;font-family:'Space Mono',monospace;">Projetos acima são demonstrações de portfólio — marcas e nomes fictícios.</p>
     </div>
   </section>
 
   <section id="processo">
     <div class="wrap">
-      <div class="section-head">
+      <div class="section-head reveal">
         <span class="eyebrow">Como funciona</span>
         <h2>Do briefing ao site no ar</h2>
       </div>
-      <div class="steps">
+      <div class="steps reveal">
         <div class="step"><span class="step-num">01</span><h3>Briefing</h3><p>Você me conta o negócio, o público e o que a página precisa fazer.</p></div>
         <div class="step"><span class="step-num">02</span><h3>Primeira versão</h3><p>Eu construo a página já publicada num link funcional.</p></div>
         <div class="step"><span class="step-num">03</span><h3>Ajustes</h3><p>Você revisa e eu ajusto até ficar do jeito certo.</p></div>
@@ -224,7 +288,7 @@
 
   <section id="contato">
     <div class="wrap">
-      <div class="cta-final">
+      <div class="cta-final reveal">
         <span class="eyebrow" style="color:var(--accent);">Vamos conversar</span>
         <h2>Me conta o que você precisa.</h2>
         <p class="lede">Resposta rápida, orçamento claro, sem compromisso.</p>
@@ -242,5 +306,19 @@
     </div>
   </div>
 </footer>
+
+<script>
+  const revealEls = document.querySelectorAll('.reveal');
+  if('IntersectionObserver' in window){
+    const io = new IntersectionObserver((entries)=>{
+      entries.forEach(e=>{
+        if(e.isIntersecting){ e.target.classList.add('is-visible'); io.unobserve(e.target); }
+      });
+    }, {threshold:0.15});
+    revealEls.forEach(el=>io.observe(el));
+  } else {
+    revealEls.forEach(el=>el.classList.add('is-visible'));
+  }
+</script>
 </body>
 </html>
