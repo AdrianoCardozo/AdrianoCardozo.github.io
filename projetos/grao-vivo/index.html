@@ -64,7 +64,7 @@
       radial-gradient(circle at 25% 15%, color-mix(in srgb, var(--roast) 35%, transparent), transparent 55%),
       linear-gradient(160deg, var(--surface-raise), var(--accent-soft));
     border:1px solid var(--line);
-    display:flex;align-items:flex-end;padding:24px;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;padding:24px;
   }
   .bag-visual span{font-family:'Karla',sans-serif;font-size:0.78rem;color:var(--ink-soft);}
 
@@ -124,7 +124,17 @@
         <div class="price-tag">R$ 42,90 <small>/ pacote de 250g</small></div>
         <a class="btn btn-primary" style="margin-top:22px;" id="comprar" href="https://wa.me/5500000000000?text=Quero%20pedir%20o%20Blend%20Bourbon%20Amarelo%20250g">Pedir pelo WhatsApp</a>
       </div>
-      <div class="bag-visual"><span>BLEND BOURBON AMARELO · 250G · TORRA MÉDIA</span></div>
+      <div class="bag-visual">
+        <svg viewBox="0 0 200 220" width="140" height="154" fill="none" stroke="var(--roast)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M55 70 L60 34 Q60 20 76 20 L124 20 Q140 20 140 34 L145 70" />
+          <path d="M50 70 H150 L140 190 Q139 200 128 200 H72 Q61 200 60 190 Z" />
+          <path d="M78 20 L84 8 M100 20 L100 6 M122 20 L116 8" />
+          <ellipse cx="85" cy="130" rx="10" ry="7" transform="rotate(-20 85 130)" />
+          <ellipse cx="112" cy="150" rx="10" ry="7" transform="rotate(15 112 150)" />
+          <path d="M85 130 Q90 130 92 126 M112 150 Q117 150 119 146" stroke-width="2.4" />
+        </svg>
+        <span>BLEND BOURBON AMARELO · 250G · TORRA MÉDIA</span>
+      </div>
     </div>
   </section>
 

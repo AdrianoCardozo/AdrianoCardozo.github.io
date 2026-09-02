@@ -177,7 +177,7 @@
       radial-gradient(circle at 30% 20%, color-mix(in srgb, var(--accent) 35%, transparent), transparent 60%),
       linear-gradient(155deg, var(--surface-raise), var(--surface));
     border:1px solid var(--surface-line);
-    display:flex;align-items:flex-end;padding:22px;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;padding:22px;
   }
   .about-card span{font-family:'IBM Plex Mono',monospace;font-size:0.78rem;color:var(--ink-soft);}
   .about h3{font-family:'Figtree',sans-serif;text-transform:none;font-weight:700;font-size:1.3rem;}
@@ -314,7 +314,15 @@
 
   <section id="sobre" style="background:var(--surface-raise);border-top:1px solid var(--surface-line);border-bottom:1px solid var(--surface-line);">
     <div class="wrap about">
-      <div class="about-card"><span>PERSONAL TRAINER · CREF 000000-G/SP</span></div>
+      <div class="about-card">
+        <svg viewBox="0 0 200 200" width="128" height="128" fill="none" stroke="var(--accent-strong)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M60 110 A40 40 0 1 1 140 110" stroke-dasharray="6 10" opacity="0.5"/>
+          <rect x="82" y="46" width="36" height="24" rx="12" />
+          <circle cx="100" cy="112" r="42" />
+          <circle cx="100" cy="112" r="16" fill="var(--surface)" />
+        </svg>
+        <span>PERSONAL TRAINER · CREF 000000-G/SP</span>
+      </div>
       <div>
         <span class="eyebrow">Quem conduz o programa</span>
         <h3>Rafael Bittencourt</h3>
