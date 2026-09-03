@@ -3,322 +3,586 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Adriano Cardozo — Sites e Landing Pages</title>
-<meta name="description" content="Sites institucionais e landing pages sob medida para pequenos negócios e profissionais liberais.">
+<title>Vexon — Sites e sistemas sob medida</title>
+<meta name="description" content="A Vexon constrói sites, lojas virtuais e sistemas web sob medida para empresas. Do site que traz cliente ao painel que organiza a operação.">
+<meta name="theme-color" content="#08090c">
+
+<meta property="og:title" content="Vexon — Sites e sistemas sob medida">
+<meta property="og:description" content="Sites, lojas virtuais e sistemas web sob medida. Você descreve o processo; a gente entrega o software rodando.">
+<meta property="og:type" content="website">
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Public+Sans:wght@400;500;600&family=Space+Mono:wght@400;700&display=swap">
-<style>
-  :root{
-    --ink:#14151a;
-    --ink-soft:#5b5e6b;
-    --surface:#f6f6f3;
-    --surface-raise:#ffffff;
-    --line:#e2e1da;
-    --accent:#2b3eff;
-    --accent-2:#ff4d6d;
-    --accent-soft:#e4e6ff;
-    --on-accent:#f6f6ff;
-  }
-  @media (prefers-color-scheme: dark){
-    :root{
-      --ink:#eef0f5;
-      --ink-soft:#a3a7b5;
-      --surface:#0e0f13;
-      --surface-raise:#16171d;
-      --line:#282a33;
-      --accent:#7c89ff;
-      --accent-2:#ff7186;
-      --accent-soft:#20234a;
-      --on-accent:#0e0f13;
-    }
-  }
-  *{box-sizing:border-box;}
-  html{-webkit-font-smoothing:antialiased;scroll-behavior:smooth;}
-  body{
-    margin:0;background:var(--surface);color:var(--ink);
-    font-family:'Public Sans', system-ui, sans-serif;
-    line-height:1.6;
-    overflow-x:hidden;
-  }
-  img{max-width:100%;display:block;}
-  a{color:inherit;}
-  .wrap{max-width:1080px;margin:0 auto;padding:0 28px;}
-  h1,h2,h3{font-family:'Bricolage Grotesque',sans-serif;font-weight:700;text-wrap:balance;margin:0;letter-spacing:-0.015em;}
-  .eyebrow{font-family:'Space Mono',monospace;font-size:0.75rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--accent);font-weight:700;}
-  .lede{color:var(--ink-soft);font-size:1.08rem;max-width:56ch;}
-
-  .btn{display:inline-flex;align-items:center;gap:8px;font-weight:600;font-size:0.98rem;padding:14px 26px;border-radius:8px;text-decoration:none;transition:transform .15s ease, filter .15s ease, box-shadow .15s ease;}
-  .btn:hover{transform:translateY(-2px);filter:brightness(1.05);box-shadow:0 12px 24px -12px color-mix(in srgb, var(--accent) 60%, transparent);}
-  .btn:focus-visible{outline:3px solid var(--accent);outline-offset:3px;}
-  .btn-primary{background:var(--accent);color:var(--on-accent);}
-  .btn-ghost{background:transparent;border:1px solid var(--line);color:var(--ink);}
-
-  header{position:sticky;top:0;z-index:20;background:color-mix(in srgb, var(--surface) 85%, transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);}
-  .nav{display:flex;align-items:center;justify-content:space-between;padding:18px 28px;}
-  .logo{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:1.15rem;}
-  .nav-links{display:none;gap:28px;font-size:0.92rem;font-weight:500;}
-  .nav-links a{text-decoration:none;color:var(--ink-soft);position:relative;}
-  .nav-links a::after{content:"";position:absolute;left:0;right:0;bottom:-4px;height:2px;background:var(--accent);transform:scaleX(0);transition:transform .18s ease;}
-  .nav-links a:hover{color:var(--ink);}
-  .nav-links a:hover::after{transform:scaleX(1);}
-  @media(min-width:760px){.nav-links{display:flex;}}
-
-  /* hero */
-  .hero{padding:96px 0 0;position:relative;overflow:hidden;}
-  .blob{
-    position:absolute;top:-220px;right:-160px;width:560px;height:560px;border-radius:50%;
-    background:radial-gradient(circle at 40% 40%, color-mix(in srgb, var(--accent) 55%, transparent), transparent 70%);
-    filter:blur(10px);
-    animation:float 14s ease-in-out infinite;
-    z-index:0;pointer-events:none;
-  }
-  .blob-2{
-    position:absolute;top:60px;right:220px;width:280px;height:280px;border-radius:50%;
-    background:radial-gradient(circle at 40% 40%, color-mix(in srgb, var(--accent-2) 50%, transparent), transparent 70%);
-    filter:blur(10px);
-    animation:float 10s ease-in-out infinite reverse;
-    z-index:0;pointer-events:none;
-  }
-  @keyframes float{0%,100%{transform:translate(0,0) scale(1);}50%{transform:translate(-30px,40px) scale(1.08);}}
-  @media (prefers-reduced-motion: reduce){.blob,.blob-2{animation:none;}}
-
-  .hero-inner{position:relative;z-index:1;}
-  .hero h1{font-size:clamp(2.5rem,6.4vw,4.6rem);line-height:1.02;margin-top:14px;}
-  .hero h1 em{font-style:normal;color:var(--accent);}
-  .hero-foot{display:flex;flex-wrap:wrap;gap:24px;align-items:center;margin-top:34px;}
-
-  .marquee{border-top:1px solid var(--line);border-bottom:1px solid var(--line);overflow:hidden;margin-top:64px;background:var(--ink);}
-  .marquee-track{display:flex;white-space:nowrap;animation:scroll 22s linear infinite;width:max-content;}
-  @media (prefers-reduced-motion: reduce){.marquee-track{animation:none;}}
-  .marquee span{font-family:'Space Mono',monospace;font-size:0.85rem;letter-spacing:0.08em;color:var(--surface);opacity:0.85;padding:16px 28px;text-transform:uppercase;}
-  @keyframes scroll{from{transform:translateX(0);}to{transform:translateX(-50%);}}
-
-  section{padding:88px 0;border-top:1px solid var(--line);}
-  .section-head{max-width:620px;margin-bottom:44px;}
-  .section-head h2{font-size:clamp(1.8rem,3.4vw,2.5rem);margin-top:10px;}
-
-  .reveal{opacity:0;transform:translateY(24px);transition:opacity .7s ease, transform .7s ease;}
-  .reveal.is-visible{opacity:1;transform:translateY(0);}
-  @media (prefers-reduced-motion: reduce){.reveal{opacity:1;transform:none;transition:none;}}
-
-  .about-strip{display:grid;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-top:28px;}
-  @media(min-width:720px){.about-strip{grid-template-columns:repeat(3,1fr);}}
-  .about-item{background:var(--surface-raise);padding:22px 20px;}
-  .about-item strong{font-family:'Bricolage Grotesque',sans-serif;font-size:1.02rem;display:block;}
-  .about-item span{font-size:0.85rem;color:var(--ink-soft);}
-
-  .services{display:grid;gap:20px;}
-  @media(min-width:800px){.services{grid-template-columns:repeat(3,1fr);}}
-  .service{background:var(--surface-raise);border:1px solid var(--line);border-radius:12px;padding:26px 24px;display:flex;flex-direction:column;gap:10px;transition:transform .2s ease, box-shadow .2s ease;}
-  .service:hover{transform:translateY(-4px);box-shadow:0 20px 36px -24px rgba(0,0,0,0.25);}
-  .service h3{font-size:1.1rem;font-weight:700;}
-  .service p{color:var(--ink-soft);font-size:0.93rem;margin:0;flex:1;}
-  .service .price{font-family:'Space Mono',monospace;font-size:0.88rem;color:var(--accent);font-weight:700;}
-
-  /* project preview cards */
-  .cases{display:grid;gap:26px;}
-  @media(min-width:760px){.cases{grid-template-columns:repeat(3,1fr);}}
-  .case{
-    display:block;text-decoration:none;color:inherit;
-    background:var(--surface-raise);border:1px solid var(--line);border-radius:14px;overflow:hidden;
-    transition:transform .25s ease, box-shadow .25s ease;
-  }
-  .case:hover{transform:translateY(-6px);box-shadow:0 28px 44px -26px rgba(0,0,0,0.32);}
-  .case-shot{position:relative;aspect-ratio:16/11;overflow:hidden;border-bottom:1px solid var(--line);background:var(--surface);}
-  .case-shot img{width:100%;height:100%;object-fit:cover;object-position:top;transition:transform .4s ease;}
-  .case:hover .case-shot img{transform:scale(1.05);}
-  .case-overlay{position:absolute;inset:0;background:linear-gradient(0deg, color-mix(in srgb, var(--ink) 75%, transparent), transparent 55%);opacity:0;display:flex;align-items:flex-end;padding:16px;transition:opacity .25s ease;}
-  .case:hover .case-overlay{opacity:1;}
-  .case-overlay span{font-family:'Space Mono',monospace;font-size:0.8rem;color:#fff;letter-spacing:0.04em;}
-  .case-body{padding:20px 22px 24px;}
-  .case-num{font-family:'Space Mono',monospace;color:var(--accent);font-weight:700;font-size:0.85rem;}
-  .case h3{font-size:1.2rem;font-weight:700;margin-top:6px;}
-  .case p{color:var(--ink-soft);margin:8px 0 0;font-size:0.92rem;}
-  .case-tags{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;}
-  .tag{font-family:'Space Mono',monospace;font-size:0.7rem;color:var(--ink-soft);border:1px solid var(--line);padding:3px 9px;border-radius:20px;}
-
-  .steps{display:grid;gap:22px;}
-  @media(min-width:800px){.steps{grid-template-columns:repeat(4,1fr);}}
-  .step{padding:22px 20px;border:1px solid var(--line);border-radius:12px;background:var(--surface-raise);transition:transform .2s ease;}
-  .step:hover{transform:translateY(-3px);}
-  .step-num{font-family:'Space Mono',monospace;color:var(--accent);font-weight:700;font-size:0.85rem;}
-  .step h3{font-size:1.02rem;font-weight:700;margin-top:10px;}
-  .step p{color:var(--ink-soft);font-size:0.88rem;margin-top:6px;}
-
-  .cta-final{background:var(--ink);color:var(--surface);border-radius:18px;padding:60px 40px;display:flex;flex-direction:column;gap:22px;align-items:flex-start;position:relative;overflow:hidden;}
-  .cta-final h2{color:inherit;font-size:clamp(1.9rem,4vw,2.6rem);}
-  .cta-final .lede{color:color-mix(in srgb, var(--surface) 65%, var(--ink-soft));}
-  .cta-final .btn-primary{background:var(--accent);color:var(--on-accent);}
-
-  footer{padding:40px 0 60px;}
-  .foot-row{display:flex;flex-wrap:wrap;gap:16px;justify-content:space-between;align-items:center;font-size:0.85rem;color:var(--ink-soft);}
-</style>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23ccf656'/%3E%3Cpath d='M8 9l8 15 8-15' stroke='%230a0c07' stroke-width='3.4' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
 </head>
 <body>
 
-<header>
-  <div class="nav wrap">
-    <div class="logo">Adriano Cardozo</div>
-    <nav class="nav-links">
+<a class="skip-link" href="#main">Pular para o conteúdo</a>
+<div class="progress" id="progress" aria-hidden="true"></div>
+
+<header class="site-header" id="header">
+  <div class="wrap nav">
+    <a class="brand" href="#top" aria-label="Vexon — início">
+      <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true">
+        <rect width="32" height="32" rx="7" fill="#ccf656"/>
+        <path d="M8 9l8 15 8-15" stroke="#0a0c07" stroke-width="3.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      Vexon
+    </a>
+
+    <nav class="nav-links" aria-label="Navegação principal">
       <a href="#servicos">Serviços</a>
+      <a href="#painel">Demonstração</a>
       <a href="#projetos">Projetos</a>
-      <a href="#processo">Como funciona</a>
-      <a href="#contato">Contato</a>
+      <a href="#processo">Processo</a>
+      <a href="#duvidas">Dúvidas</a>
     </nav>
-    <a class="btn btn-primary" href="https://wa.me/5561999974323?text=Vim%20pelo%20site%2C%20quero%20um%20or%C3%A7amento" style="padding:11px 20px;font-size:0.9rem;">Falar no WhatsApp</a>
+
+    <div class="nav-actions">
+      <button class="kbd-hint" id="paletteOpen" type="button" aria-haspopup="dialog">
+        Buscar <kbd>Ctrl</kbd><kbd>K</kbd>
+      </button>
+      <a class="btn btn-primary" href="#contato">
+        Falar com a gente
+        <svg class="arrow" width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7h8M7.5 3.5L11 7l-3.5 3.5"/></svg>
+      </a>
+    </div>
   </div>
 </header>
 
-<main>
-  <section class="hero" style="border-top:none;">
-    <div class="blob"></div>
-    <div class="blob-2"></div>
-    <div class="wrap hero-inner">
-      <span class="eyebrow">Sites &amp; Landing Pages sob medida</span>
-      <h1>Seu próximo cliente já está te procurando.<br>Falta um site pra te <em>achar</em>.</h1>
-      <p class="lede" style="margin-top:20px;">Eu construo sites e landing pages feitos pra fazer uma coisa só: transformar quem visita em mensagem no WhatsApp — e mensagem em cliente. Sem modelo genérico, sem enrolação.</p>
-      <div class="hero-foot">
-        <a class="btn btn-primary" href="#projetos">Ver projetos</a>
-        <a class="btn btn-ghost" href="#contato">Pedir orçamento</a>
-      </div>
+<main id="main">
 
-      <div class="about-strip reveal">
-        <div class="about-item"><strong>Feito sob medida</strong><span>Nada de template genérico reaproveitado</span></div>
-        <div class="about-item"><strong>Direto com quem constrói</strong><span>Sem agência, sem intermediário no meio</span></div>
-        <div class="about-item"><strong>Rápido do jeito certo</strong><span>Primeira versão no ar em poucos dias</span></div>
-      </div>
-    </div>
+<!-- ============================= HERO ============================= -->
+<section class="hero" id="top">
+  <div class="hero-grid-bg" aria-hidden="true"></div>
+  <div class="hero-glow g1" aria-hidden="true"></div>
+  <div class="hero-glow g2" aria-hidden="true"></div>
 
-    <div class="marquee">
-      <div class="marquee-track">
-        <span>LANDING PAGES</span><span>SITES INSTITUCIONAIS</span><span>MANUTENÇÃO MENSAL</span><span>FOCO EM CONVERSÃO</span>
-        <span>LANDING PAGES</span><span>SITES INSTITUCIONAIS</span><span>MANUTENÇÃO MENSAL</span><span>FOCO EM CONVERSÃO</span>
-      </div>
-    </div>
-  </section>
+  <div class="wrap hero-inner">
+    <div>
+      <span class="eyebrow">Software sob medida · Brasília, DF</span>
 
-  <section id="servicos">
-    <div class="wrap">
-      <div class="section-head reveal">
-        <span class="eyebrow">Serviços</span>
-        <h2>Três formas de trabalharmos juntos</h2>
-      </div>
-      <div class="services reveal">
-        <div class="service">
-          <h3>Landing Page</h3>
-          <p>Página única, direto ao ponto: benefícios, prova social e botão de contato. Ideal pra quem vive de indicação ou WhatsApp.</p>
-          <span class="price">R$ 497 – R$ 1.500</span>
-        </div>
-        <div class="service">
-          <h3>Site Institucional</h3>
-          <p>Várias páginas (home, sobre, serviços, contato), pra negócios que precisam de presença completa e profissional.</p>
-          <span class="price">R$ 1.500 – R$ 3.000</span>
-        </div>
-        <div class="service">
-          <h3>Manutenção Mensal</h3>
-          <p>Hospedagem, pequenos ajustes de texto e imagem, e suporte direto comigo sempre que precisar.</p>
-          <span class="price">R$ 97 – R$ 197/mês</span>
-        </div>
-      </div>
-    </div>
-  </section>
+      <h1 id="heroTitle">Seu processo não cabe numa planilha — nem num sistema <span class="hl">genérico</span>.</h1>
 
-  <section id="projetos">
-    <div class="wrap">
-      <div class="section-head reveal">
-        <span class="eyebrow">Projetos</span>
-        <h2>Exemplos do que eu construo</h2>
-      </div>
-      <div class="cases reveal">
-        <a class="case" href="projetos/fibra/" target="_blank" rel="noopener">
-          <div class="case-shot">
-            <img src="assets/preview-fibra.png" alt="Prévia do site Fibra Treinamento Funcional" loading="lazy">
-            <div class="case-overlay"><span>Ver projeto →</span></div>
-          </div>
-          <div class="case-body">
-            <span class="case-num">01</span>
-            <h3>Fibra Treinamento Funcional</h3>
-            <p>Landing page para personal trainer: proposta clara, programa em fases e CTA direto pro WhatsApp.</p>
-            <div class="case-tags"><span class="tag">Landing Page</span><span class="tag">Serviço local</span></div>
-          </div>
+      <p class="lede">
+        A Vexon constrói sites, lojas virtuais e sistemas web feitos para o jeito
+        que a sua empresa já trabalha. Você descreve o processo; a gente entrega
+        o software rodando, com o código na sua mão.
+      </p>
+
+      <div class="hero-cta">
+        <a class="btn btn-primary" href="#painel">
+          Ver funcionando
+          <svg class="arrow" width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7h8M7.5 3.5L11 7l-3.5 3.5"/></svg>
         </a>
-        <a class="case" href="projetos/traco-arquitetura/" target="_blank" rel="noopener">
-          <div class="case-shot">
-            <img src="assets/preview-traco.png" alt="Prévia do site Traço Arquitetura" loading="lazy">
-            <div class="case-overlay"><span>Ver projeto →</span></div>
-          </div>
-          <div class="case-body">
-            <span class="case-num">02</span>
-            <h3>Traço Arquitetura</h3>
-            <p>Site institucional multi-página para um estúdio de arquitetura: home, sobre, projetos e contato.</p>
-            <div class="case-tags"><span class="tag">Site Institucional</span><span class="tag">Multi-página</span></div>
-          </div>
-        </a>
-        <a class="case" href="projetos/grao-vivo/" target="_blank" rel="noopener">
-          <div class="case-shot">
-            <img src="assets/preview-grao-vivo.png" alt="Prévia do site Grão Vivo Torrefação" loading="lazy">
-            <div class="case-overlay"><span>Ver projeto →</span></div>
-          </div>
-          <div class="case-body">
-            <span class="case-num">03</span>
-            <h3>Grão Vivo Torrefação</h3>
-            <p>Página de vendas de produto único, com narrativa de marca e CTA de compra.</p>
-            <div class="case-tags"><span class="tag">Página de Vendas</span><span class="tag">Produto único</span></div>
-          </div>
-        </a>
+        <a class="btn btn-ghost" href="#projetos">Ver projetos</a>
       </div>
-      <p style="margin-top:24px;color:var(--ink-soft);font-size:0.82rem;font-family:'Space Mono',monospace;">Projetos acima são demonstrações de portfólio — marcas e nomes fictícios.</p>
-    </div>
-  </section>
 
-  <section id="processo">
-    <div class="wrap">
-      <div class="section-head reveal">
-        <span class="eyebrow">Como funciona</span>
-        <h2>Do briefing ao site no ar</h2>
-      </div>
-      <div class="steps reveal">
-        <div class="step"><span class="step-num">01</span><h3>Briefing</h3><p>Você me conta o negócio, o público e o que a página precisa fazer.</p></div>
-        <div class="step"><span class="step-num">02</span><h3>Primeira versão</h3><p>Eu construo a página já publicada num link funcional.</p></div>
-        <div class="step"><span class="step-num">03</span><h3>Ajustes</h3><p>Você revisa e eu ajusto até ficar do jeito certo.</p></div>
-        <div class="step"><span class="step-num">04</span><h3>No ar</h3><p>Publicação final, domínio próprio e, se quiser, manutenção mensal.</p></div>
+      <div class="hero-meta">
+        <span><b>4</b> projetos publicados</span>
+        <span><b>100%</b> código próprio</span>
+        <span>Entrega em <b>semanas</b></span>
       </div>
     </div>
-  </section>
 
-  <section id="contato">
-    <div class="wrap">
-      <div class="cta-final reveal">
-        <span class="eyebrow" style="color:var(--accent);">Vamos conversar</span>
-        <h2>Me conta o que você precisa.</h2>
-        <p class="lede">Resposta rápida, orçamento claro, sem compromisso.</p>
-        <a class="btn btn-primary" href="https://wa.me/5561999974323?text=Vim%20pelo%20site%2C%20quero%20um%20or%C3%A7amento">Chamar no WhatsApp</a>
+    <!-- Diagrama animado: o sistema desenhando a si mesmo -->
+    <div class="diagram-card reveal">
+      <div class="diagram-head">
+        <span>arquitetura · exemplo</span>
+        <span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>
+      </div>
+      <div class="diagram">
+        <svg id="archSvg" viewBox="0 26 480 250" role="img" aria-label="Diagrama de arquitetura: clientes acessam a aplicação, que fala com API, fila, banco de dados e painel administrativo">
+          <!-- fios -->
+          <path class="wire" id="w1" d="M78 68 C160 68, 160 150, 214 150"/>
+          <path class="wire" id="w2" d="M78 150 C150 150, 150 150, 214 150"/>
+          <path class="wire" id="w3" d="M78 232 C160 232, 160 150, 214 150"/>
+          <path class="wire" id="w4" d="M330 150 C372 150, 372 74, 404 74"/>
+          <path class="wire" id="w5" d="M330 150 C372 150, 372 150, 404 150"/>
+          <path class="wire" id="w6" d="M330 150 C372 150, 372 232, 404 232"/>
+
+          <!-- entradas -->
+          <g>
+            <rect class="node-box" x="8" y="48" width="70" height="40" rx="9"/>
+            <text class="node-label" x="43" y="66" text-anchor="middle">Site</text>
+            <text class="node-sub" x="43" y="79" text-anchor="middle">público</text>
+          </g>
+          <g>
+            <rect class="node-box" x="8" y="130" width="70" height="40" rx="9"/>
+            <text class="node-label" x="43" y="148" text-anchor="middle">Loja</text>
+            <text class="node-sub" x="43" y="161" text-anchor="middle">pedidos</text>
+          </g>
+          <g>
+            <rect class="node-box" x="8" y="212" width="70" height="40" rx="9"/>
+            <text class="node-label" x="43" y="230" text-anchor="middle">Equipe</text>
+            <text class="node-sub" x="43" y="243" text-anchor="middle">interno</text>
+          </g>
+
+          <!-- núcleo -->
+          <g>
+            <rect class="node-box accent" x="214" y="118" width="116" height="64" rx="12"/>
+            <text class="node-label" x="272" y="145" text-anchor="middle">Aplicação</text>
+            <text class="node-sub" x="272" y="160" text-anchor="middle">regras de negócio</text>
+          </g>
+
+          <!-- saídas -->
+          <g>
+            <rect class="node-box" x="404" y="54" width="68" height="40" rx="9"/>
+            <text class="node-label" x="438" y="72" text-anchor="middle">Banco</text>
+            <text class="node-sub" x="438" y="85" text-anchor="middle">dados</text>
+          </g>
+          <g>
+            <rect class="node-box" x="404" y="130" width="68" height="40" rx="9"/>
+            <text class="node-label" x="438" y="148" text-anchor="middle">Painel</text>
+            <text class="node-sub" x="438" y="161" text-anchor="middle">gestão</text>
+          </g>
+          <g>
+            <rect class="node-box" x="404" y="212" width="68" height="40" rx="9"/>
+            <text class="node-label" x="438" y="230" text-anchor="middle">Alertas</text>
+            <text class="node-sub" x="438" y="243" text-anchor="middle">e-mail · zap</text>
+          </g>
+
+          <!-- pulsos inseridos por JS -->
+          <g id="pulses"></g>
+        </svg>
       </div>
     </div>
-  </section>
+  </div>
+</section>
+
+<!-- ============================= MARQUEE ============================= -->
+<div class="marquee" aria-hidden="true">
+  <div class="marquee-track" id="marqueeTrack"></div>
+</div>
+
+<!-- ============================= SERVIÇOS ============================= -->
+<section class="section" id="servicos">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="eyebrow">O que construímos</span>
+      <h2>Quatro frentes. Uma mesma régua de qualidade.</h2>
+      <p>
+        Não existe pacote fechado aqui. O que existe é um jeito de trabalhar:
+        entender o processo primeiro, escrever código depois.
+      </p>
+    </div>
+
+    <div class="services">
+      <article class="service reveal">
+        <div class="service-icon">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M7 6.5h.01M10 6.5h.01"/></svg>
+        </div>
+        <h3>Sites e landing pages</h3>
+        <p>
+          Para quem precisa ser encontrado no Google e passar credibilidade em
+          dez segundos. Rápido, responsivo e com o texto certo para o cliente
+          que você quer atrair.
+        </p>
+        <ul><li>institucional</li><li>página de venda</li><li>SEO técnico</li><li>agendamento</li></ul>
+      </article>
+
+      <article class="service reveal">
+        <div class="service-icon">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 13h6v8H3zM10 3h5v18h-5zM16 8h5v13h-5z"/></svg>
+        </div>
+        <h3>Sistemas web sob medida</h3>
+        <p>
+          O painel que substitui as cinco planilhas: cadastro de clientes,
+          controle de pedidos, agenda, estoque, relatórios. Feito no formato do
+          seu processo, não no de um software de prateleira.
+        </p>
+        <ul><li>painéis</li><li>relatórios</li><li>níveis de acesso</li><li>multiusuário</li></ul>
+      </article>
+
+      <article class="service reveal">
+        <div class="service-icon">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18l-1.6 10.2a2 2 0 0 1-2 1.8H7.6a2 2 0 0 1-2-1.8L4 6zM9 21h.01M17 21h.01M8 6V4.5A3.5 3.5 0 0 1 15 4.5V6"/></svg>
+        </div>
+        <h3>Lojas virtuais</h3>
+        <p>
+          Catálogo, carrinho, checkout e integração com meio de pagamento —
+          incluindo venda de produto digital com entrega automática. Sem
+          mensalidade de plataforma amarrando você.
+        </p>
+        <ul><li>catálogo</li><li>checkout</li><li>pagamento</li><li>produto digital</li></ul>
+      </article>
+
+      <article class="service reveal">
+        <div class="service-icon">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v4M12 17v4M4.2 7.5l3.5 2M16.3 14.5l3.5 2M4.2 16.5l3.5-2M16.3 9.5l3.5-2"/><circle cx="12" cy="12" r="3.2"/></svg>
+        </div>
+        <h3>Automações e integrações</h3>
+        <p>
+          Aquele trabalho repetitivo que alguém faz toda segunda-feira: importar
+          planilha, gerar relatório, disparar cobrança, conectar dois sistemas
+          que não se falam. Isso vira rotina automática.
+        </p>
+        <ul><li>APIs</li><li>planilhas</li><li>WhatsApp</li><li>relatórios</li></ul>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ============================= PAINEL DEMO ============================= -->
+<section class="section" id="painel">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="eyebrow">Demonstração ao vivo</span>
+      <h2>Em vez de mostrar print, a gente deixa você mexer.</h2>
+      <p>
+        Este é um painel de gestão real rodando dentro desta página — troque o
+        período, passe o mouse no gráfico, ordene a tabela. É o tipo de tela que
+        entregamos para quem precisa enxergar a operação sem abrir planilha.
+      </p>
+    </div>
+
+    <div class="panel reveal">
+      <div class="panel-bar">
+        <span class="panel-title"><span class="live-dot" aria-hidden="true"></span> Painel de pedidos</span>
+        <div class="seg" role="group" aria-label="Selecionar período">
+          <button type="button" data-period="7" aria-pressed="false">7 dias</button>
+          <button type="button" data-period="30" aria-pressed="true">30 dias</button>
+          <button type="button" data-period="90" aria-pressed="false">90 dias</button>
+        </div>
+      </div>
+
+      <div class="kpis" id="kpis"></div>
+
+      <div class="chart-wrap" id="chartWrap">
+        <svg class="chart" id="chart" viewBox="0 0 720 210" preserveAspectRatio="none" role="img" aria-label="Gráfico de faturamento no período selecionado">
+          <defs>
+            <linearGradient id="areaFill" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#ccf656" stop-opacity="0.28"/>
+              <stop offset="100%" stop-color="#ccf656" stop-opacity="0"/>
+            </linearGradient>
+          </defs>
+          <line class="axis" x1="0" y1="205" x2="720" y2="205"/>
+          <path class="area" id="chartArea" d=""/>
+          <path class="line" id="chartLine" d=""/>
+          <line class="guide" id="chartGuide" x1="0" y1="0" x2="0" y2="205"/>
+          <circle class="marker" id="chartMarker" r="4.5"/>
+        </svg>
+        <div class="chart-tip" id="chartTip"></div>
+        <div class="chart-x" id="chartX"></div>
+      </div>
+
+      <div class="table-wrap">
+        <table class="orders">
+          <thead>
+            <tr>
+              <th data-sort="id" aria-sort="none" scope="col">Pedido <span class="caret">↕</span></th>
+              <th data-sort="cliente" aria-sort="none" scope="col">Cliente <span class="caret">↕</span></th>
+              <th data-sort="valor" aria-sort="descending" scope="col">Valor <span class="caret">↕</span></th>
+              <th data-sort="status" aria-sort="none" scope="col">Status <span class="caret">↕</span></th>
+              <th data-sort="dias" aria-sort="none" scope="col">Aberto há <span class="caret">↕</span></th>
+            </tr>
+          </thead>
+          <tbody id="ordersBody"></tbody>
+        </table>
+      </div>
+
+      <div class="panel-foot">
+        <span>Dados fictícios · componente de demonstração</span>
+        <span id="panelStamp">—</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================= PROJETOS ============================= -->
+<section class="section" id="projetos">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="eyebrow">Projetos</span>
+      <h2>Quatro projetos que você pode abrir e navegar agora.</h2>
+      <p>
+        São peças de demonstração — empresas fictícias, construídas por nós do
+        zero para mostrar cada tipo de trabalho. Todas estão no ar.
+      </p>
+    </div>
+
+    <div class="cases">
+      <a class="case reveal" href="projetos/loja/index.html">
+        <div class="case-shot">
+          <div class="case-chrome" aria-hidden="true"><i></i><i></i><i></i><span>vitrine — loja virtual</span></div>
+          <img src="assets/preview-loja.png" alt="Página inicial da loja Vitrine, com catálogo em grade" loading="lazy" decoding="async">
+        </div>
+        <div class="case-body">
+          <span class="case-kind">Loja virtual · Next.js</span>
+          <h3>Vitrine</h3>
+          <p>
+            Loja completa: catálogo, página de produto por slug, controle de
+            estoque, carrinho persistente e checkout em duas etapas.
+          </p>
+          <div class="case-foot">
+            <span>React · TypeScript · Tailwind</span>
+            <span class="go">Abrir <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5L8.5 3.5M4.5 3.5h4v4"/></svg></span>
+          </div>
+        </div>
+      </a>
+
+      <a class="case reveal" href="projetos/traco-arquitetura/index.html">
+        <div class="case-shot">
+          <div class="case-chrome" aria-hidden="true"><i></i><i></i><i></i><span>traço arquitetura — institucional</span></div>
+          <img src="assets/preview-traco.png" alt="Página inicial do site Traço Arquitetura" loading="lazy" decoding="async">
+        </div>
+        <div class="case-body">
+          <span class="case-kind">Site institucional · 4 páginas</span>
+          <h3>Traço Arquitetura</h3>
+          <p>
+            Estúdio de arquitetura com portfólio filtrável, página de estúdio e
+            contato. Tipografia editorial e navegação limpa.
+          </p>
+          <div class="case-foot">
+            <span>HTML · CSS · sem framework</span>
+            <span class="go">Abrir <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5L8.5 3.5M4.5 3.5h4v4"/></svg></span>
+          </div>
+        </div>
+      </a>
+
+      <a class="case reveal" href="projetos/fibra/index.html">
+        <div class="case-shot">
+          <div class="case-chrome" aria-hidden="true"><i></i><i></i><i></i><span>fibra — landing page</span></div>
+          <img src="assets/preview-fibra.png" alt="Landing page da Fibra Treinamento Funcional" loading="lazy" decoding="async">
+        </div>
+        <div class="case-body">
+          <span class="case-kind">Landing page · conversão</span>
+          <h3>Fibra Treinamento</h3>
+          <p>
+            Página única de captação para estúdio de treinamento, com oferta,
+            provas sociais e chamada direta para o WhatsApp.
+          </p>
+          <div class="case-foot">
+            <span>HTML · CSS · JS</span>
+            <span class="go">Abrir <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5L8.5 3.5M4.5 3.5h4v4"/></svg></span>
+          </div>
+        </div>
+      </a>
+
+      <a class="case reveal" href="projetos/grao-vivo/index.html">
+        <div class="case-shot">
+          <div class="case-chrome" aria-hidden="true"><i></i><i></i><i></i><span>grão vivo — página de venda</span></div>
+          <img src="assets/preview-grao-vivo.png" alt="Página de venda da torrefação Grão Vivo" loading="lazy" decoding="async">
+        </div>
+        <div class="case-body">
+          <span class="case-kind">Página de venda · produto único</span>
+          <h3>Grão Vivo</h3>
+          <p>
+            Torrefação vendendo um único produto: história da marca, ficha
+            técnica, objeções respondidas e uma chamada só.
+          </p>
+          <div class="case-foot">
+            <span>HTML · CSS</span>
+            <span class="go">Abrir <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5L8.5 3.5M4.5 3.5h4v4"/></svg></span>
+          </div>
+        </div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ============================= PROCESSO ============================= -->
+<section class="section" id="processo">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="eyebrow">Como funciona</span>
+      <h2>Do primeiro contato ao sistema no ar.</h2>
+      <p>
+        Sem reunião infinita e sem proposta de vinte páginas. Quatro etapas,
+        cada uma com um entregável claro.
+      </p>
+    </div>
+
+    <div class="steps" id="steps">
+      <article class="step">
+        <span class="step-num">01</span>
+        <h3>Conversa</h3>
+        <p>
+          Trinta minutos para entender o que trava hoje: onde a informação se
+          perde, o que é feito na mão, o que você precisa enxergar.
+        </p>
+        <span class="step-when">30 min · sem custo</span>
+      </article>
+      <article class="step">
+        <span class="step-num">02</span>
+        <h3>Escopo e proposta</h3>
+        <p>
+          Você recebe por escrito o que será construído, o que fica de fora, o
+          prazo e o valor fechado. Sem surpresa no meio do caminho.
+        </p>
+        <span class="step-when">em até 2 dias</span>
+      </article>
+      <article class="step">
+        <span class="step-num">03</span>
+        <h3>Construção</h3>
+        <p>
+          Entregas semanais em ambiente de teste. Você usa, aponta o que está
+          diferente do real e a gente ajusta antes de seguir.
+        </p>
+        <span class="step-when">semanal</span>
+      </article>
+      <article class="step">
+        <span class="step-num">04</span>
+        <h3>Publicação e suporte</h3>
+        <p>
+          Sistema no ar, treinamento da equipe e trinta dias de ajuste incluído.
+          O código-fonte é seu — sem refém de fornecedor.
+        </p>
+        <span class="step-when">+30 dias de ajuste</span>
+      </article>
+    </div>
+
+    <div class="section-head reveal" style="margin-top:56px;margin-bottom:22px;">
+      <span class="eyebrow">Com o que trabalhamos</span>
+    </div>
+    <div class="stack reveal">
+      <span>TypeScript</span><span>React</span><span>Next.js</span><span>Node.js</span>
+      <span>PostgreSQL</span><span>Tailwind CSS</span><span>HTML/CSS</span><span>Git</span>
+      <span>REST APIs</span><span>Vercel</span>
+    </div>
+  </div>
+</section>
+
+<!-- ============================= FAQ ============================= -->
+<section class="section" id="duvidas">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="eyebrow">Dúvidas frequentes</span>
+      <h2>O que a maioria pergunta antes de fechar.</h2>
+    </div>
+
+    <div class="faq reveal">
+      <details>
+        <summary>Quanto tempo leva para ficar pronto?</summary>
+        <div class="answer">
+          Uma landing page fica pronta em poucos dias. Um site institucional,
+          em uma a duas semanas. Um sistema sob medida depende do tamanho do
+          processo — mas você recebe a primeira versão navegável já na primeira
+          semana, e não no fim do projeto.
+        </div>
+      </details>
+      <details>
+        <summary>Quanto custa?</summary>
+        <div class="answer">
+          Valor fechado por projeto, definido depois da conversa inicial — nunca
+          por hora e nunca com escopo aberto. Site e landing page têm faixa de
+          preço bem previsível; sistema depende de quantas telas e regras a sua
+          operação exige. Você aprova o valor antes de qualquer linha de código.
+        </div>
+      </details>
+      <details>
+        <summary>Depois de pronto, quem mantém?</summary>
+        <div class="answer">
+          Você escolhe. O código-fonte é entregue para você e pode ser mantido
+          por qualquer desenvolvedor — não existe amarra. Se preferir, ficamos
+          com a manutenção em um plano mensal simples, que cobre correções,
+          pequenas melhorias e monitoramento.
+        </div>
+      </details>
+      <details>
+        <summary>Vocês só fazem site ou sistema também?</summary>
+        <div class="answer">
+          Os dois, e frequentemente juntos: o site que traz o cliente e o painel
+          interno que trata o pedido depois que ele chega. Boa parte do valor
+          está justamente em conectar as duas pontas em vez de deixar cada uma
+          numa ferramenta diferente.
+        </div>
+      </details>
+      <details>
+        <summary>Atendem empresa de qualquer tamanho?</summary>
+        <div class="answer">
+          Trabalhamos melhor com negócios pequenos e médios que já têm um
+          processo funcionando na base do improviso — planilha, caderno, grupo de
+          WhatsApp — e chegaram no limite disso. É onde um sistema sob medida
+          resolve mais em menos tempo.
+        </div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- ============================= CTA ============================= -->
+<section class="section" id="contato">
+  <div class="wrap">
+    <div class="cta reveal">
+      <span class="eyebrow">Próximo passo</span>
+      <h2>Conta o que trava hoje. A gente responde se dá para resolver.</h2>
+      <p>
+        Trinta minutos de conversa, sem compromisso. Se não for um bom encaixe,
+        a gente fala isso na hora em vez de empurrar proposta.
+      </p>
+      <div class="cta-actions">
+        <a class="btn btn-primary" href="https://wa.me/5561999974323?text=Ol%C3%A1%21%20Vim%20pelo%20site%20da%20Vexon%20e%20queria%20conversar%20sobre%20um%20projeto." target="_blank" rel="noopener">
+          Chamar no WhatsApp
+          <svg class="arrow" width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7h8M7.5 3.5L11 7l-3.5 3.5"/></svg>
+        </a>
+        <a class="btn btn-ghost" href="mailto:contato@vexon.dev">contato@vexon.dev</a>
+      </div>
+    </div>
+  </div>
+</section>
+
 </main>
 
-<footer>
+<footer class="site-footer">
   <div class="wrap">
-    <div class="foot-row">
-      <span>Adriano Cardozo — Sites e Landing Pages</span>
-      <span>adrianosouzanj@gmail.com</span>
+    <div class="foot-top">
+      <div>
+        <a class="brand" href="#top">
+          <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true">
+            <rect width="32" height="32" rx="7" fill="#ccf656"/>
+            <path d="M8 9l8 15 8-15" stroke="#0a0c07" stroke-width="3.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          Vexon
+        </a>
+        <p>
+          Sites, lojas virtuais e sistemas web sob medida para empresas que
+          cansaram de adaptar o processo ao software.
+        </p>
+      </div>
+
+      <div class="foot-col">
+        <h4>Navegar</h4>
+        <ul>
+          <li><a href="#servicos">Serviços</a></li>
+          <li><a href="#painel">Demonstração</a></li>
+          <li><a href="#projetos">Projetos</a></li>
+          <li><a href="#processo">Processo</a></li>
+        </ul>
+      </div>
+
+      <div class="foot-col">
+        <h4>Contato</h4>
+        <ul>
+          <li><a href="https://wa.me/5561999974323" target="_blank" rel="noopener">WhatsApp (61) 99997-4323</a></li>
+          <li><a href="mailto:contato@vexon.dev">contato@vexon.dev</a></li>
+          <li>Brasília · DF</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="foot-bottom">
+      <span>© <span id="year">2026</span> Vexon</span>
+      <span>Os projetos exibidos são demonstrações de empresas fictícias.</span>
     </div>
   </div>
 </footer>
 
-<script>
-  const revealEls = document.querySelectorAll('.reveal');
-  if('IntersectionObserver' in window){
-    const io = new IntersectionObserver((entries)=>{
-      entries.forEach(e=>{
-        if(e.isIntersecting){ e.target.classList.add('is-visible'); io.unobserve(e.target); }
-      });
-    }, {threshold:0.15});
-    revealEls.forEach(el=>io.observe(el));
-  } else {
-    revealEls.forEach(el=>el.classList.add('is-visible'));
-  }
-</script>
+<!-- ============================= PALETA DE COMANDOS ============================= -->
+<div class="palette" id="palette" role="dialog" aria-modal="true" aria-label="Busca rápida">
+  <div class="palette-box">
+    <input class="palette-input" id="paletteInput" type="text" placeholder="Buscar seção ou projeto…" autocomplete="off" spellcheck="false">
+    <ul class="palette-list" id="paletteList" role="listbox"></ul>
+    <div class="palette-foot">
+      <span><kbd>↑</kbd><kbd>↓</kbd> navegar</span>
+      <span><kbd>↵</kbd> abrir</span>
+      <span><kbd>esc</kbd> fechar</span>
+    </div>
+  </div>
+</div>
+
+<script src="assets/app.js"></script>
 </body>
 </html>
