@@ -1,0 +1,399 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mecânica Rota Sul — Oficina em Brasília</title>
+<meta name="description" content="Oficina mecânica em Brasília. Você aprova o orçamento por link antes de qualquer serviço e acompanha o carro pelo WhatsApp.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600;700&family=Roboto+Mono:wght@400;500&display=swap">
+<style>
+  :root{
+    --ground:#eef1f4;
+    --surface:#ffffff;
+    --deep:#16273c;
+    --ink:#121a24;
+    --ink-soft:#5b6674;
+    --line:#dae0e7;
+    --accent:#ffc400;
+    --accent-dark:#e0a900;
+    --ok:#17915c;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;-webkit-font-smoothing:antialiased;}
+  body{margin:0;background:var(--ground);color:var(--ink);font-family:'Barlow',system-ui,sans-serif;font-size:17px;line-height:1.6;}
+  img,svg{display:block;max-width:100%;}
+  a{color:inherit;text-decoration:none;}
+  h1,h2,h3{font-family:'Barlow Condensed','Arial Narrow',sans-serif;font-weight:700;text-transform:uppercase;letter-spacing:0.01em;line-height:1.02;margin:0;text-wrap:balance;}
+  p{margin:0;}
+  ::selection{background:var(--accent);color:var(--ink);}
+  :focus-visible{outline:3px solid var(--accent);outline-offset:3px;}
+
+  .wrap{max-width:1140px;margin:0 auto;padding:0 22px;}
+  .tag{font-family:'Roboto Mono',monospace;font-size:0.7rem;letter-spacing:0.16em;text-transform:uppercase;color:var(--ink-soft);}
+  .tag.on-dark{color:var(--accent);}
+
+  .btn{display:inline-flex;align-items:center;gap:9px;font-family:'Barlow',sans-serif;font-weight:700;font-size:0.97rem;padding:14px 26px;border:2px solid transparent;cursor:pointer;transition:transform .18s ease,background-color .18s ease,color .18s ease;}
+  .btn:hover{transform:translateY(-2px);}
+  .btn-zap{background:var(--accent);color:var(--ink);}
+  .btn-zap:hover{background:var(--accent-dark);}
+  .btn-line{border-color:currentColor;color:inherit;background:transparent;}
+
+  .bar{background:var(--deep);color:#dbe4ee;font-family:'Roboto Mono',monospace;font-size:0.72rem;letter-spacing:0.06em;}
+  .bar .wrap{display:flex;flex-wrap:wrap;gap:6px 26px;justify-content:space-between;padding-block:9px;}
+  header{position:sticky;top:0;z-index:50;background:var(--surface);border-bottom:1px solid var(--line);}
+  .nav{display:flex;align-items:center;justify-content:space-between;gap:18px;padding-block:14px;}
+  .logo{display:flex;align-items:center;gap:11px;}
+  .logo-mark{width:38px;height:38px;background:var(--deep);display:grid;place-items:center;flex:none;}
+  .logo-mark span{font-family:'Barlow Condensed',sans-serif;font-weight:700;color:var(--accent);font-size:1.25rem;line-height:1;}
+  .logo-txt b{display:block;font-family:'Barlow Condensed',sans-serif;font-size:1.24rem;text-transform:uppercase;letter-spacing:0.02em;line-height:1;}
+  .logo-txt small{font-family:'Roboto Mono',monospace;font-size:0.62rem;letter-spacing:0.13em;color:var(--ink-soft);text-transform:uppercase;}
+  .nav-links{display:none;gap:24px;font-size:0.93rem;font-weight:500;}
+  .nav-links a:hover{color:var(--accent-dark);}
+  @media(min-width:920px){.nav-links{display:flex;}}
+
+  .hero{padding:clamp(44px,7vw,78px) 0 clamp(40px,6vw,64px);}
+  .hero-grid{display:grid;gap:38px;align-items:center;}
+  @media(min-width:960px){.hero-grid{grid-template-columns:1.05fr .95fr;gap:46px;}}
+  .hero h1{font-size:clamp(2.5rem,6.4vw,4.3rem);}
+  .hero h1 em{font-style:normal;background:var(--accent);padding:0 .12em;}
+  .hero p.lead{margin-top:20px;font-size:1.09rem;color:var(--ink-soft);max-width:52ch;}
+  .hero-cta{display:flex;flex-wrap:wrap;gap:13px;margin-top:28px;}
+
+  .stats{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:var(--line);border:1px solid var(--line);margin-top:36px;}
+  @media(min-width:600px){.stats{grid-template-columns:repeat(4,1fr);}}
+  .stat{background:var(--surface);padding:16px 15px;}
+  .stat b{display:block;font-family:'Barlow Condensed',sans-serif;font-size:1.75rem;line-height:1;}
+  .stat span{font-family:'Roboto Mono',monospace;font-size:0.65rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink-soft);}
+
+  .mock{background:var(--surface);border:1px solid var(--line);box-shadow:0 24px 50px -34px rgba(18,26,36,.55);}
+  .mock-top{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:13px 17px;background:var(--deep);color:#fff;}
+  .mock-top b{font-family:'Barlow Condensed',sans-serif;font-size:1.02rem;text-transform:uppercase;letter-spacing:.03em;}
+  .mock-top .os{font-family:'Roboto Mono',monospace;font-size:.7rem;color:var(--accent);}
+  .mock-car{display:flex;align-items:center;gap:12px;padding:15px 17px;border-bottom:1px solid var(--line);}
+  .plate{font-family:'Roboto Mono',monospace;font-weight:500;font-size:.82rem;border:2px solid var(--ink);padding:3px 9px;letter-spacing:.09em;}
+  .mock-car small{font-size:.85rem;color:var(--ink-soft);}
+  .items{list-style:none;margin:0;padding:0;}
+  .items li{display:flex;align-items:center;gap:12px;padding:12px 17px;border-bottom:1px solid var(--line);font-size:.93rem;}
+  .items li .n{flex:1;}
+  .items li .v{font-family:'Roboto Mono',monospace;font-variant-numeric:tabular-nums;}
+  .chk{width:19px;height:19px;border:2px solid var(--line);flex:none;display:grid;place-items:center;}
+  .chk.yes{background:var(--ok);border-color:var(--ok);}
+  .chk.yes::after{content:"";width:9px;height:5px;border-left:2px solid #fff;border-bottom:2px solid #fff;transform:rotate(-45deg) translateY(-1px);}
+  .items li.off .n,.items li.off .v{color:var(--ink-soft);text-decoration:line-through;}
+  .mock-total{display:flex;align-items:center;justify-content:space-between;padding:15px 17px;font-weight:700;}
+  .mock-total .v{font-family:'Roboto Mono',monospace;font-size:1.15rem;}
+  .mock-act{padding:0 17px 17px;}
+  .mock-act .btn{width:100%;justify-content:center;}
+  .mock-note{font-family:'Roboto Mono',monospace;font-size:.66rem;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft);text-align:center;padding-bottom:15px;}
+
+  section.blk{padding:clamp(52px,8vw,86px) 0;}
+  .head{max-width:640px;margin-bottom:36px;}
+  .head h2{font-size:clamp(1.9rem,4.2vw,2.9rem);margin-top:12px;}
+  .head p{margin-top:14px;color:var(--ink-soft);}
+
+  .dark{background:var(--deep);color:#e7edf4;}
+  .dark .head p{color:#a9bacd;}
+  .dark h2{color:#fff;}
+
+  .grid3{display:grid;gap:16px;}
+  @media(min-width:700px){.grid3{grid-template-columns:repeat(3,1fr);}}
+  .card{background:var(--surface);border:1px solid var(--line);padding:22px 22px 24px;display:flex;flex-direction:column;gap:9px;transition:border-color .2s ease,transform .2s ease;}
+  .card:hover{border-color:var(--ink);transform:translateY(-2px);}
+  .card h3{font-size:1.16rem;}
+  .card p{font-size:.94rem;color:var(--ink-soft);}
+  .card .ico{width:40px;height:40px;background:var(--accent);display:grid;place-items:center;margin-bottom:6px;}
+  .card .ico svg{width:21px;height:21px;stroke:var(--ink);fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;}
+
+  .steps{display:grid;gap:1px;background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.13);margin-top:34px;}
+  @media(min-width:820px){.steps{grid-template-columns:repeat(4,1fr);}}
+  .step{background:var(--deep);padding:24px 22px 28px;}
+  .step .num{font-family:'Roboto Mono',monospace;font-size:.72rem;color:var(--accent);letter-spacing:.12em;}
+  .step h3{font-size:1.08rem;margin-top:12px;color:#fff;}
+  .step p{margin-top:8px;font-size:.92rem;color:#a9bacd;}
+
+  .quotes{display:grid;gap:16px;}
+  @media(min-width:800px){.quotes{grid-template-columns:repeat(3,1fr);}}
+  .quote{background:var(--surface);border:1px solid var(--line);border-top:4px solid var(--accent);padding:22px;}
+  .quote p{font-size:.96rem;}
+  .quote footer{margin-top:14px;font-family:'Roboto Mono',monospace;font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft);}
+  .stars{color:var(--accent-dark);letter-spacing:.14em;font-size:.85rem;margin-bottom:9px;}
+
+  .info{display:grid;gap:1px;background:var(--line);border:1px solid var(--line);}
+  @media(min-width:760px){.info{grid-template-columns:repeat(3,1fr);}}
+  .info div{background:var(--surface);padding:22px;}
+  .info h3{font-size:1.02rem;font-family:'Barlow',sans-serif;font-weight:700;text-transform:none;letter-spacing:0;}
+  .info p{margin-top:7px;font-size:.93rem;color:var(--ink-soft);}
+
+  .brands{display:flex;flex-wrap:wrap;gap:9px;margin-top:8px;}
+  .brands span{font-family:'Roboto Mono',monospace;font-size:.76rem;border:1px solid var(--line);background:var(--surface);padding:7px 13px;color:var(--ink-soft);}
+
+  .final{background:var(--accent);padding:clamp(36px,6vw,58px);display:flex;flex-direction:column;gap:16px;align-items:flex-start;}
+  .final h2{font-size:clamp(1.9rem,4.4vw,3rem);max-width:18ch;}
+  .final p{max-width:48ch;font-weight:500;}
+  .final .btn-zap{background:var(--ink);color:var(--accent);}
+  .final .btn-zap:hover{background:#000;}
+
+  footer.site{background:var(--deep);color:#a9bacd;padding:42px 0 40px;font-size:.9rem;}
+  .foot{display:flex;flex-wrap:wrap;gap:18px 34px;justify-content:space-between;}
+  .demo{margin-top:26px;padding-top:18px;border-top:1px solid rgba(255,255,255,.14);font-family:'Roboto Mono',monospace;font-size:.7rem;line-height:1.7;color:#8fa2b8;}
+
+  @media (prefers-reduced-motion: reduce){
+    html{scroll-behavior:auto;}
+    *{transition:none!important;}
+  }
+</style>
+</head>
+<body>
+
+<div class="bar">
+  <div class="wrap">
+    <span>SIA Trecho 3 · Brasília / DF</span>
+    <span>Seg a Sex 8h–18h · Sáb 8h–12h</span>
+    <span>(61) 3333-0000</span>
+  </div>
+</div>
+
+<header>
+  <div class="wrap nav">
+    <a class="logo" href="#topo" aria-label="Mecânica Rota Sul — início">
+      <span class="logo-mark" aria-hidden="true"><span>RS</span></span>
+      <span class="logo-txt">
+        <b>Rota Sul</b>
+        <small>Mecânica &amp; Auto Center</small>
+      </span>
+    </a>
+    <nav class="nav-links" aria-label="Navegação">
+      <a href="#servicos">Serviços</a>
+      <a href="#orcamento">Orçamento</a>
+      <a href="#processo">Como funciona</a>
+      <a href="#clientes">Clientes</a>
+      <a href="#contato">Onde estamos</a>
+    </nav>
+    <a class="btn btn-zap" href="https://wa.me/5561999990000" target="_blank" rel="noopener">Agendar no WhatsApp</a>
+  </div>
+</header>
+
+<main id="topo">
+
+  <section class="hero">
+    <div class="wrap hero-grid">
+      <div>
+        <span class="tag">Mecânica geral · injeção · suspensão · freios</span>
+        <h1>Nenhuma peça trocada sem você <em>aprovar antes</em>.</h1>
+        <p class="lead">
+          O carro entra, a gente diagnostica e te manda o orçamento por link no
+          WhatsApp — item por item, com foto. Você aprova o que quiser, recusa o
+          resto, e só aí a chave é girada.
+        </p>
+        <div class="hero-cta">
+          <a class="btn btn-zap" href="https://wa.me/5561999990000" target="_blank" rel="noopener">Agendar avaliação</a>
+          <a class="btn btn-line" href="#orcamento">Ver como funciona o orçamento</a>
+        </div>
+
+        <div class="stats">
+          <div class="stat"><b>18</b><span>Anos no SIA</span></div>
+          <div class="stat"><b>90 dias</b><span>De garantia</span></div>
+          <div class="stat"><b>4,8</b><span>Nota no Google</span></div>
+          <div class="stat"><b>0</b><span>Surpresa na conta</span></div>
+        </div>
+      </div>
+
+      <div class="mock" id="orcamento">
+        <div class="mock-top">
+          <b>Orçamento para aprovação</b>
+          <span class="os">OS 2418</span>
+        </div>
+        <div class="mock-car">
+          <span class="plate">JKL-4C21</span>
+          <small>Onix 1.0 · 2019 · 78.400 km</small>
+        </div>
+        <ul class="items">
+          <li>
+            <span class="chk yes" aria-hidden="true"></span>
+            <span class="n">Pastilha de freio dianteira (par)</span>
+            <span class="v">R$ 320,00</span>
+          </li>
+          <li>
+            <span class="chk yes" aria-hidden="true"></span>
+            <span class="n">Disco de freio dianteiro — retífica</span>
+            <span class="v">R$ 180,00</span>
+          </li>
+          <li>
+            <span class="chk yes" aria-hidden="true"></span>
+            <span class="n">Troca de óleo + filtro</span>
+            <span class="v">R$ 245,00</span>
+          </li>
+          <li class="off">
+            <span class="chk" aria-hidden="true"></span>
+            <span class="n">Amortecedor traseiro (par) — pode esperar</span>
+            <span class="v">R$ 890,00</span>
+          </li>
+        </ul>
+        <div class="mock-total">
+          <span>Total aprovado</span>
+          <span class="v">R$ 745,00</span>
+        </div>
+        <div class="mock-act">
+          <span class="btn btn-zap">Aprovar e liberar serviço</span>
+        </div>
+        <p class="mock-note">Exemplo do link que o cliente recebe</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="blk" id="servicos">
+    <div class="wrap">
+      <div class="head">
+        <span class="tag">O que fazemos</span>
+        <h2>Serviço de oficina, sem enrolação</h2>
+        <p>Trabalhamos com carro de passeio nacional e importado popular. O que não fazemos, a gente diz na hora e indica quem faz.</p>
+      </div>
+      <div class="grid3">
+        <article class="card">
+          <span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 13l2-5.5A2 2 0 0 1 6.9 6h10.2a2 2 0 0 1 1.9 1.5L21 13v5.5a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1V17H7v1.5a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"/><path d="M6.5 13.5h.01M17.5 13.5h.01"/></svg></span>
+          <h3>Revisão completa</h3>
+          <p>Checklist de 32 itens com relatório enviado no WhatsApp. Você vê o que está bom, o que vigiar e o que trocar agora.</p>
+        </article>
+        <article class="card">
+          <span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/><path d="M12 4v3M12 17v3M4 12h3M17 12h3"/></svg></span>
+          <h3>Freios e suspensão</h3>
+          <p>Pastilha, disco, fluido, amortecedor, bandeja, pivô. Teste de rua antes e depois, sempre com o cliente sabendo.</p>
+        </article>
+        <article class="card">
+          <span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 17h4l2-4 3 7 2.5-6h4.5"/><path d="M3 7h18"/></svg></span>
+          <h3>Injeção eletrônica</h3>
+          <p>Leitura de scanner com laudo impresso. Se o problema não for o que a luz do painel diz, a gente mostra por que.</p>
+        </article>
+        <article class="card">
+          <span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 6h14v9a3 3 0 0 1-3 3H8a3 3 0 0 1-3-3z"/><path d="M9 18v2.5M15 18v2.5M8.5 10h7"/></svg></span>
+          <h3>Ar-condicionado</h3>
+          <p>Higienização, carga de gás e troca de filtro de cabine. Teste de temperatura com termômetro na saída do ar.</p>
+        </article>
+        <article class="card">
+          <span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6.5 4.5h11l1.5 5.5H5z"/><path d="M5 10v8.5a1 1 0 0 0 1 1h1.5a1 1 0 0 0 1-1V17h7v1.5a1 1 0 0 0 1 1H18a1 1 0 0 0 1-1V10"/></svg></span>
+          <h3>Troca de óleo e filtros</h3>
+          <p>Óleo na especificação do fabricante, com etiqueta de próxima troca e lembrete automático quando chegar a quilometragem.</p>
+        </article>
+        <article class="card">
+          <span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5L18 18M18 6l-2.5 2.5M8.5 15.5L6 18"/></svg></span>
+          <h3>Alinhamento e balanceamento</h3>
+          <p>Alinhamento computadorizado com impressão do antes e depois. Rodízio de pneus incluso na revisão.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="blk dark" id="processo">
+    <div class="wrap">
+      <div class="head">
+        <span class="tag on-dark">Como funciona</span>
+        <h2>Da entrada à entrega, você acompanha tudo</h2>
+        <p>Sem ligar pra perguntar como está. A cada etapa chega uma mensagem no seu WhatsApp.</p>
+      </div>
+      <div class="steps">
+        <article class="step">
+          <span class="num">ETAPA 01</span>
+          <h3>Entrada e diagnóstico</h3>
+          <p>Você deixa o carro ou agenda pelo WhatsApp. Em até 3 horas o diagnóstico está pronto.</p>
+        </article>
+        <article class="step">
+          <span class="num">ETAPA 02</span>
+          <h3>Orçamento por link</h3>
+          <p>Chega no seu celular com cada item, o preço e a foto do que foi encontrado. Nada de valor fechado sem explicação.</p>
+        </article>
+        <article class="step">
+          <span class="num">ETAPA 03</span>
+          <h3>Você decide item a item</h3>
+          <p>Aprova o que é urgente, deixa o resto para depois. O total muda na sua frente enquanto você escolhe.</p>
+        </article>
+        <article class="step">
+          <span class="num">ETAPA 04</span>
+          <h3>Execução e entrega</h3>
+          <p>Serviço feito, teste de rua, e aviso quando estiver pronto. As peças trocadas ficam guardadas se você quiser ver.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="blk" id="clientes">
+    <div class="wrap">
+      <div class="head">
+        <span class="tag">Quem já passou por aqui</span>
+        <h2>O que os clientes falam</h2>
+      </div>
+      <div class="quotes">
+        <article class="quote">
+          <div class="stars" aria-label="5 de 5">★★★★★</div>
+          <p>"Primeira vez que uma oficina me mandou o orçamento escrito antes de mexer no carro. Recusei dois itens e ninguém fez cara feia."</p>
+          <footer>Rafael M. · Onix 2019</footer>
+        </article>
+        <article class="quote">
+          <div class="stars" aria-label="5 de 5">★★★★★</div>
+          <p>"Levei achando que era embreagem e era só o cabo. Podiam ter me cobrado o dobro e eu nem saberia. Voltei outras três vezes."</p>
+          <footer>Juliana P. · HB20 2021</footer>
+        </article>
+        <article class="quote">
+          <div class="stars" aria-label="4 de 5">★★★★☆</div>
+          <p>"Demorou meio dia a mais que o combinado, mas me avisaram antes e explicaram o motivo. O serviço ficou impecável."</p>
+          <footer>Carlos E. · Corolla 2017</footer>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="blk" id="contato" style="padding-top:0;">
+    <div class="wrap">
+      <div class="info">
+        <div>
+          <h3>Onde estamos</h3>
+          <p>SIA Trecho 3, Lote 000<br>Brasília / DF · em frente ao posto</p>
+        </div>
+        <div>
+          <h3>Horário</h3>
+          <p>Segunda a sexta, 8h às 18h<br>Sábado, 8h às 12h</p>
+        </div>
+        <div>
+          <h3>Contato</h3>
+          <p>(61) 3333-0000<br>WhatsApp (61) 99999-0000</p>
+        </div>
+      </div>
+
+      <p class="tag" style="margin-top:34px;">Marcas que mais atendemos</p>
+      <div class="brands">
+        <span>Chevrolet</span><span>Volkswagen</span><span>Fiat</span><span>Hyundai</span>
+        <span>Toyota</span><span>Renault</span><span>Honda</span><span>Ford</span><span>Nissan</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="blk" style="padding-top:0;">
+    <div class="wrap">
+      <div class="final">
+        <span class="tag" style="color:rgba(18,26,36,.65);">Agende hoje</span>
+        <h2>Traga o carro. O orçamento sai antes da chave girar.</h2>
+        <p>Avaliação sem compromisso. Se não valer a pena consertar, a gente fala isso também.</p>
+        <a class="btn btn-zap" href="https://wa.me/5561999990000" target="_blank" rel="noopener">Chamar no WhatsApp</a>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site">
+  <div class="wrap">
+    <div class="foot">
+      <span><strong style="color:#fff;">Mecânica Rota Sul</strong> — mecânica geral e auto center</span>
+      <span>SIA Trecho 3 · Brasília / DF · (61) 3333-0000</span>
+    </div>
+    <p class="demo">
+      Site modelo de demonstração, criado pela Vexon como exemplo de página para
+      oficina mecânica. A empresa, os depoimentos, o endereço e os telefones são
+      fictícios e não correspondem a nenhum estabelecimento real.
+    </p>
+  </div>
+</footer>
+
+</body>
+</html>

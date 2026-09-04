@@ -537,6 +537,7 @@
     { name: "Projetos", kind: "seção", href: "#projetos" },
     { name: "Processo de trabalho", kind: "seção", href: "#processo" },
     { name: "Dúvidas frequentes", kind: "seção", href: "#duvidas" },
+    { name: "Mecânica Rota Sul — oficina", kind: "projeto", href: "projetos/oficina/index.html" },
     { name: "Vitrine — loja virtual", kind: "projeto", href: "projetos/loja/index.html" },
     { name: "Traço Arquitetura — institucional", kind: "projeto", href: "projetos/traco-arquitetura/index.html" },
     { name: "Fibra Treinamento — landing page", kind: "projeto", href: "projetos/fibra/index.html" },
