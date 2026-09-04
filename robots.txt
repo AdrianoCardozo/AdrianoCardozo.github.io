@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+
+# Propostas feitas para oficinas especificas. Nao sao paginas publicas.
+Disallow: /pre/
+
+Sitemap: https://vexonsystem.com/sitemap.xml
