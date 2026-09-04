@@ -13,7 +13,7 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23ccf656'/%3E%3Cpath d='M8 9l8 15 8-15' stroke='%230a0c07' stroke-width='3.4' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
 </head>
@@ -26,7 +26,7 @@
   <div class="wrap nav">
     <a class="brand" href="#top" aria-label="Vexon — início">
       <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true">
-        <rect width="32" height="32" rx="7" fill="#ccf656"/>
+        <rect width="32" height="32" rx="7" fill="#c7e356"/>
         <path d="M8 9l8 15 8-15" stroke="#0a0c07" stroke-width="3.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
       Vexon
@@ -41,9 +41,6 @@
     </nav>
 
     <div class="nav-actions">
-      <button class="kbd-hint" id="paletteOpen" type="button" aria-haspopup="dialog">
-        Buscar <kbd>Ctrl</kbd><kbd>K</kbd>
-      </button>
       <a class="btn btn-primary" href="#contato">
         Falar com a gente
         <svg class="arrow" width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7h8M7.5 3.5L11 7l-3.5 3.5"/></svg>
@@ -57,20 +54,17 @@
 <!-- ============================= HERO ============================= -->
 <section class="hero" id="top">
   <div class="hero-grid-bg" aria-hidden="true"></div>
-  <div class="hero-glow g1" aria-hidden="true"></div>
-  <div class="hero-glow g2" aria-hidden="true"></div>
 
   <div class="wrap hero-inner">
     <div>
       <span class="eyebrow">Software sob medida · de Brasília para o Brasil inteiro</span>
 
-      <h1 id="heroTitle">Seu processo não cabe numa planilha — nem num sistema <span class="hl">genérico</span>.</h1>
+      <h1 id="heroTitle">Seu processo não cabe numa planilha, nem num sistema <span class="hl">genérico</span>.</h1>
 
       <p class="lede">
         A Vexon constrói sites, lojas virtuais e sistemas web feitos para o jeito
         que a sua empresa já trabalha. Você descreve o processo; a gente entrega
-        o software rodando, com o código na sua mão — não importa em que estado
-        você esteja.
+        o software rodando, com o código na sua mão, não importa em que estado você esteja.
       </p>
 
       <div class="hero-cta">
@@ -154,17 +148,12 @@
   </div>
 </section>
 
-<!-- ============================= MARQUEE ============================= -->
-<div class="marquee" aria-hidden="true">
-  <div class="marquee-track" id="marqueeTrack"></div>
-</div>
-
 <!-- ============================= SERVIÇOS ============================= -->
 <section class="section" id="servicos">
   <div class="wrap">
-    <div class="section-head reveal">
+    <div class="section-head">
       <span class="eyebrow">O que construímos</span>
-      <h2>Quatro frentes. Uma mesma régua de qualidade.</h2>
+      <h2>Quatro frentes, e a mesma régua em todas.</h2>
       <p>
         Não existe pacote fechado aqui. O que existe é um jeito de trabalhar:
         entender o processo primeiro, escrever código depois.
@@ -172,7 +161,7 @@
     </div>
 
     <div class="services">
-      <article class="service reveal">
+      <article class="service">
         <div class="service-icon">
           <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M7 6.5h.01M10 6.5h.01"/></svg>
         </div>
@@ -185,7 +174,7 @@
         <ul><li>institucional</li><li>página de venda</li><li>SEO técnico</li><li>agendamento</li></ul>
       </article>
 
-      <article class="service reveal">
+      <article class="service">
         <div class="service-icon">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 13h6v8H3zM10 3h5v18h-5zM16 8h5v13h-5z"/></svg>
         </div>
@@ -198,20 +187,19 @@
         <ul><li>painéis</li><li>relatórios</li><li>níveis de acesso</li><li>multiusuário</li></ul>
       </article>
 
-      <article class="service reveal">
+      <article class="service">
         <div class="service-icon">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18l-1.6 10.2a2 2 0 0 1-2 1.8H7.6a2 2 0 0 1-2-1.8L4 6zM9 21h.01M17 21h.01M8 6V4.5A3.5 3.5 0 0 1 15 4.5V6"/></svg>
         </div>
         <h3>Lojas virtuais</h3>
         <p>
-          Catálogo, carrinho, checkout e integração com meio de pagamento —
-          incluindo venda de produto digital com entrega automática. Sem
+          Catálogo, carrinho, checkout e integração com meio de pagamento, incluindo venda de produto digital com entrega automática. Sem
           mensalidade de plataforma amarrando você.
         </p>
         <ul><li>catálogo</li><li>checkout</li><li>pagamento</li><li>produto digital</li></ul>
       </article>
 
-      <article class="service reveal">
+      <article class="service">
         <div class="service-icon">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v4M12 17v4M4.2 7.5l3.5 2M16.3 14.5l3.5 2M4.2 16.5l3.5-2M16.3 9.5l3.5-2"/><circle cx="12" cy="12" r="3.2"/></svg>
         </div>
@@ -230,17 +218,17 @@
 <!-- ============================= PAINEL DEMO ============================= -->
 <section class="section" id="painel">
   <div class="wrap">
-    <div class="section-head reveal">
+    <div class="section-head">
       <span class="eyebrow">Demonstração ao vivo</span>
       <h2>Em vez de mostrar print, a gente deixa você mexer.</h2>
       <p>
-        Este é um painel de gestão real rodando dentro desta página — troque o
+        Este é um painel de gestão real rodando dentro desta página. Troque o
         período, passe o mouse no gráfico, ordene a tabela. É o tipo de tela que
         entregamos para quem precisa enxergar a operação sem abrir planilha.
       </p>
     </div>
 
-    <div class="panel reveal">
+    <div class="panel">
       <div class="panel-bar">
         <span class="panel-title"><span class="live-dot" aria-hidden="true"></span> Painel de pedidos</span>
         <div class="seg" role="group" aria-label="Selecionar período">
@@ -256,8 +244,8 @@
         <svg class="chart" id="chart" viewBox="0 0 720 210" preserveAspectRatio="none" role="img" aria-label="Gráfico de faturamento no período selecionado">
           <defs>
             <linearGradient id="areaFill" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stop-color="#ccf656" stop-opacity="0.28"/>
-              <stop offset="100%" stop-color="#ccf656" stop-opacity="0"/>
+              <stop offset="0%" stop-color="#c7e356" stop-opacity="0.28"/>
+              <stop offset="100%" stop-color="#c7e356" stop-opacity="0"/>
             </linearGradient>
           </defs>
           <line class="axis" x1="0" y1="205" x2="720" y2="205"/>
@@ -296,11 +284,11 @@
 <!-- ============================= PROJETOS ============================= -->
 <section class="section" id="projetos">
   <div class="wrap">
-    <div class="section-head reveal">
+    <div class="section-head">
       <span class="eyebrow">Projetos</span>
       <h2>Cinco projetos que você pode abrir e navegar agora.</h2>
       <p>
-        São peças de demonstração — empresas fictícias, construídas por nós do
+        São peças de demonstração: empresas fictícias, construídas por nós do
         zero para mostrar cada tipo de trabalho. Todas estão no ar.
       </p>
     </div>
@@ -315,8 +303,7 @@
           <span class="case-kind">Landing page · oficina mecânica</span>
           <h3>Mecânica Rota Sul</h3>
           <p>
-            Oficina que manda o orçamento por link antes de encostar no carro —
-            o cliente aprova item a item pelo celular e vê o total mudar.
+            Oficina que manda o orçamento por link antes de encostar no carro. O cliente aprova item a item pelo celular e vê o total mudar.
           </p>
           <div class="case-foot">
             <span>HTML · CSS</span>
@@ -407,7 +394,7 @@
 <!-- ============================= PROCESSO ============================= -->
 <section class="section" id="processo">
   <div class="wrap">
-    <div class="section-head reveal">
+    <div class="section-head">
       <span class="eyebrow">Como funciona</span>
       <h2>Do primeiro contato ao sistema no ar.</h2>
       <p>
@@ -449,17 +436,16 @@
         <h3>Publicação e suporte</h3>
         <p>
           Sistema no ar, treinamento da equipe por chamada de vídeo (fica
-          gravado) e trinta dias de ajuste incluído. O código-fonte é seu — sem
-          refém de fornecedor.
+          gravado) e trinta dias de ajuste incluído. O código-fonte é seu, então você nunca fica refém de fornecedor.
         </p>
         <span class="step-when">+30 dias de ajuste</span>
       </article>
     </div>
 
-    <div class="section-head reveal" style="margin-top:56px;margin-bottom:22px;">
+    <div class="section-head" style="margin-top:56px;margin-bottom:22px;">
       <span class="eyebrow">Com o que trabalhamos</span>
     </div>
-    <div class="stack reveal">
+    <div class="stack">
       <span>TypeScript</span><span>React</span><span>Next.js</span><span>Node.js</span>
       <span>PostgreSQL</span><span>Tailwind CSS</span><span>HTML/CSS</span><span>Git</span>
       <span>REST APIs</span><span>Vercel</span>
@@ -470,19 +456,19 @@
 <!-- ============================= FAQ ============================= -->
 <section class="section" id="duvidas">
   <div class="wrap">
-    <div class="section-head reveal">
+    <div class="section-head">
       <span class="eyebrow">Dúvidas frequentes</span>
       <h2>O que a maioria pergunta antes de fechar.</h2>
     </div>
 
-    <div class="faq reveal">
+    <div class="faq">
       <details open>
         <summary>Vocês atendem só Brasília ou o Brasil inteiro?</summary>
         <div class="answer">
           O Brasil inteiro. A base é em Brasília, mas o trabalho é remoto do
           começo ao fim: a conversa inicial é por vídeo ou WhatsApp, as entregas
           semanais chegam por link, e o treinamento da equipe é feito por
-          chamada e fica gravado. Já é assim mesmo com cliente daqui — ninguém
+          chamada e fica gravado. Já é assim mesmo com cliente daqui: ninguém
           precisa sair do lugar para o projeto andar. Se você estiver em
           Brasília e preferir conversar pessoalmente, dá para combinar; fora
           daqui, nada muda no prazo nem no preço.
@@ -492,15 +478,14 @@
         <summary>Quanto tempo leva para ficar pronto?</summary>
         <div class="answer">
           Uma landing page fica pronta em poucos dias. Um site institucional,
-          em uma a duas semanas. Um sistema sob medida depende do tamanho do
-          processo — mas você recebe a primeira versão navegável já na primeira
+          em uma a duas semanas. Um sistema depende do tamanho do processo, mas você recebe a primeira versão navegável já na primeira
           semana, e não no fim do projeto.
         </div>
       </details>
       <details>
         <summary>Quanto custa?</summary>
         <div class="answer">
-          Valor fechado por projeto, definido depois da conversa inicial — nunca
+          Valor fechado por projeto, definido depois da conversa inicial. Nunca
           por hora e nunca com escopo aberto. Site e landing page têm faixa de
           preço bem previsível; sistema depende de quantas telas e regras a sua
           operação exige. Você aprova o valor antes de qualquer linha de código.
@@ -510,7 +495,7 @@
         <summary>Depois de pronto, quem mantém?</summary>
         <div class="answer">
           Você escolhe. O código-fonte é entregue para você e pode ser mantido
-          por qualquer desenvolvedor — não existe amarra. Se preferir, ficamos
+          por qualquer desenvolvedor. Não existe amarra. Se preferir, ficamos
           com a manutenção em um plano mensal simples, que cobre correções,
           pequenas melhorias e monitoramento.
         </div>
@@ -528,8 +513,7 @@
         <summary>Atendem empresa de qualquer tamanho?</summary>
         <div class="answer">
           Trabalhamos melhor com negócios pequenos e médios que já têm um
-          processo funcionando na base do improviso — planilha, caderno, grupo de
-          WhatsApp — e chegaram no limite disso. É onde um sistema sob medida
+          processo funcionando na base do improviso (planilha, caderno, grupo de WhatsApp) e chegaram no limite disso. É onde um sistema feito pra empresa
           resolve mais em menos tempo.
         </div>
       </details>
@@ -540,7 +524,7 @@
 <!-- ============================= CTA ============================= -->
 <section class="section" id="contato">
   <div class="wrap">
-    <div class="cta reveal">
+    <div class="cta">
       <span class="eyebrow">Próximo passo</span>
       <h2>Conta o que trava hoje. A gente responde se dá para resolver.</h2>
       <p>
@@ -567,7 +551,7 @@
       <div>
         <a class="brand" href="#top">
           <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true">
-            <rect width="32" height="32" rx="7" fill="#ccf656"/>
+            <rect width="32" height="32" rx="7" fill="#c7e356"/>
             <path d="M8 9l8 15 8-15" stroke="#0a0c07" stroke-width="3.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
           Vexon
@@ -576,6 +560,18 @@
           Sites, lojas virtuais e sistemas web sob medida para empresas que
           cansaram de adaptar o processo ao software.
         </p>
+
+        <div class="assinatura">
+          <p>
+            A Vexon é uma pessoa só: eu, <strong>Adriano Cardozo</strong>, aqui de
+            Brasília. Venho de infraestrutura e operação de TI, e a Vexon é onde eu
+            ponho o meu nome.
+          </p>
+          <p>
+            Quem responde naquele WhatsApp ali do lado sou eu mesmo. Não tem equipe
+            de vendas no meio, nem robô respondendo por mim.
+          </p>
+        </div>
       </div>
 
       <div class="foot-col">
@@ -594,7 +590,7 @@
         <ul>
           <li><a href="https://wa.me/5561999974323" target="_blank" rel="noopener">WhatsApp (61) 99997-4323</a></li>
           <li><a href="mailto:contato@vexonsystem.com">contato@vexonsystem.com</a></li>
-          <li>Brasília · DF — atendimento remoto para todo o Brasil</li>
+          <li>Brasília, DF. Atendimento remoto para todo o Brasil</li>
         </ul>
       </div>
     </div>
@@ -605,19 +601,6 @@
     </div>
   </div>
 </footer>
-
-<!-- ============================= PALETA DE COMANDOS ============================= -->
-<div class="palette" id="palette" role="dialog" aria-modal="true" aria-label="Busca rápida">
-  <div class="palette-box">
-    <input class="palette-input" id="paletteInput" type="text" placeholder="Buscar seção ou projeto…" autocomplete="off" spellcheck="false">
-    <ul class="palette-list" id="paletteList" role="listbox"></ul>
-    <div class="palette-foot">
-      <span><kbd>↑</kbd><kbd>↓</kbd> navegar</span>
-      <span><kbd>↵</kbd> abrir</span>
-      <span><kbd>esc</kbd> fechar</span>
-    </div>
-  </div>
-</div>
 
 <script src="assets/app.js"></script>
 </body>

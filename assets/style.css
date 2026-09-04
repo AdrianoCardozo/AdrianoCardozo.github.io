@@ -5,23 +5,23 @@
 
 :root {
   /* superfícies */
-  --bg: #08090c;
-  --bg-elev: #0d0f14;
-  --surface: #12151c;
-  --surface-2: #171b24;
-  --line: #202533;
-  --line-2: #2b3242;
+  --bg: #0b0b0a;
+  --bg-elev: #101010;
+  --surface: #161613;
+  --surface-2: #1c1c18;
+  --line: #292923;
+  --line-2: #36362e;
 
   /* texto */
-  --text: #e9ecf1;
-  --muted: #949dac;
-  --faint: #626b7a;
+  --text: #ecebe3;
+  --muted: #9b9a8f;
+  --faint: #6c6b61;
 
   /* acento */
-  --accent: #ccf656;
-  --accent-dim: #9dc132;
-  --accent-ink: #0a0c07;
-  --blue: #7d9bff;
+  --accent: #c7e356;
+  --accent-dim: #97b043;
+  --accent-ink: #0d0f08;
+  --blue: #e08a52;
 
   /* status */
   --ok: #5fd68a;
@@ -31,13 +31,13 @@
   /* medidas */
   --maxw: 1180px;
   --gutter: 24px;
-  --radius: 14px;
-  --radius-sm: 9px;
+  --radius: 12px;
+  --radius-sm: 5px;
 
   /* tipografia */
-  --font-display: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+  --font-display: "Familjen Grotesk", "Helvetica Neue", Arial, sans-serif;
+  --font-sans: "IBM Plex Sans", "Segoe UI", Roboto, Arial, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, monospace;
 
   --ease: cubic-bezier(0.22, 1, 0.36, 1);
 }
@@ -1492,4 +1492,24 @@ table.orders td.num {
     opacity: 1;
     transform: none;
   }
+}
+
+/* Assinatura do rodapé — quem está por trás da empresa. */
+.assinatura {
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px solid var(--line);
+  max-width: 44ch;
+}
+.assinatura p {
+  font-size: 0.86rem;
+  line-height: 1.7;
+  color: var(--muted);
+}
+.assinatura p + p {
+  margin-top: 10px;
+}
+.assinatura strong {
+  color: var(--text);
+  font-weight: 600;
 }
