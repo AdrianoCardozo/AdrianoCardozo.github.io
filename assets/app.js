@@ -542,7 +542,7 @@
     { name: "Fibra Treinamento — landing page", kind: "projeto", href: "projetos/fibra/index.html" },
     { name: "Grão Vivo — página de venda", kind: "projeto", href: "projetos/grao-vivo/index.html" },
     { name: "Falar no WhatsApp", kind: "contato", href: "https://wa.me/5561999974323" },
-    { name: "Enviar e-mail", kind: "contato", href: "mailto:contato@vexon.dev" },
+    { name: "Enviar e-mail", kind: "contato", href: "mailto:contato@vexonsystem.com" },
   ];
 
   let paletteIndex = 0;
