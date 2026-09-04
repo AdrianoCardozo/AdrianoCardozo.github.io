@@ -1,0 +1,465 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Site pronto em 7 dias, com preço fechado — Vexon</title>
+<meta name="description" content="Site profissional a partir de R$ 1.200, com preço fechado antes de começar e prazo de 7 dias. De Brasília para o Brasil inteiro. Você vê a primeira tela antes de pagar.">
+<meta property="og:title" content="Site pronto em 7 dias, com preço fechado — Vexon">
+<meta property="og:description" content="A partir de R$ 1.200. Você vê a primeira tela do seu site antes de pagar qualquer coisa.">
+<meta property="og:type" content="website">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --bg:#08090c; --bg-elev:#0d0f14; --surface:#12151c; --surface-2:#171b24;
+  --line:#202533; --line-2:#2b3242;
+  --text:#e9ecf1; --muted:#949dac; --faint:#626b7a;
+  --accent:#ccf656; --accent-dim:#9dc132; --accent-ink:#0a0c07;
+  --ok:#5fd68a;
+  --maxw:1120px; --radius:14px; --radius-sm:9px;
+  --font-display:"Space Grotesk",ui-sans-serif,system-ui,sans-serif;
+  --font-sans:"Inter",ui-sans-serif,system-ui,sans-serif;
+  --font-mono:"JetBrains Mono",ui-monospace,SFMono-Regular,monospace;
+  --ease:cubic-bezier(.22,1,.36,1);
+}
+*,*::before,*::after{box-sizing:border-box;}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%;}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-sans);
+     font-size:16px;line-height:1.65;-webkit-font-smoothing:antialiased;}
+img,svg{display:block;max-width:100%;}
+a{color:inherit;text-decoration:none;}
+p{margin:0;}
+h1,h2,h3{font-family:var(--font-display);margin:0;line-height:1.08;letter-spacing:-.02em;text-wrap:balance;}
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:4px;}
+::selection{background:var(--accent);color:var(--accent-ink);}
+
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px;}
+.eyebrow{font-family:var(--font-mono);font-size:.7rem;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);}
+.sec{padding:clamp(54px,8vw,92px) 0;}
+.sec-top{max-width:56ch;}
+.sec-top h2{font-size:clamp(1.7rem,3.6vw,2.5rem);margin-top:12px;}
+.sec-top p{color:var(--muted);margin-top:14px;}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;
+     font-family:var(--font-sans);font-weight:600;font-size:.97rem;padding:14px 24px;
+     border-radius:var(--radius-sm);border:1px solid transparent;cursor:pointer;
+     transition:transform .2s var(--ease),background-color .2s var(--ease),border-color .2s var(--ease);}
+.btn:hover{transform:translateY(-2px);}
+.btn-zap{background:var(--accent);color:var(--accent-ink);}
+.btn-zap:hover{background:#d8ff6e;}
+.btn-ghost{border-color:var(--line-2);color:var(--text);}
+.btn-ghost:hover{border-color:var(--accent);color:var(--accent);}
+
+/* header */
+header{position:sticky;top:0;z-index:40;background:rgba(8,9,12,.86);
+       backdrop-filter:blur(12px);border-bottom:1px solid var(--line);}
+.nav{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:13px 0;}
+.brand{display:flex;align-items:center;gap:10px;}
+.brand-mark{width:30px;height:30px;border-radius:8px;background:var(--accent);
+            display:grid;place-items:center;flex:none;}
+.brand-mark span{font-family:var(--font-display);font-weight:700;color:var(--accent-ink);font-size:1rem;line-height:1;}
+.brand b{font-family:var(--font-display);font-size:1.06rem;letter-spacing:-.01em;}
+.brand small{display:block;font-family:var(--font-mono);font-size:.6rem;letter-spacing:.14em;
+             text-transform:uppercase;color:var(--faint);}
+.nav .btn{padding:10px 18px;font-size:.9rem;}
+
+/* hero */
+.hero{padding:clamp(46px,7vw,84px) 0 clamp(30px,4vw,44px);}
+.hero-grid{display:grid;gap:34px;align-items:center;}
+@media(min-width:980px){.hero-grid{grid-template-columns:1.08fr .92fr;gap:48px;}}
+.hero h1{font-size:clamp(2.2rem,5.2vw,3.5rem);margin-top:14px;}
+.hero h1 em{font-style:normal;color:var(--accent);}
+.hero .lead{color:var(--muted);font-size:1.06rem;margin-top:18px;max-width:52ch;}
+.hero-cta{display:flex;flex-wrap:wrap;gap:11px;margin-top:26px;}
+.hero-meta{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:24px;
+           font-family:var(--font-mono);font-size:.73rem;color:var(--faint);letter-spacing:.03em;}
+.hero-meta b{color:var(--text);font-weight:500;}
+
+/* oferta destacada */
+.oferta{background:var(--surface);border:1px solid var(--line-2);border-radius:var(--radius);
+        padding:26px 24px 24px;position:relative;overflow:hidden;}
+.oferta::before{content:"";position:absolute;inset:0 auto auto 0;width:100%;height:3px;background:var(--accent);}
+.oferta .selo{font-family:var(--font-mono);font-size:.66rem;letter-spacing:.16em;
+              text-transform:uppercase;color:var(--accent);}
+.oferta h2{font-size:1.5rem;margin-top:12px;}
+.oferta p{color:var(--muted);margin-top:12px;font-size:.96rem;}
+.oferta ol{margin:18px 0 0;padding:0;list-style:none;display:grid;gap:11px;}
+.oferta li{display:grid;grid-template-columns:24px 1fr;gap:11px;align-items:start;font-size:.94rem;}
+.oferta li .n{font-family:var(--font-mono);font-size:.72rem;color:var(--accent);
+              border:1px solid var(--line-2);border-radius:6px;text-align:center;
+              line-height:22px;height:23px;}
+.oferta .fim{margin-top:20px;padding-top:16px;border-top:1px solid var(--line);
+             font-family:var(--font-mono);font-size:.73rem;color:var(--faint);line-height:1.7;}
+
+/* planos */
+.planos{display:grid;gap:16px;margin-top:36px;}
+@media(min-width:860px){.planos{grid-template-columns:repeat(3,1fr);}}
+.plano{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
+       padding:26px 22px 24px;display:flex;flex-direction:column;}
+.plano.destaque{border-color:var(--accent);background:var(--surface-2);}
+.plano .fita{font-family:var(--font-mono);font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;
+             color:var(--accent-ink);background:var(--accent);border-radius:5px;padding:3px 8px;
+             align-self:flex-start;margin-bottom:12px;}
+.plano h3{font-size:1.2rem;}
+.plano .desc{color:var(--muted);font-size:.92rem;margin-top:9px;}
+@media(min-width:860px){.plano .desc{min-height:4.4em;}}
+.plano .valor{margin-top:18px;padding-top:18px;border-top:1px solid var(--line);
+              display:flex;align-items:baseline;gap:8px;}
+.plano .valor b{font-family:var(--font-display);font-size:2.15rem;line-height:1;letter-spacing:-.03em;
+                font-variant-numeric:tabular-nums;}
+.plano .valor span{font-family:var(--font-mono);font-size:.72rem;color:var(--faint);letter-spacing:.06em;}
+.plano .prazo{font-family:var(--font-mono);font-size:.72rem;color:var(--accent);
+              letter-spacing:.08em;text-transform:uppercase;margin-top:9px;}
+.plano ul{margin:18px 0 0;padding:0;list-style:none;display:grid;gap:8px;font-size:.9rem;color:var(--muted);}
+.plano li{display:grid;grid-template-columns:16px 1fr;gap:9px;align-items:start;}
+.plano li svg{width:15px;height:15px;margin-top:4px;color:var(--accent);flex:none;}
+.plano .btn{margin-top:22px;width:100%;}
+
+.manut{margin-top:16px;background:var(--bg-elev);border:1px solid var(--line);
+       border-radius:var(--radius);padding:22px;display:grid;gap:16px;align-items:center;}
+@media(min-width:760px){.manut{grid-template-columns:1fr auto;}}
+.manut h3{font-size:1.08rem;}
+.manut p{color:var(--muted);font-size:.92rem;margin-top:7px;max-width:62ch;}
+.manut .preco{font-family:var(--font-display);font-size:1.5rem;white-space:nowrap;}
+.manut .preco small{font-family:var(--font-mono);font-size:.7rem;color:var(--faint);}
+
+.rodape-precos{margin-top:18px;font-family:var(--font-mono);font-size:.74rem;line-height:1.9;
+               color:var(--faint);}
+.rodape-precos b{color:var(--muted);font-weight:500;}
+
+/* passos */
+.passos{display:grid;gap:1px;background:var(--line);border:1px solid var(--line);
+        border-radius:var(--radius);overflow:hidden;margin-top:34px;}
+@media(min-width:900px){.passos{grid-template-columns:repeat(4,1fr);}}
+.passo{background:var(--surface);padding:24px 22px 26px;}
+.passo .n{font-family:var(--font-mono);font-size:.72rem;letter-spacing:.14em;color:var(--accent);}
+.passo h3{font-size:1.06rem;margin-top:11px;}
+.passo p{color:var(--muted);font-size:.91rem;margin-top:8px;}
+.passo.chave{background:var(--surface-2);box-shadow:inset 3px 0 0 var(--accent);}
+
+/* exemplos */
+.exemplos{display:grid;gap:12px;margin-top:32px;}
+@media(min-width:700px){.exemplos{grid-template-columns:repeat(2,1fr);}}
+@media(min-width:1000px){.exemplos{grid-template-columns:repeat(3,1fr);}}
+.ex{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
+    padding:18px 20px 20px;transition:border-color .2s var(--ease),transform .2s var(--ease);}
+.ex:hover{border-color:var(--accent);transform:translateY(-2px);}
+.ex .tipo{font-family:var(--font-mono);font-size:.66rem;letter-spacing:.13em;
+          text-transform:uppercase;color:var(--faint);}
+.ex h3{font-size:1.04rem;margin-top:9px;}
+.ex p{color:var(--muted);font-size:.88rem;margin-top:7px;}
+.ex .go{display:inline-block;margin-top:13px;font-family:var(--font-mono);font-size:.72rem;
+        letter-spacing:.08em;color:var(--accent);}
+
+/* duvidas */
+.duvidas{margin-top:30px;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;}
+.duvidas details{border-bottom:1px solid var(--line);background:var(--surface);}
+.duvidas details:last-child{border-bottom:0;}
+.duvidas summary{cursor:pointer;list-style:none;padding:18px 22px;font-family:var(--font-display);
+                 font-size:1.02rem;display:flex;justify-content:space-between;gap:16px;align-items:center;}
+.duvidas summary::-webkit-details-marker{display:none;}
+.duvidas summary::after{content:"+";font-family:var(--font-mono);color:var(--accent);font-size:1.15rem;flex:none;}
+.duvidas details[open] summary::after{content:"–";}
+.duvidas .resp{padding:0 22px 20px;color:var(--muted);font-size:.94rem;max-width:70ch;}
+
+/* final */
+.final{background:var(--accent);color:var(--accent-ink);border-radius:var(--radius);
+       padding:clamp(32px,5vw,52px);display:flex;flex-direction:column;gap:16px;align-items:flex-start;}
+.final h2{font-size:clamp(1.7rem,4vw,2.6rem);max-width:20ch;}
+.final p{max-width:52ch;font-weight:500;}
+.final .btn{background:var(--accent-ink);color:var(--accent);}
+.final .btn:hover{background:#000;}
+.final .mini{font-family:var(--font-mono);font-size:.73rem;opacity:.72;}
+
+footer.site{border-top:1px solid var(--line);padding:38px 0 44px;margin-top:clamp(40px,6vw,70px);}
+.foot{display:flex;flex-wrap:wrap;gap:14px 28px;justify-content:space-between;align-items:center;
+      font-size:.9rem;color:var(--muted);}
+.foot a:hover{color:var(--accent);}
+.foot .mono{font-family:var(--font-mono);font-size:.75rem;color:var(--faint);}
+
+@media (prefers-reduced-motion: reduce){*{transition:none !important;animation:none !important;}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap nav">
+    <a class="brand" href="/" aria-label="Vexon — página inicial">
+      <span class="brand-mark" aria-hidden="true"><span>V</span></span>
+      <span>
+        <b>Vexon</b>
+        <small>Sites e sistemas</small>
+      </span>
+    </a>
+    <a class="btn btn-zap" href="https://wa.me/5561999974323?text=Oi%20Adriano%2C%20vi%20a%20p%C3%A1gina%20da%20Vexon%20e%20quero%20um%20site." target="_blank" rel="noopener">Falar no WhatsApp</a>
+  </div>
+</header>
+
+<main>
+
+  <section class="hero">
+    <div class="wrap hero-grid">
+      <div>
+        <span class="eyebrow">Para quem precisa do site agora</span>
+        <h1>Seu site no ar em <em>7 dias</em>, com o preço fechado antes de eu começar.</h1>
+        <p class="lead">
+          Sem "depende", sem orçamento que demora três dias pra chegar. O valor está
+          escrito aqui embaixo, na sua frente. Você vê a primeira tela do seu site
+          antes de pagar qualquer coisa.
+        </p>
+        <div class="hero-cta">
+          <a class="btn btn-zap" href="https://wa.me/5561999974323?text=Oi%20Adriano%2C%20quero%20ver%20como%20ficaria%20o%20site%20do%20meu%20neg%C3%B3cio." target="_blank" rel="noopener">Quero ver como ficaria</a>
+          <a class="btn btn-ghost" href="#precos">Ver os preços</a>
+        </div>
+        <p class="hero-meta">
+          <span>A partir de <b>R$ 1.200</b></span>
+          <span>Atendemos <b>todo o Brasil</b></span>
+          <span>Empresa de <b>Brasília / DF</b></span>
+        </p>
+      </div>
+
+      <aside class="oferta">
+        <span class="selo">Antes de você pagar nada</span>
+        <h2>Eu monto a primeira tela primeiro.</h2>
+        <p>
+          É assim que eu trabalho: você me conta o que faz, eu monto a página inicial
+          do seu negócio de verdade — com o seu nome, as suas cores, os seus serviços —
+          e te mando o link. Aí você decide.
+        </p>
+        <ol>
+          <li><span class="n">1</span><span>Você me manda o nome do negócio e o que vende. Dez minutos de conversa.</span></li>
+          <li><span class="n">2</span><span>Em até 2 dias eu te mando o link da primeira tela pronta.</span></li>
+          <li><span class="n">3</span><span>Gostou, a gente segue. Não gostou, acabou ali — sem custo e sem insistência.</span></li>
+        </ol>
+        <p class="fim">
+          Sem cadastro, sem cartão, sem sinal.<br>
+          Quem paga pra ver, vê depois. Aqui você vê antes.
+        </p>
+      </aside>
+    </div>
+  </section>
+
+  <section class="sec" id="precos">
+    <div class="wrap">
+      <div class="sec-top">
+        <span class="eyebrow">Preços</span>
+        <h2>O valor está aqui. Não vou te mandar "depende".</h2>
+        <p>
+          Preço fechado, combinado antes de começar. Se o seu caso for maior que isso,
+          eu falo na hora — e falo quanto.
+        </p>
+      </div>
+
+      <div class="planos">
+        <article class="plano">
+          <span class="fita" aria-hidden="true" style="visibility:hidden">·</span>
+          <h3>Página única</h3>
+          <p class="desc">Uma página que explica o que você faz, mostra seu trabalho e leva a pessoa direto pro seu WhatsApp.</p>
+          <div class="valor"><b>R$ 1.200</b><span>à vista ou 2x</span></div>
+          <p class="prazo">Pronto em 7 dias</p>
+          <ul>
+            <li><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5l3.2 3.2L13 5"/></svg><span>Feita para celular primeiro</span></li>
+            <li><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5l3.2 3.2L13 5"/></svg><span>Botão de WhatsApp em tudo</span></li>
+            <li><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5l3.2 3.2L13 5"/></svg><span>Formulário de contato</span></li>
+            <li><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5l3.2 3.2L13 5"/></svg><span>Preparada pro Google achar</span></li>
+          </ul>
+          <a class="btn btn-ghost" href="https://wa.me/5561999974323?text=Oi%20Adriano%2C%20quero%20o%20plano%20de%20p%C3%A1gina%20%C3%BAnica%20(R%24%201.200)." target="_blank" rel="noopener">Começar por aqui</a>
+        </article>
+
+        <article class="plano destaque">
+          <span class="fita">O mais pedido</span>
+          <h3>Site até 5 páginas</h3>
+          <p class="desc">Início, sobre, serviços, galeria e contato. O site completo de quem quer parecer empresa, e não perfil de rede social.</p>
+          <div class="valor"><b>R$ 1.900</b><span>à vista ou 3x</span></div>
+          <p class="prazo">Pronto em 12 dias</p>
+          <ul>
+            <li><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5l3.2 3.2L13 5"/></svg><span>Tudo do plano anterior</span></li>
+            <li><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5l3.2 3.2L13 5"/></svg><span>Até 5 páginas internas</span></li>
+            <li><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5l3.2 3.2L13 5"/></svg><span>Galeria de fotos do seu trabalho</span></li>
+            <li><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5l3.2 3.2L13 5"/></svg><span>Texto do site escrito junto com você</span></li>
+          </ul>
+          <a class="btn btn-zap" href="https://wa.me/5561999974323?text=Oi%20Adriano%2C%20quero%20o%20site%20de%20at%C3%A9%205%20p%C3%A1ginas%20(R%24%201.900)." target="_blank" rel="noopener">Quero esse</a>
+        </article>
+
+        <article class="plano">
+          <span class="fita" aria-hidden="true" style="visibility:hidden">·</span>
+          <h3>Loja virtual</h3>
+          <p class="desc">Catálogo de produtos, carrinho e finalização de pedido. Para quem vende produto, físico ou digital.</p>
+          <div class="valor"><b>R$ 3.200</b><span>à vista ou 4x</span></div>
+          <p class="prazo">Pronto em 20 dias</p>
+          <ul>
+            <li><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5l3.2 3.2L13 5"/></svg><span>Catálogo com busca e categorias</span></li>
+            <li><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5l3.2 3.2L13 5"/></svg><span>Carrinho e finalização de pedido</span></li>
+            <li><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5l3.2 3.2L13 5"/></svg><span>Ligação com seu Instagram</span></li>
+            <li><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5l3.2 3.2L13 5"/></svg><span>Você mesmo cadastra os produtos</span></li>
+          </ul>
+          <a class="btn btn-ghost" href="https://wa.me/5561999974323?text=Oi%20Adriano%2C%20quero%20uma%20loja%20virtual%20(R%24%203.200)." target="_blank" rel="noopener">Falar sobre a loja</a>
+        </article>
+      </div>
+
+      <div class="manut">
+        <div>
+          <h3>Manutenção mensal — opcional</h3>
+          <p>
+            Trocar preço, subir foto nova, mudar horário, adicionar um serviço. Você me chama
+            no WhatsApp e eu faço. Inclui as atualizações de segurança e o site monitorado.
+            Sem fidelidade: cancela quando quiser.
+          </p>
+        </div>
+        <div class="preco">R$ 149<small>/mês</small></div>
+      </div>
+
+      <p class="rodape-precos">
+        <b>Incluso em todos os planos:</b> hospedagem no primeiro ano, certificado de segurança
+        (o cadeado do navegador), duas rodadas de alteração e o site no ar configurado por mim.<br>
+        <b>Fora do preço:</b> o domínio (aquele <span style="color:var(--muted)">seunegocio.com.br</span>)
+        custa cerca de R$ 40 por ano, é pago direto no registrador e fica no <b>seu</b> nome — eu
+        configuro sem cobrar nada por isso.<br>
+        <b>Pagamento:</b> metade na aprovação da primeira tela, metade na entrega.
+      </p>
+    </div>
+  </section>
+
+  <section class="sec" id="como" style="padding-top:0;">
+    <div class="wrap">
+      <div class="sec-top">
+        <span class="eyebrow">Como funciona</span>
+        <h2>Quatro passos, e você só paga no terceiro</h2>
+      </div>
+      <div class="passos">
+        <article class="passo">
+          <span class="n">PASSO 01</span>
+          <h3>A conversa</h3>
+          <p>Dez minutos no WhatsApp. Você me conta o que faz, pra quem vende e o que quer que apareça no site.</p>
+        </article>
+        <article class="passo chave">
+          <span class="n">PASSO 02 · DE GRAÇA</span>
+          <h3>A primeira tela</h3>
+          <p>Em até 2 dias eu te mando o link da página inicial montada, com o seu nome e as suas informações. Você abre no celular e vê.</p>
+        </article>
+        <article class="passo">
+          <span class="n">PASSO 03</span>
+          <h3>Aprovação</h3>
+          <p>Gostou, você paga metade e eu termino o resto. Não gostou, a gente para por aqui sem você ter gasto nada.</p>
+        </article>
+        <article class="passo">
+          <span class="n">PASSO 04</span>
+          <h3>No ar</h3>
+          <p>Site publicado, domínio configurado, cadeado de segurança funcionando. A outra metade é paga na entrega.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec" id="exemplos" style="padding-top:0;">
+    <div class="wrap">
+      <div class="sec-top">
+        <span class="eyebrow">Exemplos</span>
+        <h2>Coisas que eu já fiz</h2>
+        <p>Abra no celular. Foi para o celular que elas foram feitas.</p>
+      </div>
+      <div class="exemplos">
+        <a class="ex" href="/projetos/fibra/index.html">
+          <span class="tipo">Página única</span>
+          <h3>Fibra</h3>
+          <p>Página de captação para provedor de internet, com plano, cobertura e contato.</p>
+          <span class="go">Abrir →</span>
+        </a>
+        <a class="ex" href="/projetos/grao-vivo/index.html">
+          <span class="tipo">Página única · venda</span>
+          <h3>Grão Vivo</h3>
+          <p>Página de venda de café especial por assinatura, feita para converter no celular.</p>
+          <span class="go">Abrir →</span>
+        </a>
+        <a class="ex" href="/projetos/traco-arquitetura/index.html">
+          <span class="tipo">Site institucional</span>
+          <h3>Traço Arquitetura</h3>
+          <p>Site de escritório de arquitetura: portfólio, equipe, processo e contato.</p>
+          <span class="go">Abrir →</span>
+        </a>
+        <a class="ex" href="/projetos/oficina/index.html">
+          <span class="tipo">Site institucional</span>
+          <h3>Mecânica Rota Sul</h3>
+          <p>Oficina que manda o orçamento por link e o cliente aprova item a item pelo celular.</p>
+          <span class="go">Abrir →</span>
+        </a>
+        <a class="ex" href="/projetos/loja/index.html">
+          <span class="tipo">Loja virtual</span>
+          <h3>Vitrine</h3>
+          <p>Loja completa com catálogo, busca, carrinho e finalização de pedido.</p>
+          <span class="go">Abrir →</span>
+        </a>
+        <a class="ex" href="/">
+          <span class="tipo">Sistemas sob medida</span>
+          <h3>Precisa de mais que um site?</h3>
+          <p>Sistema de agendamento, controle de ordem de serviço, painel interno. Veja o outro lado da Vexon.</p>
+          <span class="go">Abrir →</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec" id="duvidas" style="padding-top:0;">
+    <div class="wrap">
+      <div class="sec-top">
+        <span class="eyebrow">Dúvidas</span>
+        <h2>O que todo mundo pergunta</h2>
+      </div>
+      <div class="duvidas">
+        <details open>
+          <summary>Vocês atendem só Brasília?</summary>
+          <p class="resp">Não. A Vexon é de Brasília, mas atende o Brasil inteiro. Todo o trabalho é feito por WhatsApp e chamada de vídeo — a maioria dos clientes nunca precisou marcar nada presencial.</p>
+        </details>
+        <details>
+          <summary>E se eu não gostar do que você fizer?</summary>
+          <p class="resp">A primeira tela é de graça justamente por isso. Você vê antes de pagar. Se não gostar, a gente encerra ali e você não deve nada. Depois de aprovada, todo plano tem duas rodadas de alteração inclusas.</p>
+        </details>
+        <details>
+          <summary>O site é meu mesmo? Fico preso a você?</summary>
+          <p class="resp">É seu. O domínio é registrado no seu nome e no seu CPF ou CNPJ, e os arquivos do site são seus. Se um dia você quiser levar pra outra pessoa, leva — eu entrego tudo. A manutenção mensal é opcional e sem fidelidade.</p>
+        </details>
+        <details>
+          <summary>Preciso pagar hospedagem?</summary>
+          <p class="resp">No primeiro ano, não — está incluso no preço. O que fica por sua conta é só o domínio, cerca de R$ 40 por ano, pago direto no registrador para ficar no seu nome. Eu configuro tudo sem cobrar.</p>
+        </details>
+        <details>
+          <summary>Quanto tempo demora de verdade?</summary>
+          <p class="resp">A primeira tela sai em até 2 dias. Depois da aprovação, 7 dias para a página única, 12 para o site de até 5 páginas e 20 para a loja. O que costuma atrasar não é o meu lado — é o material (foto, texto, logo) demorar a chegar. Se você não tiver, a gente resolve junto.</p>
+        </details>
+        <details>
+          <summary>Como eu sei que você não vai sumir?</summary>
+          <p class="resp">Pergunta justa. A Vexon tem domínio próprio, e-mail próprio e os projetos estão todos publicados aqui neste site, abertos pra você abrir e conferir agora. Meu WhatsApp e meu e-mail estão no rodapé. E você paga metade só depois de já ter visto seu site funcionando.</p>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec" style="padding-top:0;">
+    <div class="wrap">
+      <div class="final">
+        <span class="eyebrow" style="color:rgba(10,12,7,.66);">Sem compromisso</span>
+        <h2>Me diz o nome do seu negócio. Eu monto a primeira tela.</h2>
+        <p>Você recebe o link em até 2 dias e decide olhando, não imaginando. Não custa nada e não tem pegadinha.</p>
+        <a class="btn" href="https://wa.me/5561999974323?text=Oi%20Adriano%2C%20quero%20ver%20a%20primeira%20tela%20do%20site%20do%20meu%20neg%C3%B3cio." target="_blank" rel="noopener">Chamar no WhatsApp</a>
+        <p class="mini">(61) 99997-4323 · contato@vexonsystem.com</p>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site">
+  <div class="wrap foot">
+    <span><strong style="color:var(--text)">Vexon</strong> — sites e sistemas sob medida, de Brasília para o Brasil inteiro</span>
+    <span class="mono">
+      <a href="https://wa.me/5561999974323" target="_blank" rel="noopener">(61) 99997-4323</a> ·
+      <a href="mailto:contato@vexonsystem.com">contato@vexonsystem.com</a> ·
+      <a href="/">vexonsystem.com</a>
+    </span>
+  </div>
+</footer>
+
+</body>
+</html>

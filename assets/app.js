@@ -537,6 +537,7 @@
     { name: "Projetos", kind: "seção", href: "#projetos" },
     { name: "Processo de trabalho", kind: "seção", href: "#processo" },
     { name: "Dúvidas frequentes", kind: "seção", href: "#duvidas" },
+    { name: "Site pronto — preços a partir de R$ 1.200", kind: "página", href: "site-pronto/index.html" },
     { name: "Mecânica Rota Sul — oficina", kind: "projeto", href: "projetos/oficina/index.html" },
     { name: "Vitrine — loja virtual", kind: "projeto", href: "projetos/loja/index.html" },
     { name: "Traço Arquitetura — institucional", kind: "projeto", href: "projetos/traco-arquitetura/index.html" },
