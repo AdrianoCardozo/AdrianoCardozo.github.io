@@ -122,13 +122,34 @@ p {
   color: var(--accent);
 }
 
-.eyebrow::before {
+/* A bolinha ficou só onde ela diz a verdade: no painel, que está mesmo
+   rodando ao vivo. Em toda seção, virava carimbo. */
+.eyebrow.ao-vivo::before {
   content: "";
   width: 6px;
   height: 6px;
   border-radius: 50%;
   background: var(--accent);
-  box-shadow: 0 0 0 4px rgba(204, 246, 86, 0.14);
+  box-shadow: 0 0 0 4px rgba(199, 227, 86, 0.14);
+  animation: pulso 2.4s var(--ease) infinite;
+}
+
+@keyframes pulso {
+  0%, 100% { box-shadow: 0 0 0 4px rgba(199, 227, 86, 0.14); }
+  50%      { box-shadow: 0 0 0 7px rgba(199, 227, 86, 0.05); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .eyebrow.ao-vivo::before { animation: none; }
+}
+
+/* Legenda de lista. Não é título de seção, então não se veste como um. */
+.legenda {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  color: var(--faint);
 }
 
 .lede {
