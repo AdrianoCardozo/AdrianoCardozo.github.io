@@ -4,4 +4,22 @@ Allow: /
 # Propostas feitas para oficinas especificas. Nao sao paginas publicas.
 Disallow: /pre/
 
+# Leitores de pre-visualizacao de link (WhatsApp, Facebook, Telegram, Slack).
+# Precisam ler a pagina para montar o cartao quando o link e enviado.
+# As paginas continuam com noindex, entao nao entram em buscador.
+User-agent: facebookexternalhit
+Allow: /
+
+User-agent: WhatsApp
+Allow: /
+
+User-agent: TelegramBot
+Allow: /
+
+User-agent: Slackbot-LinkExpanding
+Allow: /
+
+User-agent: Twitterbot
+Allow: /
+
 Sitemap: https://vexonsystem.com/sitemap.xml
