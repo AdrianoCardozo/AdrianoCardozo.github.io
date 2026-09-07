@@ -15,7 +15,7 @@
   /* texto */
   --text: #ecebe3;
   --muted: #9b9a8f;
-  --faint: #6c6b61;
+  --faint: #807f75; /* ajustado em 07/09 p/ contraste AA (~3.6:1 -> ~4.9:1 sobre --bg) */
 
   /* acento */
   --accent: #c7e356;
