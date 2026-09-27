@@ -3,12 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Painel de ordens de serviço — demonstração Vexon</title>
-<meta name="description" content="Demonstração do painel interno que a Vexon constrói sob medida: ordem de serviço, orçamento aprovado item a item pelo cliente e histórico de atendimento. Troque o segmento na própria tela e veja o mesmo painel em oficina, assistência técnica, instalação, clínica e obra.">
+<title>Painel de ordens de serviço | demonstração Vexon</title>
+<meta name="description" content="Demonstração do painel interno que a Vexon constrói sob medida: ordem de serviço, orçamento aprovado item a item pelo cliente e histórico de atendimento. Troque o segmento na própria tela e veja o mesmo painel em assistência técnica, instalação, clínica e obra.">
 <meta name="theme-color" content="#0b0b0a">
 <link rel="canonical" href="https://vexonsystem.com/projetos/sistema-os/">
-<meta property="og:title" content="Painel de ordens de serviço — demonstração Vexon">
-<meta property="og:description" content="Um painel, cinco tipos de negócio. Ordem de serviço, orçamento aprovado item a item e histórico do cliente — troque o segmento na própria tela.">
+<meta property="og:title" content="Painel de ordens de serviço | demonstração Vexon">
+<meta property="og:description" content="Um painel, quatro tipos de negócio. Ordem de serviço, orçamento aprovado item a item e histórico do cliente | troque o segmento na própria tela.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://vexonsystem.com/projetos/sistema-os/">
 <meta property="og:site_name" content="Vexon">
@@ -150,7 +150,7 @@ button{font:inherit;}
 <div class="topbar">
   <div class="wrap row">
     <a class="back" href="/index.html#servicos">&larr; voltar para a Vexon</a>
-    <a class="brand" href="/index.html" aria-label="Vexon — início">
+    <a class="brand" href="/index.html" aria-label="Vexon, início">
       <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7" fill="#c7e356"/><path d="M8 9l8 15 8-15" stroke="#0a0c07" stroke-width="3.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
       Vexon
     </a>
@@ -161,7 +161,7 @@ button{font:inherit;}
 <main class="wrap">
 
   <section class="intro">
-    <span class="eyebrow" id="eyebrow">Painel de ordens de servico &middot; exemplo em oficina mecanica</span>
+    <span class="eyebrow" id="eyebrow">Painel de ordens de serviço &middot; exemplo em assistência técnica</span>
     <h1 id="titulo">Sistema de ordem de servico sob medida.</h1>
     <p id="lead">Cada ordem de servico numa tela so: orcamento aprovado item a item pelo cliente, status atualizado na hora e o historico do atendimento.</p>
 
@@ -196,7 +196,7 @@ button{font:inherit;}
 </main>
 
 <footer class="wrap foot">
-  <span>Vexon — sites, lojas virtuais e sistemas web sob medida</span>
+  <span>Vexon, sites, lojas virtuais e sistemas web sob medida</span>
   <span><a href="/index.html">vexonsystem.com</a> · <a href="https://wa.me/5561999974323" target="_blank" rel="noopener">(61) 99997-4323</a></span>
 </footer>
 
@@ -206,34 +206,6 @@ button{font:inherit;}
 
 <script>
 const SEGMENTOS = {
-  oficina: {
-    nome: 'Oficina mecânica',
-    eyebrow: 'Painel de ordens de serviço · exemplo em oficina mecânica',
-    h1: 'O painel que substitui as cinco planilhas.',
-    lead: 'Cada ordem de serviço numa tela só: orçamento aprovado item a item pelo cliente, status atualizado na hora e o histórico de tudo que aquele carro já fez ali.',
-    sujeito: 'Veículo', secundario: 'Placa', registro: 'Ordem de serviço', plural: 'Ordens de serviço',
-    colunas: ['Aguardando aprovação','Em execução','Pronto','Entregue'],
-    kpis: ['OS em aberto','Em execução','Ticket médio','Valor em aberto'],
-    os: [
-      { id:'OS-1042', status:0, cliente:'Marcos Vieira', telefone:'(61) 9····-1042', sujeito:'Onix 2019', secundario:'PBK-4A21', dias:1,
-        itens:[{d:'Diagnóstico eletrônico',v:120,ok:true},{d:'Troca de bateria',v:340,ok:false},{d:'Alinhamento',v:90,ok:false}],
-        hist:[{q:'12/06',d:'Troca de óleo e filtros',v:220},{q:'03/02',d:'Revisão dos 40 mil km',v:410}] },
-      { id:'OS-1043', status:0, cliente:'Renata Aquino', telefone:'(61) 9····-1043', sujeito:'HB20 2021', secundario:'RJC-1190', dias:0,
-        itens:[{d:'Pastilha e disco dianteiro',v:380,ok:false}], hist:[] },
-      { id:'OS-1039', status:1, cliente:'João Pedro Lima', telefone:'(61) 9····-1039', sujeito:'Gol 2016', secundario:'OAB-7742', dias:2,
-        itens:[{d:'Retífica do motor',v:1450,ok:true},{d:'Correia dentada',v:260,ok:true},{d:'Bomba d’água',v:180,ok:true}],
-        hist:[{q:'28/07',d:'Troca de amortecedor',v:640}] },
-      { id:'OS-1040', status:1, cliente:'Fábrica de Sabor Ltda (frota)', telefone:'(61) 9····-1040', sujeito:'Saveiro 2018 · frota', secundario:'—', dias:4,
-        itens:[{d:'Revisão preventiva (3 veículos)',v:960,ok:true},{d:'Troca de pneus (6 unid.)',v:1980,ok:true}],
-        hist:[{q:'maio/26',d:'Contrato de revisão trimestral',v:2400}] },
-      { id:'OS-1036', status:2, cliente:'Diego Ferreira', telefone:'(61) 9····-1036', sujeito:'Civic 2015', secundario:'ABC-3311', dias:0,
-        itens:[{d:'Ar-condicionado — recarga de gás',v:210,ok:true}],
-        hist:[{q:'19/04',d:'Troca de embreagem',v:1180},{q:'02/01',d:'Suspensão dianteira',v:730}] },
-      { id:'OS-1029', status:3, cliente:'Marcos Vieira', telefone:'(61) 9····-1042', sujeito:'Onix 2019', secundario:'PBK-4A21', dias:9,
-        itens:[{d:'Revisão dos 30 mil km',v:390,ok:true}], hist:[] },
-    ],
-  },
-
   assistencia: {
     nome: 'Assistência técnica',
     eyebrow: 'Painel de ordens de serviço · exemplo em assistência técnica',
@@ -250,7 +222,7 @@ const SEGMENTOS = {
         itens:[{d:'Limpeza e pasta térmica',v:180,ok:true},{d:'SSD 480 GB',v:420,ok:false}], hist:[] },
       { id:'OS-2210', status:1, cliente:'Rafael Dourado', telefone:'(61) 9····-2210', sujeito:'Celular · não carrega', secundario:'SN 9GS21B', dias:2,
         itens:[{d:'Troca do conector de carga',v:240,ok:true}], hist:[] },
-      { id:'OS-2208', status:1, cliente:'Escritório Lemos (4 máquinas)', telefone:'(61) 9····-2208', sujeito:'Desktops · manutenção', secundario:'—', dias:3,
+      { id:'OS-2208', status:1, cliente:'Escritório Lemos (4 máquinas)', telefone:'(61) 9····-2208', sujeito:'Desktops · manutenção', secundario:'-', dias:3,
         itens:[{d:'Formatação e backup (4 máquinas)',v:640,ok:true},{d:'Memória 8 GB (4 unid.)',v:720,ok:true}],
         hist:[{q:'fev/26',d:'Contrato de manutenção semestral',v:1800}] },
       { id:'OS-2203', status:2, cliente:'Vera Lúcia Prado', telefone:'(61) 9····-2203', sujeito:'Impressora · não puxa papel', secundario:'SN EP3150', dias:0,
@@ -264,7 +236,7 @@ const SEGMENTOS = {
     nome: 'Instalação e manutenção',
     eyebrow: 'Painel de ordens de serviço · exemplo em instalação e manutenção',
     h1: 'O time sai para a rua sabendo o que foi aprovado.',
-    lead: 'Orçamento enviado por link, cliente aprova, o serviço entra na agenda. Cada visita fica registrada com endereço, o que foi executado e quanto foi cobrado — sem depender do que o técnico lembrou de anotar.',
+    lead: 'Orçamento enviado por link, cliente aprova, o serviço entra na agenda. Cada visita fica registrada com endereço, o que foi executado e quanto foi cobrado, sem depender do que o técnico lembrou de anotar.',
     sujeito: 'Serviço', secundario: 'Endereço', registro: 'Ordem de serviço', plural: 'Ordens de serviço',
     colunas: ['Orçamento enviado','Agendado','Executado','Faturado'],
     kpis: ['Serviços abertos','Agendados','Ticket médio','Valor em aberto'],
@@ -338,7 +310,7 @@ const SEGMENTOS = {
   },
 };
 
-let atual = 'oficina';
+let atual = 'assistencia';
 let OS = [];
 
 function seg(){ return SEGMENTOS[atual]; }
@@ -392,7 +364,7 @@ function renderBoard(){
         <button class="card" data-id="${o.id}">
           <div class="id">${esc(o.id)}</div>
           <h4>${esc(o.cliente)}</h4>
-          <div class="veic">${esc(o.sujeito)}${o.secundario !== '—' ? ' · ' + esc(o.secundario) : ''}</div>
+          <div class="veic">${esc(o.sujeito)}${o.secundario !== '-' ? ' · ' + esc(o.secundario) : ''}</div>
           <div class="foot">
             <span class="valor">${fmt(totalOS(o))}</span>
             <span class="dias ${o.dias>=4?'late':''}">${o.dias===0?'hoje':o.dias+'d aberto'}</span>
@@ -420,12 +392,12 @@ function abrirModal(id){
       <div><div class="l">Telefone</div><div class="v">${esc(o.telefone)}</div></div>
       <div><div class="l">Tempo em aberto</div><div class="v">${o.dias===0?'aberta hoje':o.dias+' dia(s)'}</div></div>
     </div>
-    <h4>Orçamento — aprovado item a item</h4>
+    <h4>Orçamento, aprovado item a item</h4>
     <div class="itens">
       ${o.itens.map(i=>`<div class="item"><span>${esc(i.d)}</span><span style="display:flex;gap:8px;align-items:center;"><span class="mono">${fmt(i.v)}</span><span class="ok ${i.ok?'aprovado':'pendente'}">${i.ok?'aprovado':'pendente'}</span></span></div>`).join('')}
       <div class="total"><span>Total</span><span>${fmt(totalOS(o))}</span></div>
     </div>
-    ${o.hist.length ? `<h4>Histórico deste cliente</h4><ul class="hist">${o.hist.map(h=>`<li><span>${esc(h.q)} — ${esc(h.d)}</span><span class="mono">${fmt(h.v)}</span></li>`).join('')}</ul>` : ''}
+    ${o.hist.length ? `<h4>Histórico deste cliente</h4><ul class="hist">${o.hist.map(h=>`<li><span>${esc(h.q)}, ${esc(h.d)}</span><span class="mono">${fmt(h.v)}</span></li>`).join('')}</ul>` : ''}
     <div class="modal-actions">
       ${prox !== null ? `<button class="btn btn-primary" id="mAvancar">Avançar para "${esc(nomeColuna(prox))}"</button>` : `<button class="btn btn-ghost" disabled>Etapa final</button>`}
       <button class="btn btn-ghost" id="mFechar">Fechar</button>
@@ -457,7 +429,8 @@ document.getElementById('board').addEventListener('click', e => {
 document.getElementById('overlay').addEventListener('click', e => { if (e.target.id === 'overlay') fecharModal(); });
 document.addEventListener('keydown', e => { if (e.key === 'Escape') fecharModal(); });
 
-trocarSegmento('oficina');
+trocarSegmento('assistencia');
 </script>
+<script src="/assets/m.js" defer></script>
 </body>
 </html>

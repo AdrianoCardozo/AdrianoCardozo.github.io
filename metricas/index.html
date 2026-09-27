@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Métricas | Vexon</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<style>
+:root{--bg:#0b0b0a;--surface:#161613;--surface-2:#1c1c18;--line:#292923;--text:#ecebe3;--muted:#9b9a8f;--faint:#807f75;--accent:#c7e356;--ok:#5fd68a;--warn:#e0a94a;}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:15px/1.55 "Segoe UI",Roboto,Arial,sans-serif}
+.wrap{max-width:1100px;margin:0 auto;padding:22px 16px 60px}
+h1{font-size:1.5rem;margin:0}
+h2{font-size:.78rem;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);margin:0 0 10px;font-weight:600}
+.top{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between}
+.seg{display:flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg button{background:none;border:0;color:var(--muted);padding:8px 14px;cursor:pointer;font:inherit}
+.seg button[aria-pressed="true"]{background:var(--accent);color:#0d0f08;font-weight:600}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:20px 0}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.kpi b{display:block;font-size:1.9rem;line-height:1.1;font-variant-numeric:tabular-nums}
+.kpi span{color:var(--muted);font-size:.85rem}
+.grid{display:grid;gap:12px}
+@media(min-width:900px){.grid{grid-template-columns:1fr 1fr}}
+.box{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px;overflow:auto}
+.box.full{grid-column:1/-1}
+table{width:100%;border-collapse:collapse;font-size:.9rem}
+th,td{text-align:left;padding:7px 6px;border-bottom:1px solid var(--line);white-space:nowrap}
+th{color:var(--faint);font-weight:500;font-size:.78rem}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
+tr:last-child td{border-bottom:0}
+.vazio{color:var(--faint);font-size:.9rem}
+.bars{display:flex;align-items:flex-end;gap:3px;height:140px;padding-top:8px}
+.bar{flex:1;min-width:4px;background:var(--accent);border-radius:3px 3px 0 0;position:relative}
+.bar i{position:absolute;left:0;right:0;bottom:0;background:var(--ok);border-radius:3px 3px 0 0}
+.leg{display:flex;gap:14px;color:var(--muted);font-size:.8rem;margin-top:8px}
+.leg span::before{content:"";display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:-1px;background:var(--accent)}
+.leg span.c::before{background:var(--ok)}
+.login{max-width:360px;margin:12vh auto;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:24px}
+.login input{width:100%;padding:12px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--text);font:inherit;margin:12px 0}
+.login button,.btn{background:var(--accent);color:#0d0f08;border:0;border-radius:8px;padding:11px 16px;font:inherit;font-weight:600;cursor:pointer}
+.erro{color:var(--warn);font-size:.9rem;min-height:1.2em}
+.tag{font-size:.75rem;padding:2px 7px;border-radius:5px;background:var(--surface-2);color:var(--muted)}
+.tag.proposta{color:var(--accent)} .tag.clique{color:var(--ok)}
+.sub{color:var(--faint);font-size:.82rem;margin-top:4px}
+</style>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+<script>
+(function(){
+"use strict";
+var RPC="https://zowggcihzaeeczxczttt.supabase.co/rest/v1/rpc/metricas";
+var KEY="sb_publishable_ryuSsjlhYEhIBvyCBgRQuw_-sYVlWQy";
+var app=document.getElementById("app");
+function ler(k){try{return localStorage.getItem(k)}catch(e){return null}}
+function gravar(k,v){try{v===null?localStorage.removeItem(k):localStorage.setItem(k,v)}catch(e){}}
+gravar("vx_eu","1");
+var senha=ler("vx_senha"), dias=30, timer=null;
+function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+
+function tela_login(msg){
+  app.innerHTML='<div class="login"><h1>Métricas da Vexon</h1><p class="sub">Digite a senha. Ela fica salva neste aparelho.</p>'+
+    '<input id="s" type="password" autocomplete="current-password" placeholder="Senha"><div class="erro" id="e">'+esc(msg||"")+'</div><button id="b">Entrar</button></div>';
+  var i=document.getElementById("s");
+  function ir(){senha=i.value.trim(); if(!senha)return; carregar(true);}
+  document.getElementById("b").onclick=ir;
+  i.onkeydown=function(e){if(e.key==="Enter")ir()};
+  i.focus();
+}
+
+function carregar(primeira){
+  fetch(RPC,{method:"POST",headers:{"apikey":KEY,"Content-Type":"application/json"},body:JSON.stringify({senha:senha,dias:dias})})
+  .then(function(r){ if(r.status===403||r.status===401||r.status===400) throw new Error("senha"); if(!r.ok) throw new Error("rede"); return r.json(); })
+  .then(function(d){ gravar("vx_senha",senha); desenhar(d); })
+  .catch(function(e){
+    if(e.message==="senha"){ gravar("vx_senha",null); tela_login("Senha errada."); }
+    else if(primeira){ tela_login("Não consegui falar com o servidor. Tente de novo."); }
+  });
+}
+
+function tabela(cols,linhas){
+  if(!linhas||!linhas.length) return '<p class="vazio">Nada ainda neste período.</p>';
+  var h='<table><thead><tr>'+cols.map(function(c){return '<th class="'+(c.n?"n":"")+'">'+c.t+'</th>'}).join("")+'</tr></thead><tbody>';
+  linhas.forEach(function(l){ h+='<tr>'+cols.map(function(c){return '<td class="'+(c.n?"n":"")+'">'+(c.f?c.f(l):esc(l[c.k]))+'</td>'}).join("")+'</tr>'; });
+  return h+'</tbody></table>';
+}
+
+function desenhar(d){
+  var max=1; (d.por_dia||[]).forEach(function(x){ if(x.visitas>max) max=x.visitas; });
+  var barras=(d.por_dia||[]).map(function(x){
+    var hv=Math.round(x.visitas/max*100), hc=x.visitas?Math.round(Math.min(x.cliques,x.visitas)/max*100):0;
+    return '<div class="bar" style="height:'+Math.max(hv,2)+'%" title="'+esc(x.dia)+': '+x.visitas+' visitas, '+x.cliques+' cliques"><i style="height:'+(hv?Math.round(hc/hv*100):0)+'%"></i></div>';
+  }).join("");
+  var disp=d.dispositivos||{}; var dl=Object.keys(disp).map(function(k){return{k:k,n:disp[k]}});
+  var taxa=d.visitantes?Math.round(d.cliques_whatsapp/d.visitantes*1000)/10:0;
+  app.innerHTML=
+   '<div class="top"><div><h1>Métricas da Vexon</h1><p class="sub">Atualiza sozinho a cada minuto. Suas visitas neste aparelho não contam.</p></div>'+
+   '<div class="seg" role="group" aria-label="Período">'+[7,30,90].map(function(n){return '<button data-d="'+n+'" aria-pressed="'+(n===dias)+'">'+n+' dias</button>'}).join("")+'</div></div>'+
+   '<div class="kpis">'+
+     '<div class="kpi"><b>'+d.visitas+'</b><span>Visitas</span></div>'+
+     '<div class="kpi"><b>'+d.visitantes+'</b><span>Pessoas diferentes</span></div>'+
+     '<div class="kpi"><b>'+d.cliques_whatsapp+'</b><span>Cliques em contato</span></div>'+
+     '<div class="kpi"><b>'+taxa+'%</b><span>Pessoas que clicaram</span></div>'+
+     '<div class="kpi"><b>'+d.propostas_abertas+'</b><span>Aberturas de proposta</span></div>'+
+   '</div>'+
+   '<div class="grid">'+
+    '<div class="box full"><h2>Por dia</h2>'+(barras?'<div class="bars">'+barras+'</div><div class="leg"><span>visitas</span><span class="c">cliques em contato</span></div>':'<p class="vazio">Nada ainda neste período.</p>')+'</div>'+
+    '<div class="box full"><h2>Propostas abertas (/pre/)</h2>'+tabela([{t:"Proposta",k:"proposta"},{t:"Aberturas",k:"aberturas",n:1},{t:"Pessoas",k:"pessoas",n:1},{t:"Última vez",k:"ultima"}],d.propostas)+'</div>'+
+    '<div class="box"><h2>Páginas</h2>'+tabela([{t:"Página",k:"pagina"},{t:"Visitas",k:"visitas",n:1},{t:"Pessoas",k:"visitantes",n:1},{t:"Cliques",k:"cliques",n:1}],d.paginas)+'</div>'+
+    '<div class="box"><h2>Botões clicados</h2>'+tabela([{t:"Botão",k:"botao"},{t:"Página",k:"pagina"},{t:"Cliques",k:"cliques",n:1}],d.botoes)+'</div>'+
+    '<div class="box"><h2>De onde vieram</h2>'+tabela([{t:"Origem",k:"origem"},{t:"Visitas",k:"visitas",n:1}],d.origens)+'</div>'+
+    '<div class="box"><h2>Aparelho</h2>'+tabela([{t:"Tipo",k:"k"},{t:"Visitas",k:"n",n:1}],dl)+'</div>'+
+    '<div class="box full"><h2>Últimos acontecimentos</h2>'+tabela([{t:"Quando",k:"quando"},{t:"O quê",f:function(l){return '<span class="tag '+esc(l.tipo)+'">'+esc(l.tipo)+'</span>'}},{t:"Página",k:"pagina"},{t:"Detalhe",k:"alvo"},{t:"Origem",k:"origem"},{t:"Aparelho",k:"dispositivo"}],d.recentes)+'</div>'+
+   '</div>'+
+   '<p class="sub" style="margin-top:18px">Dica: nos links que você manda, acrescente <b>?origem=whatsapp</b>, <b>?origem=instagram</b> ou <b>?origem=getninjas</b> para saber de onde veio cada visita. <a href="#" id="sair" style="color:var(--muted)">Sair</a></p>';
+  Array.prototype.forEach.call(app.querySelectorAll(".seg button"),function(b){ b.onclick=function(){ dias=+b.getAttribute("data-d"); carregar(false); }; });
+  document.getElementById("sair").onclick=function(e){e.preventDefault(); gravar("vx_senha",null); senha=null; tela_login();};
+  clearInterval(timer); timer=setInterval(function(){ if(senha) carregar(false); },60000);
+}
+
+if(senha) carregar(true); else tela_login();
+})();
+</script>
+</body>
+</html>

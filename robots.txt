@@ -1,8 +1,9 @@
 User-agent: *
 Allow: /
 
-# Propostas feitas para oficinas especificas. Nao sao paginas publicas.
+# Paginas de proposta individual e painel interno. Nao sao paginas publicas.
 Disallow: /pre/
+Disallow: /metricas/
 
 # Leitores de pre-visualizacao de link (WhatsApp, Facebook, Telegram, Slack).
 # Precisam ler a pagina para montar o cartao quando o link e enviado.
