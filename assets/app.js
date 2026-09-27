@@ -1,8 +1,4 @@
-/* =========================================================================
-   Vexon — comportamento do site
-   Sem dependências externas. Cada bloco é independente e falha em silêncio
-   se o elemento correspondente não existir na página.
-   ========================================================================= */
+/* Vexon: comportamento da página inicial. Sem dependências. */
 
 (() => {
   "use strict";
@@ -11,24 +7,15 @@
   const $ = (sel, root = document) => root.querySelector(sel);
   const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
 
-  /* ---------------------------------------------------------------------
-     1. Ano no rodapé
-     --------------------------------------------------------------------- */
+  // ano no rodapé
   const yearEl = $("#year");
   if (yearEl) yearEl.textContent = String(new Date().getFullYear());
 
-  /* ---------------------------------------------------------------------
-     2. Barra de progresso + cabeçalho fixo
-     --------------------------------------------------------------------- */
-  const progress = $("#progress");
+  // cabeçalho muda ao rolar
   const header = $("#header");
   let ticking = false;
 
   function onScroll() {
-    const doc = document.documentElement;
-    const max = doc.scrollHeight - window.innerHeight;
-    const ratio = max > 0 ? window.scrollY / max : 0;
-    if (progress) progress.style.transform = `scaleX(${ratio})`;
     if (header) header.classList.toggle("is-stuck", window.scrollY > 12);
     ticking = false;
   }
@@ -45,43 +32,7 @@
   );
   onScroll();
 
-  /* ---------------------------------------------------------------------
-     3. Título do hero: entrada palavra a palavra
-     --------------------------------------------------------------------- */
-  const heroTitle = $("#heroTitle");
-  if (heroTitle && !reduceMotion) {
-    let index = 0;
-
-    const wrapWords = (node) => {
-      Array.from(node.childNodes).forEach((child) => {
-        if (child.nodeType === Node.TEXT_NODE) {
-          const parts = child.textContent.split(/(\s+)/);
-          const frag = document.createDocumentFragment();
-          parts.forEach((part) => {
-            if (!part.trim()) {
-              frag.appendChild(document.createTextNode(part));
-              return;
-            }
-            const span = document.createElement("span");
-            span.className = "word";
-            span.textContent = part;
-            span.style.animationDelay = `${index * 55}ms`;
-            index += 1;
-            frag.appendChild(span);
-          });
-          node.replaceChild(frag, child);
-        } else if (child.nodeType === Node.ELEMENT_NODE) {
-          wrapWords(child);
-        }
-      });
-    };
-
-    wrapWords(heroTitle);
-  }
-
-  /* ---------------------------------------------------------------------
-     4. Revelação ao rolar
-     --------------------------------------------------------------------- */
+  // revelação ao rolar
   const revealables = $$(".reveal");
   if (revealables.length) {
     if (reduceMotion || !("IntersectionObserver" in window)) {
@@ -103,76 +54,7 @@
   }
 
 
-  /* ---------------------------------------------------------------------
-     6. Diagrama: pulsos percorrendo os fios
-     --------------------------------------------------------------------- */
-  const archSvg = $("#archSvg");
-  const pulseLayer = $("#pulses");
-
-  if (archSvg && pulseLayer && !reduceMotion) {
-    const NS = "http://www.w3.org/2000/svg";
-    const wires = ["w1", "w2", "w3", "w4", "w5", "w6"]
-      .map((id) => document.getElementById(id))
-      .filter(Boolean);
-
-    const travellers = wires.map((wire, i) => {
-      const dot = document.createElementNS(NS, "circle");
-      dot.setAttribute("r", i > 2 ? "3" : "3.4");
-      dot.setAttribute("class", i > 2 ? "pulse blue" : "pulse");
-      pulseLayer.appendChild(dot);
-      return {
-        wire,
-        dot,
-        length: wire.getTotalLength(),
-        offset: Math.random(),
-        speed: 0.00022 + Math.random() * 0.00016,
-      };
-    });
-
-    let running = true;
-    let last = performance.now();
-
-    const tick = (now) => {
-      const dt = Math.min(now - last, 60);
-      last = now;
-      if (running) {
-        travellers.forEach((t) => {
-          t.offset = (t.offset + t.speed * dt) % 1;
-          const point = t.wire.getPointAtLength(t.offset * t.length);
-          t.dot.setAttribute("cx", point.x.toFixed(2));
-          t.dot.setAttribute("cy", point.y.toFixed(2));
-          // some no início e no fim do trajeto
-          const fade =
-            Math.min(t.offset, 1 - t.offset, 0.14) / 0.14;
-          t.dot.setAttribute("opacity", fade.toFixed(2));
-        });
-      }
-      window.requestAnimationFrame(tick);
-    };
-    window.requestAnimationFrame(tick);
-
-    // pausa quando o diagrama sai da tela
-    if ("IntersectionObserver" in window) {
-      new IntersectionObserver((entries) => {
-        running = entries[0].isIntersecting;
-      }).observe(archSvg);
-    }
-  }
-
-  /* ---------------------------------------------------------------------
-     7. Cards de serviço: brilho seguindo o cursor
-     --------------------------------------------------------------------- */
-  $$(".service").forEach((card) => {
-    card.addEventListener("pointermove", (event) => {
-      const rect = card.getBoundingClientRect();
-      card.style.setProperty("--mx", `${event.clientX - rect.left}px`);
-      card.style.setProperty("--my", `${event.clientY - rect.top}px`);
-    });
-  });
-
-  /* ---------------------------------------------------------------------
-     8. Painel de demonstração
-     --------------------------------------------------------------------- */
+  // painel de demonstração
   const DATA = {
     7: {
       kpis: [
@@ -333,7 +215,7 @@
     kpisEl.innerHTML = kpis
       .map((k) => {
         const rising = k.delta >= 0;
-        // em "Em atraso" subir é ruim: a cor segue o efeito, não o sinal
+        // em "Em atraso", subir é ruim, então a cor inverte
         const good = k.invert ? !rising : rising;
         const dir = good ? "up" : "down";
         const sign = rising ? "\u25b2" : "\u25bc";
@@ -356,7 +238,7 @@
     chartX.innerHTML = labels.map((l) => `<span>${l}</span>`).join("");
   }
 
-  /* -- tabela ordenável -- */
+  // tabela ordenável
   let sortKey = "valor";
   let sortDir = "desc";
 
@@ -405,7 +287,7 @@
     });
   });
 
-  /* -- troca de período -- */
+  // troca de período
   $$(".seg button[data-period]").forEach((btn) => {
     btn.addEventListener("click", () => {
       const period = btn.dataset.period;
@@ -431,7 +313,7 @@
     });
   });
 
-  /* -- tooltip do gráfico -- */
+  // dica do gráfico
   if (chartWrap && chartMarker && chartGuide && chartTip) {
     chartWrap.addEventListener("pointermove", (event) => {
       const svg = $("#chart");
@@ -489,9 +371,7 @@
     }
   }
 
-  /* ---------------------------------------------------------------------
-     9. Processo: destaque da etapa visível
-     --------------------------------------------------------------------- */
+  // processo: destaque da etapa visível
   const steps = $$("#steps .step");
   if (steps.length && "IntersectionObserver" in window) {
     const io = new IntersectionObserver(

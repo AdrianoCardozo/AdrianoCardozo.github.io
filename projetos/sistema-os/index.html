@@ -8,7 +8,7 @@
 <meta name="theme-color" content="#0b0b0a">
 <link rel="canonical" href="https://vexonsystem.com/projetos/sistema-os/">
 <meta property="og:title" content="Painel de ordens de serviço | demonstração Vexon">
-<meta property="og:description" content="Um painel, quatro tipos de negócio. Ordem de serviço, orçamento aprovado item a item e histórico do cliente | troque o segmento na própria tela.">
+<meta property="og:description" content="Ordem de serviço, orçamento aprovado item a item e histórico do cliente. Dá para trocar o tipo de negócio na própria tela.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://vexonsystem.com/projetos/sistema-os/">
 <meta property="og:site_name" content="Vexon">
@@ -161,15 +161,15 @@ button{font:inherit;}
 <main class="wrap">
 
   <section class="intro">
-    <span class="eyebrow" id="eyebrow">Painel de ordens de serviço &middot; exemplo em assistência técnica</span>
-    <h1 id="titulo">Sistema de ordem de servico sob medida.</h1>
-    <p id="lead">Cada ordem de servico numa tela so: orcamento aprovado item a item pelo cliente, status atualizado na hora e o historico do atendimento.</p>
+    <span class="eyebrow" id="eyebrow">Exemplo em assistência técnica</span>
+    <h1 id="titulo">Cada aparelho na bancada com o orçamento já aprovado.</h1>
+    <p id="lead">O cliente deixa o aparelho, recebe o orçamento por link e aprova só o que quiser. Você abre a bancada sabendo exatamente o que foi autorizado, e o histórico mostra o que aquele aparelho já sofreu antes.</p>
 
     <div class="segs" id="segs" role="group" aria-label="Trocar o tipo de negócio"></div>
     <p class="segs-nota">
-      <b>É o mesmo painel.</b> Troque o segmento acima e veja os dados, as colunas e
-      os campos mudarem. O sistema é construído em cima do processo de cada negócio,
-      não é um produto de prateleira com o nome trocado.
+      <b>É o mesmo painel.</b> Troque o tipo de negócio acima e veja os dados, as
+      colunas e os campos mudarem. Num projeto de verdade, eles seguem o jeito que a
+      sua empresa já trabalha.
     </p>
 
     <p class="fine" id="aviso"></p>
@@ -208,7 +208,7 @@ button{font:inherit;}
 const SEGMENTOS = {
   assistencia: {
     nome: 'Assistência técnica',
-    eyebrow: 'Painel de ordens de serviço · exemplo em assistência técnica',
+    eyebrow: 'Exemplo em assistência técnica',
     h1: 'Cada aparelho na bancada com o orçamento já aprovado.',
     lead: 'O cliente deixa o aparelho, recebe o orçamento por link e aprova só o que quiser. Você abre a bancada sabendo exatamente o que foi autorizado, e o histórico mostra o que aquele aparelho já sofreu antes.',
     sujeito: 'Aparelho', secundario: 'Nº de série', registro: 'Ordem de serviço', plural: 'Ordens de serviço',
@@ -234,7 +234,7 @@ const SEGMENTOS = {
 
   instalacao: {
     nome: 'Instalação e manutenção',
-    eyebrow: 'Painel de ordens de serviço · exemplo em instalação e manutenção',
+    eyebrow: 'Exemplo em instalação e manutenção',
     h1: 'O time sai para a rua sabendo o que foi aprovado.',
     lead: 'Orçamento enviado por link, cliente aprova, o serviço entra na agenda. Cada visita fica registrada com endereço, o que foi executado e quanto foi cobrado, sem depender do que o técnico lembrou de anotar.',
     sujeito: 'Serviço', secundario: 'Endereço', registro: 'Ordem de serviço', plural: 'Ordens de serviço',
@@ -260,7 +260,7 @@ const SEGMENTOS = {
 
   clinica: {
     nome: 'Clínica e consultório',
-    eyebrow: 'Painel de ordens de serviço · exemplo em clínica',
+    eyebrow: 'Exemplo em clínica',
     h1: 'O plano de tratamento aprovado antes de começar.',
     lead: 'O paciente recebe o plano por link, com cada procedimento e o valor do lado, e aprova o que quer fazer agora. A recepção vê num quadro só quem aprovou, quem está em tratamento e o que já foi faturado.',
     sujeito: 'Procedimento', secundario: 'Convênio', registro: 'Plano de tratamento', plural: 'Planos de tratamento',
@@ -286,7 +286,7 @@ const SEGMENTOS = {
 
   obra: {
     nome: 'Obra e reforma',
-    eyebrow: 'Painel de ordens de serviço · exemplo em obra e reforma',
+    eyebrow: 'Exemplo em obra e reforma',
     h1: 'Cada obra com a etapa e a medição no lugar certo.',
     lead: 'O cliente aprova a proposta item a item e acompanha em que etapa a obra está. Medição, aditivo e faturamento ficam registrados no mesmo lugar, então ninguém discute no fim o que foi combinado no começo.',
     sujeito: 'Obra', secundario: 'Etapa atual', registro: 'Contrato de obra', plural: 'Contratos de obra',
