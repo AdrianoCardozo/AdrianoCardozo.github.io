@@ -4,7 +4,7 @@
   var me = document.currentScript;
   var nome = (me && me.getAttribute("data-nome")) || "esta demonstração";
   var tipo = (me && me.getAttribute("data-tipo")) || "site";
-  var msg = "Oi Adriano, vi a demonstração " + nome + " no site da Vexon e quero um " + tipo + " assim pro meu negócio.";
+  var msg = "Olá, vi a demonstração " + nome + " no site da Vexon e quero um " + tipo + " assim pro meu negócio.";
   var link = "https://wa.me/5561999974323?text=" + encodeURIComponent(msg);
 
   var css = document.createElement("style");

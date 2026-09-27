@@ -1013,26 +1013,6 @@ table.orders td.num {
   }
 }
 
-/* assinatura do rodapé */
-.assinatura {
-  margin-top: 22px;
-  padding-top: 18px;
-  border-top: 1px solid var(--line);
-  max-width: 44ch;
-}
-.assinatura p {
-  font-size: 0.86rem;
-  line-height: 1.7;
-  color: var(--muted);
-}
-.assinatura p + p {
-  margin-top: 10px;
-}
-.assinatura strong {
-  color: var(--text);
-  font-weight: 600;
-}
-
 /* oferta e WhatsApp flutuante */
 .oferta-faixa{padding:0 0 clamp(40px,6vw,64px);}
 .oferta-grid{display:grid;gap:14px;}
