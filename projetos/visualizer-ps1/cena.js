@@ -1,7 +1,7 @@
 // O quarto/estúdio: paredes, espuma acústica, mesa, monitores de áudio que pulsam,
 // telas com DAW e analisador, cama, janela, letreiro neon, TV de tubo, arara de roupas.
 import * as THREE from './three.module.min.js';
-import { mat, canvasTex, box, grain, rand, hash } from './ps1.js';
+import { mat, canvasTex, box, grain, rand, hash } from './ps2.js';
 
 export const ROOM = { W: 4.2, D: 3.6, H: 2.6 };
 const PI = Math.PI;

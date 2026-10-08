@@ -4,7 +4,7 @@
 //   npx playwright install chromium
 //   node render.mjs --audio hennessy.mp3 --inicio 2.084 --bpm 116 --compassos 8
 //
-// Opções: --saida video.mp4  --fps 30  --vertical  --titulo "texto"  --repeticoes 4
+// Opções: --saida video.mp4  --fps 60  --vertical  --repeticoes 4
 import { createRequire } from 'node:module';
 import { spawn, execFileSync } from 'node:child_process';
 import http from 'node:http';
@@ -32,9 +32,8 @@ if (!audio) {
 const inicio = +opt('inicio', 2.084);
 const bpm = +opt('bpm', 116);
 const bars = +opt('compassos', 8);
-const fps = +opt('fps', 30);
+const fps = +opt('fps', 60);
 const vertical = !!opt('vertical', false);
-const titulo = opt('titulo', '');
 const reps = Math.max(1, +opt('repeticoes', 1));
 const saida = path.resolve(opt('saida', vertical ? 'visualizer-9x16.mp4' : 'visualizer-16x9.mp4'));
 const seconds = (bars * 4 * 60) / bpm;
@@ -62,17 +61,15 @@ const page = await browser.newPage();
 page.on('pageerror', (e) => console.error('[página]', e.message));
 await page.goto(`http://127.0.0.1:${port}/?render${vertical ? '&vertical' : ''}`);
 await page.waitForFunction(() => window.vis);
-const info = await page.evaluate((o) => window.vis.init(o), { audioUrl: '/__trecho.wav', bpm, bars, fps, vertical, title: titulo });
+const info = await page.evaluate((o) => window.vis.init(o), { audioUrl: '/__trecho.wav', bpm, bars, fps, vertical });
 console.log(`${info.frames} frames, ${info.seconds.toFixed(2)} s, ${info.w}x${info.h} -> ${saida}`);
 
-const [W, H] = vertical ? [1080, 1920] : [1920, 1080];
 const once = reps > 1 ? path.join(tmp, 'loop.mp4') : saida;
 const ff = spawn('ffmpeg', [
   '-y', '-loglevel', 'error',
   '-f', 'image2pipe', '-framerate', String(fps), '-i', '-',
   '-i', clip,
-  '-vf', `scale=${W}:${H}:flags=neighbor`,
-  '-c:v', 'libx264', '-preset', 'slow', '-crf', '18', '-pix_fmt', 'yuv420p',
+  '-c:v', 'libx264', '-preset', 'slow', '-crf', '17', '-pix_fmt', 'yuv420p',
   '-c:a', 'aac', '-b:a', '256k', '-shortest', '-movflags', '+faststart', once,
 ], { stdio: ['pipe', 'inherit', 'inherit'] });
 

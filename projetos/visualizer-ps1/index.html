@@ -3,14 +3,14 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Quarto PS1</title>
+<title>Quarto PS2</title>
 <meta name="robots" content="noindex">
 <style>
   :root { --bg: #050305; --fg: #f2efe6; --dim: #8a8478; --red: #ff2020; }
   * { box-sizing: border-box; }
   html, body { margin: 0; height: 100%; background: var(--bg); color: var(--fg); font: 13px/1.4 ui-monospace, Menlo, Consolas, monospace; }
   body { display: grid; place-items: center; min-height: 100vh; padding: 16px; gap: 12px; }
-  #c { width: min(100%, 1280px); aspect-ratio: 16 / 9; image-rendering: pixelated; background: #000; display: block; }
+  #c { width: min(100%, 1280px); aspect-ratio: 16 / 9; background: #000; display: block; }
   body.vertical #c { width: auto; height: min(80vh, 1280px); aspect-ratio: 9 / 16; }
   #ui { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: end; max-width: 1280px; width: 100%; }
   #ui[hidden] { display: none; }
@@ -30,7 +30,6 @@
   <label>Início (s)<input id="start" type="number" step="0.001" value="2.084"></label>
   <label>BPM<input id="bpm" type="number" step="0.01" value="116"></label>
   <label>Compassos<input id="bars" type="number" value="8"></label>
-  <label>Título<input id="title" type="text" value=""></label>
   <label>Vertical 9:16<input id="vert" type="checkbox"></label>
   <button id="go">▶ tocar</button>
 </div>

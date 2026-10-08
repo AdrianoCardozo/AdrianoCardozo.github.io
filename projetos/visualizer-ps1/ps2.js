@@ -1,6 +1,6 @@
-// Material "PlayStation 1": iluminação por vértice (Gouraud), vértices tremidos
-// (snap em grade de baixa resolução), textura afim (sem correção de perspectiva),
-// névoa e transparência por dithering (screen-door), como no hardware original.
+// Material "PlayStation 2": iluminação por pixel com várias luzes coloridas,
+// texturas filtradas, um brilho especular discreto e névoa colorida. O brilho
+// (bloom) das luzes fica no pós-processamento em main.js.
 import * as THREE from './three.module.min.js';
 
 // Cores em valores de tela direto (sem conversão sRGB/linear).
@@ -17,80 +17,78 @@ export const shared = {
   uFogColor: { value: new THREE.Vector3(0.02, 0.0, 0.02) },
   uFogNear: { value: 2.5 },
   uFogFar: { value: 7.5 },
-  uSnapRes: { value: new THREE.Vector2(160, 90) },
 };
 
 const vert = /* glsl */ `
-  uniform vec3 uLightPos[${MAX_LIGHTS}];
-  uniform vec3 uLightCol[${MAX_LIGHTS}];
-  uniform float uLightFall[${MAX_LIGHTS}];
-  uniform vec3 uAmbient;
   uniform float uFogNear, uFogFar;
-  uniform vec2 uSnapRes;
-  uniform float uUnlit;
-  varying vec3 vLight;
-  varying vec2 vUvA;
-  varying float vW;
+  varying vec3 vWorld;
+  varying vec3 vNormal;
+  varying vec2 vUv;
   varying float vFog;
   void main() {
     vec4 wp = modelMatrix * vec4(position, 1.0);
-    vec3 n = normalize(mat3(modelMatrix) * normal);
-    vec3 lit = uAmbient;
-    for (int i = 0; i < ${MAX_LIGHTS}; i++) {
-      vec3 d = uLightPos[i] - wp.xyz;
-      float dist = length(d);
-      float lambert = dot(n, d / max(dist, 1e-4)) * 0.75 + 0.25; // meio-lambert
-      lit += uLightCol[i] * max(lambert, 0.0) / (1.0 + dist * dist * uLightFall[i]);
-    }
-    vLight = mix(lit, vec3(1.0), uUnlit);
+    vWorld = wp.xyz;
+    vNormal = normalize(mat3(modelMatrix) * normal);
+    vUv = uv;
     vec4 mv = viewMatrix * wp;
     vFog = smoothstep(uFogNear, uFogFar, -mv.z);
-    vec4 p = projectionMatrix * mv;
-    vec2 g = uSnapRes * 0.5;
-    p.xy = floor(p.xy / p.w * g + 0.5) / g * p.w;
-    gl_Position = p;
-    vUvA = uv * p.w;
-    vW = p.w;
+    gl_Position = projectionMatrix * mv;
   }
 `;
 
 const frag = /* glsl */ `
+  uniform vec3 uLightPos[${MAX_LIGHTS}];
+  uniform vec3 uLightCol[${MAX_LIGHTS}];
+  uniform float uLightFall[${MAX_LIGHTS}];
+  uniform vec3 uAmbient;
   uniform sampler2D map;
   uniform float uHasMap;
   uniform vec3 uColor;
   uniform vec3 uEmissive;
   uniform float uOpacity;
+  uniform float uAlphaTest;
+  uniform float uUnlit;
+  uniform float uSpec;
   uniform vec3 uFogColor;
   uniform float uFogAmt;
-  varying vec3 vLight;
-  varying vec2 vUvA;
-  varying float vW;
+  varying vec3 vWorld;
+  varying vec3 vNormal;
+  varying vec2 vUv;
   varying float vFog;
-  float bayer4(vec2 p) {
-    ivec2 q = ivec2(mod(p, 4.0));
-    int i = q.x + q.y * 4;
-    int m[16] = int[16](0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5);
-    return (float(m[i]) + 0.5) / 16.0;
-  }
   void main() {
-    vec2 uv = vUvA / vW; // interpolação afim = textura "dançando" estilo PS1
-    vec4 tex = uHasMap > 0.5 ? texture2D(map, uv) : vec4(1.0);
-    float a = tex.a * uOpacity;
-    if (a < bayer4(gl_FragCoord.xy)) discard;
+    vec4 tex = uHasMap > 0.5 ? texture2D(map, vUv) : vec4(1.0);
+    if (tex.a < uAlphaTest) discard;
+    vec3 n = normalize(vNormal) * (gl_FrontFacing ? 1.0 : -1.0);
+    vec3 v = normalize(cameraPosition - vWorld);
+    vec3 lit = uAmbient;
+    vec3 spec = vec3(0.0);
+    for (int i = 0; i < ${MAX_LIGHTS}; i++) {
+      vec3 d = uLightPos[i] - vWorld;
+      float dist = length(d);
+      vec3 l = d / max(dist, 1e-4);
+      float att = 1.0 / (1.0 + dist * dist * uLightFall[i]);
+      float lambert = max(dot(n, l) * 0.8 + 0.2, 0.0); // meio-lambert
+      lit += uLightCol[i] * lambert * att;
+      spec += uLightCol[i] * pow(max(dot(n, normalize(l + v)), 0.0), 40.0) * att;
+    }
     vec3 base = uColor * tex.rgb;
-    vec3 c = base * vLight + base * uEmissive;
+    vec3 light = mix(lit, vec3(1.0), uUnlit);
+    vec3 c = base * light + base * uEmissive + spec * uSpec;
     c = mix(c, uFogColor, vFog * uFogAmt);
-    gl_FragColor = vec4(c, 1.0);
+    gl_FragColor = vec4(c, tex.a * uOpacity);
   }
 `;
 
-export function mat({ color = 0xffffff, map = null, emissive = 0, opacity = 1, unlit = false, fog = 1, side = THREE.FrontSide } = {}) {
+export function mat({ color = 0xffffff, map = null, emissive = 0, opacity = 1, unlit = false, fog = 1, spec = 0.08, alphaTest = 0.4, side = THREE.FrontSide } = {}) {
   const c = new THREE.Color(color);
   const e = typeof emissive === 'number' ? new THREE.Vector3(emissive, emissive, emissive) : emissive;
+  const transparent = opacity < 1;
   return new THREE.ShaderMaterial({
     vertexShader: vert,
     fragmentShader: frag,
     side,
+    transparent,
+    depthWrite: !transparent,
     uniforms: {
       ...shared,
       map: { value: map },
@@ -98,24 +96,39 @@ export function mat({ color = 0xffffff, map = null, emissive = 0, opacity = 1, u
       uColor: { value: new THREE.Vector3(c.r, c.g, c.b) },
       uEmissive: { value: e },
       uOpacity: { value: opacity },
+      uAlphaTest: { value: alphaTest },
       uUnlit: { value: unlit ? 1 : 0 },
+      uSpec: { value: spec },
       uFogAmt: { value: fog },
     },
   });
 }
 
-// Textura desenhada num <canvas> pequeno, sem filtro (pixels duros).
+// Textura desenhada num <canvas> pequeno. As estáticas são ampliadas 8x sem
+// suavizar e depois filtradas (bordas firmes, sem serrilhado de pixel); as
+// dinâmicas (telas) ficam no tamanho original com filtro linear.
+const UP = 8;
 export function canvasTex(w, h, draw) {
   const cv = document.createElement('canvas');
   cv.width = w;
   cv.height = h;
   const g = cv.getContext('2d');
   g.imageSmoothingEnabled = false;
-  if (draw) draw(g, w, h);
-  const t = new THREE.CanvasTexture(cv);
-  t.magFilter = THREE.NearestFilter;
-  t.minFilter = THREE.NearestFilter;
-  t.generateMipmaps = false;
+  let img = cv;
+  if (draw) {
+    draw(g, w, h);
+    img = document.createElement('canvas');
+    img.width = w * UP;
+    img.height = h * UP;
+    const g2 = img.getContext('2d');
+    g2.imageSmoothingEnabled = false;
+    g2.drawImage(cv, 0, 0, w * UP, h * UP);
+  }
+  const t = new THREE.CanvasTexture(img);
+  t.magFilter = THREE.LinearFilter;
+  t.minFilter = draw ? THREE.LinearMipmapLinearFilter : THREE.LinearFilter;
+  t.generateMipmaps = !!draw;
+  t.anisotropy = 4;
   t.colorSpace = THREE.NoColorSpace;
   t.wrapS = t.wrapT = THREE.RepeatWrapping;
   t.userData.ctx = g;
@@ -151,6 +164,10 @@ export function grain(g, w, h, amt, seed = 1) {
 
 // Caixa com material por face: [+x, -x, +y, -y, +z(frente), -z].
 export function box(w, h, d, m, seg = 1) {
-  const geo = new THREE.BoxGeometry(w, h, d, seg, seg, seg);
-  return new THREE.Mesh(geo, m);
+  return new THREE.Mesh(new THREE.BoxGeometry(w, h, d, seg, seg, seg), m);
+}
+
+// Cilindro de lados suaves (membros, dreads, cabos).
+export function tube(rTop, rBottom, h, m, sides = 10) {
+  return new THREE.Mesh(new THREE.CylinderGeometry(rTop, rBottom, h, sides), m);
 }

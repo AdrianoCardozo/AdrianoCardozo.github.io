@@ -2,7 +2,7 @@
 //  A: pele parda, dreads pretos até o pescoço, óculos escuro, cigarro.
 //  B: degradê americano baixo, boné de beisebol pra trás, óculos de grau.
 import * as THREE from './three.module.min.js';
-import { mat, canvasTex, box, grain, rand } from './ps1.js';
+import { mat, canvasTex, box, tube, grain, rand } from './ps2.js';
 
 const PI = Math.PI;
 
@@ -203,23 +203,25 @@ function skeleton({ skin, torsoMat, sleeveMat, pantsMat, shoeMat, soleMat, torso
   const torso = pivot(hips, 0, 0, 0);
   add(torso, box(torsoW, 0.62, 0.3, torsoMat), 0, 0.31, 0);
   const neck = pivot(torso, 0, 0.62, 0);
-  add(neck, box(0.1, 0.1, 0.1, skinM), 0, 0.03, 0);
+  add(neck, tube(0.05, 0.056, 0.12, skinM), 0, 0.03, 0);
   const head = pivot(neck, 0, 0.07, 0.01);
 
   const arm = (side) => {
     const sh = pivot(torso, side * (torsoW / 2 + 0.04), 0.56, 0);
-    add(sh, box(0.16, 0.33, 0.17, sleeveMat), 0, -0.13, 0);
+    add(sh, tube(0.088, 0.078, 0.34, sleeveMat), 0, -0.13, 0);
+    add(sh, new THREE.Mesh(new THREE.SphereGeometry(0.09, 10, 8), sleeveMat), 0, 0.0, 0);
     const el = pivot(sh, 0, -0.3, 0);
-    add(el, box(0.14, 0.29, 0.15, sleeveMat), 0, -0.12, 0);
+    add(el, tube(0.078, 0.07, 0.3, sleeveMat), 0, -0.12, 0);
     const hand = pivot(el, 0, -0.29, 0);
-    add(hand, box(0.08, 0.1, 0.09, skinM), 0, -0.04, 0);
+    add(hand, box(0.075, 0.1, 0.085, skinM), 0, -0.04, 0);
+    add(hand, tube(0.045, 0.045, 0.02, skinM, 8), 0, 0.0, 0);
     return { sh, el, hand };
   };
   const leg = (side) => {
     const th = pivot(hips, side * 0.12, 0, 0);
-    add(th, box(0.2, 0.47, 0.22, pantsMat), 0, -0.22, 0);
+    add(th, tube(0.115, 0.105, 0.48, pantsMat), 0, -0.22, 0);
     const kn = pivot(th, 0, -0.45, 0);
-    add(kn, box(0.21, 0.42, 0.22, pantsMat), 0, -0.2, 0);
+    add(kn, tube(0.105, 0.12, 0.44, pantsMat), 0, -0.2, 0);
     const ft = pivot(kn, 0, -0.43, 0);
     add(ft, box(0.15, 0.09, 0.3, shoeMat), 0, -0.02, 0.05);
     add(ft, box(0.16, 0.04, 0.32, soleMat), 0, -0.07, 0.05);
@@ -229,7 +231,7 @@ function skeleton({ skin, torsoMat, sleeveMat, pantsMat, shoeMat, soleMat, torso
 }
 
 function chain(parent, color, y, w) {
-  const m = mat({ color, emissive: 0.15 });
+  const m = mat({ color, emissive: 0.15, spec: 1.4 });
   const r = rand(4);
   for (let i = 0; i < 9; i++) {
     const a = (i / 8) * PI;
@@ -280,7 +282,7 @@ export function buildA() {
       g.fillRect(0, y, 4, 1);
     }
   }) });
-  const bead = mat({ color: 0xd8dde6, emissive: 0.35 });
+  const bead = mat({ color: 0xd8dde6, emissive: 0.35, spec: 1.4 });
   const dreads = [];
   const r = rand(77);
   const N = 22;
@@ -289,17 +291,17 @@ export function buildA() {
     const a = -PI * 0.78 + (i / (N - 1)) * PI * 1.56; // 0 = nuca
     const len = 0.27 + r() * 0.08;
     const p = pivot(s.head, Math.sin(a) * 0.125, 0.27, -Math.cos(a) * 0.13);
-    const d = add(p, box(0.046, len, 0.046, dreadM), 0, -len / 2, 0);
+    const d = add(p, tube(0.024, 0.02, len, dreadM, 6), 0, -len / 2, 0);
     d.rotation.y = r();
-    if (i % 4 === 1) add(p, box(0.052, 0.03, 0.052, bead), 0, -len + 0.06, 0); // anel de prata no dread
+    if (i % 4 === 1) add(p, tube(0.029, 0.029, 0.03, bead, 8), 0, -len + 0.06, 0); // anel de prata no dread
     const out = 0.1 + r() * 0.08;
     p.userData = { a, out, ph: r() * PI * 2 };
     dreads.push(p);
   }
 
   // óculos escuro estiloso (lente envolvente espelhada)
-  const lens = mat({ map: shadesTex(), emissive: 0.5 });
-  const frameM = mat({ color: 0xc9ccd2, emissive: 0.2 });
+  const lens = mat({ map: shadesTex(), emissive: 0.5, spec: 2 });
+  const frameM = mat({ color: 0xc9ccd2, emissive: 0.2, spec: 1.4 });
   const shades = pivot(s.head, 0, 0.155, 0.13);
   const l1 = add(shades, box(0.11, 0.05, 0.012, lens), 0.055, 0, 0);
   l1.rotation.y = 0.18;
@@ -318,7 +320,7 @@ export function buildA() {
   const ember = add(cig, box(0.014, 0.014, 0.012, emberM), 0, 0, 0.08);
 
   // anéis
-  const ring = mat({ color: 0xd8dde6, emissive: 0.2 });
+  const ring = mat({ color: 0xd8dde6, emissive: 0.2, spec: 1.4 });
   add(s.armR.hand, box(0.085, 0.02, 0.095, ring), 0, -0.06, 0);
 
   const g = s.root;
@@ -411,7 +413,7 @@ export function buildB() {
 
   // óculos de grau: armação grossa de acetato preto com detalhe dourado
   const fr = mat({ color: 0x0c0c0c, emissive: 0.05 });
-  const gold = mat({ color: 0xe0b54a, emissive: 0.25 });
+  const gold = mat({ color: 0xe0b54a, emissive: 0.25, spec: 1.4 });
   const lensM = mat({ color: 0xbfe6ff, emissive: 0.6, opacity: 0.32 });
   const gl = pivot(s.head, 0, 0.152, 0.13);
   for (const sx of [1, -1]) {
