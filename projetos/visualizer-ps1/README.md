@@ -1,13 +1,15 @@
-# Visualizer PS2 — quarto-estúdio
+# Visualizer stop-motion — quarto-estúdio
 
-Visualizer em loop no estilo PlayStation 2: dois personagens num estúdio montado
-no quarto, filmados por 4 câmeras nas quinas do teto, com cortes no ritmo da
-batida. Os monitores de áudio, o LED do teto, as telas (DAW e
+Visualizer em loop no estilo stop-motion com bonecos de ação (referência: o
+clipe "90210", de Travis Scott). Dois bonecos num estúdio montado no quarto,
+como uma maquete, filmados por 4 câmeras nas quinas do teto, com cortes no
+ritmo da batida. O A fica meio deitado no sofá, fumando, olhando pro teto e
+balançando a cabeça e o pé. O B fica no computador produzindo. Os monitores de áudio, o LED do teto, as telas (DAW e
 analisador), a TV de tubo e o neon reagem à música.
 
-Visual: 1920×1080 a 60 qps, antisserrilhado, iluminação por pixel com 8 luzes
-coloridas, brilho (bloom) nas luzes, texturas filtradas e personagens low-poly
-com membros arredondados.
+Visual: 1920×1080 a 60 qps. A animação muda 6 vezes por batida (~11,6 poses/s),
+com o leve desvio de cada pose feita à mão. Tem foco raso de miniatura, sombra
+da lâmpada do teto, grão de película e oscilação de exposição entre poses.
 
 ## Prévia no navegador
 

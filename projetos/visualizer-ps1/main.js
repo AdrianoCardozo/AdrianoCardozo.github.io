@@ -1,7 +1,11 @@
-// Visualizer estilo PS2 — quarto-estúdio, 4 câmeras nas quinas do teto,
-// cortes no ritmo da batida e loop perfeito (o último frame emenda no primeiro).
+// Visualizer em stop-motion — quarto-estúdio em miniatura com dois bonecos de
+// ação, 4 câmeras nas quinas do teto, cortes no ritmo da batida e loop perfeito.
+//
+// Linguagem de stop-motion: os bonecos, a fumaça e as luzes mudam 6 vezes por
+// batida (~11,6 poses/s), cada pose com um leve desvio "feito à mão"; foco raso
+// de maquete, sombra dura da lâmpada, grão e oscilação de exposição de filme.
 import * as THREE from './three.module.min.js';
-import { shared, mat, canvasTex } from './ps2.js';
+import { shared, mat, canvasTex, hash } from './ps2.js';
 import { buildRoom, ROOM } from './cena.js';
 import { buildA, buildB } from './personagens.js';
 
@@ -12,11 +16,11 @@ const cfg = {
   bpm: 116,
   bars: 8, // 8 compassos a 116 BPM = 16,55 s (fecha a frase de 4 compassos)
   fps: 60,
+  posesPerBeat: 6, // cadência do stop-motion (6 × 116/60 ≈ 11,6 poses por segundo)
   vertical: params.has('vertical'),
 };
 
 // ---------------- render ----------------
-// Resolução cheia + MSAA, render em ponto flutuante para o bloom das luzes.
 let OUT_W = 1920;
 let OUT_H = 1080;
 const canvas = document.getElementById('c');
@@ -27,9 +31,22 @@ renderer.autoClear = true;
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x020002);
 const rtOpts = { type: THREE.HalfFloatType, minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter };
-const rt = new THREE.WebGLRenderTarget(OUT_W, OUT_H, { ...rtOpts, samples: 4 });
+const rt = new THREE.WebGLRenderTarget(OUT_W, OUT_H, { ...rtOpts, samples: 4, depthTexture: new THREE.DepthTexture(OUT_W, OUT_H) });
+const half = new THREE.WebGLRenderTarget(OUT_W / 2, OUT_H / 2, rtOpts);
+const halfB = new THREE.WebGLRenderTarget(OUT_W / 2, OUT_H / 2, rtOpts);
+const quarter = new THREE.WebGLRenderTarget(OUT_W / 4, OUT_H / 4, rtOpts);
+const quarterB = new THREE.WebGLRenderTarget(OUT_W / 4, OUT_H / 4, rtOpts);
 const bloomA = new THREE.WebGLRenderTarget(OUT_W / 4, OUT_H / 4, rtOpts);
 const bloomB = new THREE.WebGLRenderTarget(OUT_W / 4, OUT_H / 4, rtOpts);
+
+// sombra da lâmpada do teto
+const SHADOW_RES = 2048;
+const shadowRT = new THREE.WebGLRenderTarget(SHADOW_RES, SHADOW_RES, { depthTexture: new THREE.DepthTexture(SHADOW_RES, SHADOW_RES) });
+const shadowCam = new THREE.PerspectiveCamera(130, 1, 0.06, 6);
+const shadowMat = new THREE.MeshBasicMaterial({ colorWrite: false, side: THREE.DoubleSide });
+shared.uShadowMap.value = shadowRT.depthTexture;
+shared.uShadowTexel.value = 1 / SHADOW_RES;
+const biasM = new THREE.Matrix4().set(0.5, 0, 0, 0.5, 0, 0.5, 0, 0.5, 0, 0, 0.5, 0.5, 0, 0, 0, 1);
 
 const fsVert = `varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }`;
 const fsPass = (fragmentShader, uniforms) => {
@@ -40,11 +57,11 @@ const fsPass = (fragmentShader, uniforms) => {
 };
 const postCam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
 
-// 1) separa o que brilha  2) desfoca em 1/4 da resolução  3) soma na imagem final
+const copy = fsPass(`uniform sampler2D t; varying vec2 vUv; void main(){ gl_FragColor = vec4(texture2D(t, vUv).rgb, 1.0); }`, { t: { value: null } });
 const bright = fsPass(
   `uniform sampler2D t; varying vec2 vUv;
    void main(){ vec3 c = texture2D(t, vUv).rgb; float l = max(c.r, max(c.g, c.b));
-     gl_FragColor = vec4(c * smoothstep(0.75, 1.4, l), 1.0); }`,
+     gl_FragColor = vec4(c * smoothstep(0.8, 1.6, l), 1.0); }`,
   { t: { value: rt.texture } }
 );
 const blur = fsPass(
@@ -55,43 +72,94 @@ const blur = fsPass(
      gl_FragColor = vec4(c, 1.0); }`,
   { t: { value: null }, dir: { value: new THREE.Vector2() } }
 );
+// composição final: foco raso de maquete + brilho + cor/grão de filme
 const post = fsPass(
   /* glsl */ `
-    uniform sampler2D tScene, tBloom;
-    uniform float uBloom;
+    uniform sampler2D tScene, tDepth, tHalf, tQuarter, tBloom;
+    uniform float uNear, uFar, uFocus, uDof, uExposure, uSeed;
+    uniform vec2 uRes;
     varying vec2 vUv;
+    float linDepth(vec2 uv) {
+      float z = texture2D(tDepth, uv).r * 2.0 - 1.0;
+      return 2.0 * uNear * uFar / (uFar + uNear - z * (uFar - uNear));
+    }
+    float h12(vec2 p) { return fract(sin(dot(p, vec2(12.9898, 78.233)) + uSeed * 0.731) * 43758.5453); }
     void main() {
-      vec3 c = texture2D(tScene, vUv).rgb + texture2D(tBloom, vUv).rgb * uBloom;
-      c = c / (1.0 + c * 0.18); // compressão suave dos estouros
-      c = pow(c, vec3(0.95));
-      gl_FragColor = vec4(c, 1.0);
+      float d = linDepth(vUv);
+      float coc = clamp(abs(d - uFocus) / d * uDof, 0.0, 1.0);
+      vec3 sharp = texture2D(tScene, vUv).rgb;
+      vec3 c = mix(sharp, texture2D(tHalf, vUv).rgb, smoothstep(0.04, 0.4, coc));
+      c = mix(c, texture2D(tQuarter, vUv).rgb, smoothstep(0.4, 1.0, coc));
+      // halo avermelhado em volta das luzes (halação de película)
+      c += texture2D(tBloom, vUv).rgb * vec3(1.0, 0.72, 0.6) * 0.85;
+      c *= uExposure;
+      c = vec3(1.0) - exp(-c * 1.15);                          // resposta de filme (sem estourar)
+      float l = dot(c, vec3(0.299, 0.587, 0.114));
+      c = mix(vec3(l), c, 0.9);                                // um pouco menos saturado
+      c *= mix(vec3(0.93, 1.0, 1.07), vec3(1.06, 1.0, 0.9), smoothstep(0.0, 0.6, l)); // sombras frias, luz quente
+      c = mix(c, c * c * (3.0 - 2.0 * c), 0.22);               // curva em S
+      c = c * 0.965 + 0.014;                                   // preto de filme (nunca 100%)
+      vec2 q = vUv - 0.5;
+      c *= 1.0 - dot(q * vec2(1.0, 0.8), q * vec2(1.0, 0.8)) * 0.75; // vinheta da lente
+      float g = h12(floor(vUv * uRes / 1.5)) + h12(floor(vUv * uRes / 1.5) + 17.0) - 1.0;
+      c += g * 0.04 * (1.0 - l * 0.55);                       // grão de película
+      gl_FragColor = vec4(clamp(c, 0.0, 1.0), 1.0);
     }
   `,
-  { tScene: { value: rt.texture }, tBloom: { value: bloomA.texture }, uBloom: { value: 0.9 } }
+  {
+    tScene: { value: rt.texture },
+    tDepth: { value: rt.depthTexture },
+    tHalf: { value: half.texture },
+    tQuarter: { value: quarter.texture },
+    tBloom: { value: bloomA.texture },
+    uNear: { value: 0.05 },
+    uFar: { value: 20 },
+    uFocus: { value: 2 },
+    uDof: { value: 1.5 },
+    uExposure: { value: 1 },
+    uSeed: { value: 0 },
+    uRes: { value: new THREE.Vector2(OUT_W, OUT_H) },
+  }
 );
 
-function runBloom() {
-  renderer.setRenderTarget(bloomA);
-  renderer.render(bright.sc, postCam);
-  const px = new THREE.Vector2(1 / bloomA.width, 1 / bloomA.height);
-  for (let i = 0; i < 3; i++) {
-    blur.m.uniforms.t.value = bloomA.texture;
-    blur.m.uniforms.dir.value.set(px.x * (i + 1), 0);
-    renderer.setRenderTarget(bloomB);
-    renderer.render(blur.sc, postCam);
-    blur.m.uniforms.t.value = bloomB.texture;
-    blur.m.uniforms.dir.value.set(0, px.y * (i + 1));
-    renderer.setRenderTarget(bloomA);
-    renderer.render(blur.sc, postCam);
+function pass(p, target) {
+  renderer.setRenderTarget(target);
+  renderer.render(p.sc, postCam);
+}
+
+function blurInto(a, b, iters, spread) {
+  const px = new THREE.Vector2(1 / a.width, 1 / a.height);
+  for (let i = 0; i < iters; i++) {
+    blur.m.uniforms.t.value = a.texture;
+    blur.m.uniforms.dir.value.set(px.x * (i + 1) * spread, 0);
+    pass(blur, b);
+    blur.m.uniforms.t.value = b.texture;
+    blur.m.uniforms.dir.value.set(0, px.y * (i + 1) * spread);
+    pass(blur, a);
   }
+}
+
+function runPost() {
+  // versões desfocadas da imagem para o foco raso
+  copy.m.uniforms.t.value = rt.texture;
+  pass(copy, half);
+  blurInto(half, halfB, 2, 1);
+  copy.m.uniforms.t.value = half.texture;
+  pass(copy, quarter);
+  blurInto(quarter, quarterB, 3, 1.2);
+  // brilho das luzes
+  pass(bright, bloomA);
+  blurInto(bloomA, bloomB, 3, 1);
+  pass(post, null);
 }
 
 function setSize(vertical) {
   OUT_W = vertical ? 1080 : 1920;
   OUT_H = vertical ? 1920 : 1080;
   rt.setSize(OUT_W, OUT_H);
-  bloomA.setSize(OUT_W / 4, OUT_H / 4);
-  bloomB.setSize(OUT_W / 4, OUT_H / 4);
+  for (const r of [half, halfB]) r.setSize(OUT_W / 2, OUT_H / 2);
+  for (const r of [quarter, quarterB, bloomA, bloomB]) r.setSize(OUT_W / 4, OUT_H / 4);
+  post.m.uniforms.uRes.value.set(OUT_W, OUT_H);
   renderer.setSize(OUT_W, OUT_H, false);
   camera.aspect = OUT_W / OUT_H;
 }
@@ -101,38 +169,53 @@ const room = buildRoom(scene);
 const A = buildA();
 const B = buildB();
 scene.add(A.group, B.group);
-A.group.position.set(0.7, 0, -0.3);
-A.group.rotation.y = -0.95;
-B.group.position.set(-0.7, 0, -0.85);
-B.group.rotation.y = 0.85;
+// A meio deitado no sofá (parede direita), B na cadeira de frente pro computador
+A.group.position.set(1.6, 0, 0.12);
+A.group.rotation.y = -PI / 2;
+B.group.position.set(-0.6, 0, -0.76);
+B.group.rotation.y = PI;
 room.chair.position.copy(B.group.position);
 room.chair.rotation.y = B.group.rotation.y;
-room.mic.position.set(1.35, 0, -1.0);
-room.mic.rotation.y = 0.7;
+room.mic.position.set(-1.45, 0, -0.62);
+room.mic.rotation.y = 2.2;
 
-// fumaça do cigarro: sprites semitransparentes
-const smokeTex = canvasTex(64, 64);
+shadowCam.position.copy(room.BULB);
+shadowCam.up.set(0, 0, -1);
+shadowCam.lookAt(room.BULB.x, 0, room.BULB.z);
+shadowCam.updateMatrixWorld();
+shadowCam.updateProjectionMatrix();
+
+// fumaça: a brasa solta um fio contínuo; a tragada sai pela boca, pra cima
+const smokeTex = canvasTex(64, 64, null, { scale: 2 });
 {
   const g = smokeTex.userData.ctx;
-  const grd = g.createRadialGradient(32, 32, 2, 32, 32, 32);
-  grd.addColorStop(0, 'rgba(255,255,255,0.8)');
-  grd.addColorStop(0.5, 'rgba(255,255,255,0.3)');
-  grd.addColorStop(1, 'rgba(255,255,255,0)');
-  g.fillStyle = grd;
-  g.fillRect(0, 0, 64, 64);
+  const r = (k) => hash(k * 3.7);
+  for (let i = 0; i < 9; i++) {
+    const x = 32 + (r(i) - 0.5) * 22;
+    const y = 32 + (r(i + 9) - 0.5) * 22;
+    const rad = 10 + r(i + 19) * 14;
+    const grd = g.createRadialGradient(x, y, 0, x, y, rad);
+    grd.addColorStop(0, 'rgba(255,255,255,0.32)');
+    grd.addColorStop(1, 'rgba(255,255,255,0)');
+    g.fillStyle = grd;
+    g.fillRect(0, 0, 64, 64);
+  }
   smokeTex.needsUpdate = true;
 }
-const SMOKE_N = 26;
-const smoke = [];
-for (let i = 0; i < SMOKE_N; i++) {
-  const m = mat({ map: smokeTex, color: 0xb8b0c0, emissive: 0.2, opacity: 0.5, alphaTest: 0.01, spec: 0 });
-  const s = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), m);
+const smokeMat = () => mat({ map: smokeTex, color: 0xb8b6c0, emissive: 0.04, opacity: 0.5, alphaTest: 0.005, spec: 0 });
+const STREAM_N = 22;
+const EXHALE_N = 26;
+const stream = [];
+const exhaleP = [];
+for (let i = 0; i < STREAM_N + EXHALE_N; i++) {
+  const s = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), smokeMat());
+  s.renderOrder = 10;
   scene.add(s);
-  smoke.push(s);
+  (i < STREAM_N ? stream : exhaleP).push(s);
 }
 
 // ---------------- câmeras ----------------
-const camera = new THREE.PerspectiveCamera(70, 16 / 9, 0.05, 20);
+const camera = new THREE.PerspectiveCamera(60, 16 / 9, 0.05, 20);
 const { W, D, H } = ROOM;
 const CAMS = [
   new THREE.Vector3(-W / 2 + 0.15, H - 0.12, D / 2 - 0.15), // 1: frente-esquerda
@@ -141,21 +224,21 @@ const CAMS = [
   new THREE.Vector3(-W / 2 + 0.15, H - 0.12, -D / 2 + 0.15), // 4: fundo-esquerda
 ];
 // Roteiro de cortes, em batidas de um loop de 32 (8 compassos); é escalado se
-// o número de compassos mudar. Fica mais rápido conforme a música pesa e o
-// último corte cai exatamente no início do loop.
+// o número de compassos mudar. O último corte cai exatamente no início do loop.
+// As tragadas do A acontecem nas batidas 4–6 de cada 8 (closes 20 e 28 pegam).
 const SHOTS_32 = [
-  { at: 0, cam: 0, tgt: 'room', fov: 70 },
-  { at: 4, cam: 2, tgt: 'AB', fov: 52 },
-  { at: 8, cam: 0, tgt: 'A', fov: 28 },
-  { at: 12, cam: 3, tgt: 'room', fov: 70 },
-  { at: 16, cam: 1, tgt: 'B', fov: 28 },
-  { at: 18, cam: 2, tgt: 'B', fov: 34 },
-  { at: 20, cam: 0, tgt: 'A', fov: 24 },
-  { at: 22, cam: 3, tgt: 'AB', fov: 48 },
-  { at: 24, cam: 1, tgt: 'B', fov: 26 },
-  { at: 26, cam: 2, tgt: 'room', fov: 70 },
-  { at: 28, cam: 0, tgt: 'A', fov: 32 },
-  { at: 30, cam: 3, tgt: 'room', fov: 74 },
+  { at: 0, cam: 0, tgt: 'room', fov: 64 },
+  { at: 4, cam: 3, tgt: 'B', fov: 28 },
+  { at: 8, cam: 1, tgt: 'A', fov: 26 },
+  { at: 12, cam: 2, tgt: 'room', fov: 66 },
+  { at: 16, cam: 1, tgt: 'pc', fov: 34 },
+  { at: 18, cam: 0, tgt: 'foot', fov: 24 },
+  { at: 20, cam: 1, tgt: 'A', fov: 22 },
+  { at: 22, cam: 2, tgt: 'AB', fov: 50 },
+  { at: 24, cam: 3, tgt: 'A', fov: 26 },
+  { at: 26, cam: 0, tgt: 'pc', fov: 34 },
+  { at: 28, cam: 3, tgt: 'A', fov: 21 },
+  { at: 30, cam: 2, tgt: 'room', fov: 68 },
 ];
 let SHOTS = SHOTS_32;
 const scaleShots = () => (SHOTS = SHOTS_32.map((s) => ({ ...s, at: (s.at * cfg.bars * 4) / 32 })));
@@ -171,23 +254,24 @@ function shotAt(beatF) {
 const v3 = new THREE.Vector3();
 const v3b = new THREE.Vector3();
 function target(name) {
-  if (name === 'A') return A.head.getWorldPosition(v3).add(v3b.set(0, 0.0, 0));
-  if (name === 'B') return B.head.getWorldPosition(v3).add(v3b.set(0, 0.0, 0));
+  if (name === 'A') return A.head.getWorldPosition(v3).add(v3b.set(0, 0.1, 0));
+  if (name === 'B') return B.head.getWorldPosition(v3).add(v3b.set(0, 0.1, 0));
+  if (name === 'foot') return A.foot.getWorldPosition(v3).add(v3b.set(0, 0.25, 0));
+  if (name === 'pc') return v3.set(-0.55, 1.08, -1.55);
   if (name === 'AB') {
     A.head.getWorldPosition(v3);
     B.head.getWorldPosition(v3b);
-    return v3.add(v3b).multiplyScalar(0.5).add(v3b.set(0, -0.25, 0));
+    return v3.add(v3b).multiplyScalar(0.5).add(v3b.set(0, -0.2, 0));
   }
-  if (name === 'spk') return v3.set(-0.6, 1.0, -1.6);
-  return v3.set(0.0, 0.85, -0.5);
+  return v3.set(0.1, 0.75, -0.45);
 }
 
 // ---------------- paleta por seção ----------------
 const PALS = [
-  { c: new THREE.Color(1.0, 0.04, 0.07) }, // vermelho Yeezus
-  { c: new THREE.Color(1.0, 0.32, 0.02) }, // âmbar queimado
-  { c: new THREE.Color(0.55, 0.1, 1.0) }, // roxo ácido
-  { c: new THREE.Color(0.35, 1.0, 0.1) }, // verde tóxico
+  { c: new THREE.Color(1.0, 0.06, 0.08) }, // vermelho
+  { c: new THREE.Color(1.0, 0.34, 0.04) }, // âmbar queimado
+  { c: new THREE.Color(0.55, 0.12, 1.0) }, // roxo ácido
+  { c: new THREE.Color(0.35, 1.0, 0.12) }, // verde tóxico
 ];
 function palette(a) {
   let p;
@@ -303,104 +387,149 @@ function setLight(i, x, y, z, col, k, fall) {
   shared.uLightFall.value[i] = fall;
 }
 const COL = {
-  screen: new THREE.Color(0.35, 0.55, 1.0),
-  neon: new THREE.Color(1.0, 0.1, 0.35),
-  moon: new THREE.Color(0.3, 0.35, 0.8),
-  ember: new THREE.Color(1.0, 0.4, 0.1),
-  white: new THREE.Color(1, 0.95, 0.9),
+  screen: new THREE.Color(0.45, 0.6, 1.0),
+  neon: new THREE.Color(1.0, 0.12, 0.38),
+  moon: new THREE.Color(0.3, 0.38, 0.85),
+  ember: new THREE.Color(1.0, 0.42, 0.12),
   tv: new THREE.Color(0.6, 0.7, 1.0),
-  key: new THREE.Color(1.0, 0.78, 0.8),
+  bulb: new THREE.Color(1.0, 0.76, 0.5),
 };
 
 // ---------------- frame ----------------
 const loopLen = () => (cfg.bars * 4 * 60) / cfg.bpm;
 const frameCount = () => Math.round(loopLen() * cfg.fps);
+const hidden = [];
 
 function renderAt(t) {
   const L = loopLen();
   t = ((t % L) + L) % L;
   const nf = frameCount();
-  const frame = Math.floor((t / L) * nf + 1e-6) % nf;
   const beatLen = 60 / cfg.bpm;
-  const beatF = t / beatLen;
+  // stop-motion: tudo que se move muda só a cada pose
+  const pose = Math.floor((t / beatLen) * cfg.posesPerBeat + 1e-6);
+  const beatF = pose / cfg.posesPerBeat;
+  const tp = beatF * beatLen;
+  const frame = Math.floor((tp / L) * nf + 1e-6) % nf;
   const beat = Math.floor(beatF + 1e-6);
   const bar = Math.floor(beat / 4);
   const f = feat ? feat[frame] : { bands: new Array(8).fill(0), bass: 0, mid: 0, high: 0, kick: 0, snare: 0 };
   const a = {
     ...f,
-    t,
+    t: tp,
     frame,
+    pose,
     bpm: cfg.bpm,
     beatF,
     beat,
     beatPhase: beatF - beat,
     bar,
-    loopPos: t / L,
+    loopPos: tp / L,
     section: bar < cfg.bars / 4 ? 0 : bar < cfg.bars / 2 ? 1 : 2,
   };
   const pal = palette(a);
 
-  // personagens
-  const { ember, glow } = A.update(a);
+  const smokeState = A.update(a);
   B.update(a);
   room.update(a, pal);
   scene.updateMatrixWorld();
 
-  // câmera do plano atual
+  // câmera travada no tripé; só uma aproximação lenta, também em poses
   const shot = shotAt(beatF);
-  const cp = CAMS[shot.cam];
-  camera.position.copy(cp);
-  camera.lookAt(target(shot.tgt));
+  camera.position.copy(CAMS[shot.cam]);
+  const tgt = target(shot.tgt).clone();
+  camera.lookAt(tgt);
   if (cfg.camOverride) {
     // usado só para inspecionar a cena (ex.: ?render + vis.init({ camOverride }))
     const o = cfg.camOverride;
     camera.position.fromArray(o.pos);
-    camera.lookAt(o.tgt ? v3.fromArray(o.tgt) : target(o.who));
+    tgt.copy(o.tgt ? v3.fromArray(o.tgt) : target(o.who));
+    camera.lookAt(tgt);
   }
-  // aproximação lenta e suave dentro de cada plano
-  let fov = cfg.camOverride?.fov ?? shot.fov * (1 - 0.08 * shot.prog);
+  let fov = cfg.camOverride?.fov ?? shot.fov * (1 - 0.06 * shot.prog);
   if (cfg.vertical) fov = Math.min(110, fov * 1.55);
   camera.fov = fov;
   camera.aspect = OUT_W / OUT_H;
   camera.updateProjectionMatrix();
+  camera.updateMatrixWorld();
 
-  // luzes
-  const strobe = a.section >= 1 && a.snare > 0.55 ? a.snare : 0;
-  setLight(0, 0, 2.3, 0, pal.c, 0.6 + 1.6 * a.bass, 0.3);
-  setLight(1, -0.6, 1.15, -1.35, COL.screen, 0.55 + 0.2 * a.mid, 1.6);
-  setLight(2, 2.2, 2.0, 0.25, COL.neon, 0.9 * (0.8 + 0.6 * a.mid), 1.2);
-  setLight(3, -2.2, 1.5, -0.55, COL.moon, 0.45, 0.8);
-  setLight(4, ember.x, ember.y, ember.z, COL.ember, 0.06 * glow, 60);
-  setLight(5, 0.2, 2.3, 0.6, COL.white, strobe * (a.section === 2 ? 3.2 : 1.8), 0.25);
-  setLight(6, 1.6, 0.6, 1.25, COL.tv, 0.35 + 0.4 * a.high, 2.5);
-  // luz principal suave vindo da frente, para os personagens lerem bem
-  setLight(7, 0.1, 2.1, 1.0, COL.key, 0.75 + 0.35 * a.bass, 0.35);
-  shared.uAmbient.value.set(0.11 + 0.1 * pal.c.r * a.bass, 0.08 + 0.07 * pal.c.g * a.bass, 0.12 + 0.1 * pal.c.b * a.bass);
-  shared.uFogColor.value.set(pal.c.r * 0.06, pal.c.g * 0.03, pal.c.b * 0.06);
+  // luzes (práticas do cenário)
+  const { ember, glow, mouth, exhale } = smokeState;
+  setLight(0, 0, 2.4, 0, pal.c, 0.35 + 1.2 * a.bass, 0.35);
+  setLight(1, -0.55, 1.15, -1.25, COL.screen, 0.7 + 0.15 * a.mid, 1.4);
+  setLight(2, 1.95, 2.15, 0.0, COL.neon, 0.9 * (0.8 + 0.5 * a.mid), 1.1);
+  setLight(3, -1.9, 1.55, -0.55, COL.moon, 0.4, 0.9);
+  setLight(4, ember.x, ember.y, ember.z, COL.ember, 0.025 * (0.5 + glow), 90);
+  setLight(5, 0.62, 0.35, -1.45, pal.c, 0.25 + 0.5 * a.bass, 3);
+  setLight(6, 1.55, 0.55, 1.15, COL.tv, 0.3 + 0.3 * a.high, 2.5);
+  const B0 = room.BULB;
+  setLight(7, B0.x, B0.y - 0.05, B0.z, COL.bulb, 1.55, 0.32);
+  shared.uAmbient.value.set(0.055 + 0.04 * pal.c.r * a.bass, 0.045 + 0.03 * pal.c.g * a.bass, 0.065 + 0.04 * pal.c.b * a.bass);
+  shared.uFogColor.value.set(0.03 + pal.c.r * 0.03, 0.02 + pal.c.g * 0.015, 0.03 + pal.c.b * 0.03);
+  shared.uFogNear.value = 1.5;
+  shared.uFogFar.value = 9;
 
-  // fumaça: cada partícula tem vida de 2 compassos, defasada (loop-safe)
-  const life = beatLen * 8;
-  smoke.forEach((s, i) => {
-    const age = (t + (i / SMOKE_N) * life) % life;
+  // fumaça (em poses, como algodão animado quadro a quadro)
+  const life = beatLen * 4;
+  stream.forEach((s, i) => {
+    const age = (tp + (i / STREAM_N) * life) % life;
     const k = age / life;
     const seed = i * 1.37;
-    const born = t - age;
-    const drift = Math.sin(born * 2.1 + seed) * 0.15;
     s.position.set(
-      ember.x + drift * k + Math.sin(k * 6 + seed) * 0.04 * k,
-      ember.y + k * 0.75 + 0.02,
-      ember.z + Math.cos(born * 1.7 + seed) * 0.12 * k
+      ember.x + Math.sin(k * 5 + seed) * 0.05 * k,
+      ember.y + 0.01 + k * 0.55,
+      ember.z + Math.cos(k * 4 + seed * 1.3) * 0.05 * k
     );
     s.quaternion.copy(camera.quaternion);
-    s.scale.setScalar(0.04 + k * 0.3);
-    s.material.uniforms.uOpacity.value = 0.4 * (1 - k) ** 1.5 * Math.min(1, k * 8);
+    s.rotateZ(seed * 2);
+    s.scale.setScalar(0.025 + k * 0.16);
+    s.material.uniforms.uOpacity.value = 0.32 * (1 - k) ** 1.6 * Math.min(1, k * 10);
   });
+  // baforada: sai da boca pra cima (ele está olhando pro teto) e se espalha
+  const c8 = beatF % 8;
+  exhaleP.forEach((s, i) => {
+    const born = 5.7 + (i / EXHALE_N) * 1.6;
+    const age = (((c8 - born) % 8) + 8) % 8; // em batidas
+    const on = age < 3.4;
+    s.visible = on;
+    if (!on) return;
+    const k = age / 3.4;
+    const seed = i * 2.31;
+    const dir = v3b.set(-0.35 + Math.sin(seed) * 0.25, 1, Math.cos(seed * 1.7) * 0.25).normalize();
+    s.position.copy(mouth).addScaledVector(dir, 0.04 + Math.sqrt(k) * 0.55);
+    s.quaternion.copy(camera.quaternion);
+    s.rotateZ(seed);
+    s.scale.setScalar(0.04 + k * 0.3);
+    s.material.uniforms.uOpacity.value = 0.3 * (1 - k) ** 1.5 * Math.min(1, age * 4);
+  });
+  void exhale;
+
+  // sombra da lâmpada: profundidade vista da lâmpada
+  hidden.length = 0;
+  scene.traverse((o) => {
+    if (o.isMesh && o.visible && (o.material.transparent || o === room.bulb)) {
+      hidden.push(o);
+      o.visible = false;
+    }
+  });
+  scene.overrideMaterial = shadowMat;
+  renderer.setRenderTarget(shadowRT);
+  renderer.render(scene, shadowCam);
+  scene.overrideMaterial = null;
+  hidden.forEach((o) => (o.visible = true));
+  shared.uShadowMatrix.value.copy(biasM).multiply(shadowCam.projectionMatrix).multiply(shadowCam.matrixWorldInverse);
+
+  // foco na pessoa/objeto do plano; foco mais raso nos closes (cara de maquete)
+  const pu = post.m.uniforms;
+  pu.uFocus.value = camera.position.distanceTo(tgt);
+  pu.uDof.value = cfg.camOverride ? 1.2 : fov < 40 ? 2.4 : 1.3;
+  pu.uNear.value = camera.near;
+  pu.uFar.value = camera.far;
+  pu.uExposure.value = 1.45 + 0.07 * (hash(pose * 1.7) - 0.5); // oscilação de luz entre poses
+  pu.uSeed.value = Math.floor(t * 24) % 997; // grão a 24 qps, como película
 
   renderer.setRenderTarget(rt);
   renderer.render(scene, camera);
-  runBloom();
-  renderer.setRenderTarget(null);
-  renderer.render(post.sc, postCam);
+  runPost();
 }
 
 // ---------------- API (export) e prévia ao vivo ----------------
