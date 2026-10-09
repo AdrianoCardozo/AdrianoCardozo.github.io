@@ -16,7 +16,7 @@ const cfg = {
   bpm: 116,
   bars: 8, // 8 compassos a 116 BPM = 16,55 s (fecha a frase de 4 compassos)
   fps: 60,
-  posesPerBeat: 6, // cadência do stop-motion (6 × 116/60 ≈ 11,6 poses por segundo)
+  poseRate: 24, // poses por segundo: stop-motion "em uns", como nos longas da Laika
   vertical: params.has('vertical'),
 };
 
@@ -170,9 +170,9 @@ const A = buildA();
 const B = buildB();
 scene.add(A.group, B.group);
 // A meio deitado no sofá (parede direita), B na cadeira de frente pro computador
-A.group.position.set(1.6, 0, 0.12);
+A.group.position.set(1.48, 0, 0.12);
 A.group.rotation.y = -PI / 2;
-B.group.position.set(-0.6, 0, -0.76);
+B.group.position.set(-0.6, 0, -0.82);
 B.group.rotation.y = PI;
 room.chair.position.copy(B.group.position);
 room.chair.rotation.y = B.group.rotation.y;
@@ -203,8 +203,8 @@ const smokeTex = canvasTex(64, 64, null, { scale: 2 });
   smokeTex.needsUpdate = true;
 }
 const smokeMat = () => mat({ map: smokeTex, color: 0xb8b6c0, emissive: 0.04, opacity: 0.5, alphaTest: 0.005, spec: 0 });
-const STREAM_N = 22;
-const EXHALE_N = 26;
+const STREAM_N = 34;
+const EXHALE_N = 30;
 const stream = [];
 const exhaleP = [];
 for (let i = 0; i < STREAM_N + EXHALE_N; i++) {
@@ -398,17 +398,52 @@ const COL = {
 // ---------------- frame ----------------
 const loopLen = () => (cfg.bars * 4 * 60) / cfg.bpm;
 const frameCount = () => Math.round(loopLen() * cfg.fps);
+const poseOf = (t) => {
+  const L = loopLen();
+  return Math.floor((((t % L) + L) % L) * cfg.poseRate + 1e-6);
+};
 const hidden = [];
 
+// Trajetória da brasa e da boca ao longo do loop (para a fumaça ficar no ar
+// onde foi solta). Calculada uma vez, rodando a atuação do A em 12 amostras
+// por batida.
+let trailCache = null;
+function getTrail() {
+  if (trailCache) return trailCache;
+  const P = cfg.bars * 4;
+  const N = P * 12;
+  const pts = [];
+  for (let i = 0; i < N; i++) {
+    const beatF = (i / N) * P;
+    const st = A.update({ beatF, beat: Math.floor(beatF), beatPhase: beatF % 1, high: 0, bass: 0, mid: 0, kick: 0, pose: i });
+    pts.push({ ember: st.ember.clone(), mouth: st.mouth.clone(), faceN: st.faceN.clone() });
+  }
+  trailCache = { pts, P, N };
+  return trailCache;
+}
+const _tr = { ember: new THREE.Vector3(), mouth: new THREE.Vector3(), faceN: new THREE.Vector3() };
+function trailAt(tr, beat) {
+  const f = ((((beat % tr.P) + tr.P) % tr.P) / tr.P) * tr.N;
+  const i = Math.floor(f);
+  const k = f - i;
+  const a = tr.pts[i % tr.N];
+  const b = tr.pts[(i + 1) % tr.N];
+  _tr.ember.lerpVectors(a.ember, b.ember, k);
+  _tr.mouth.lerpVectors(a.mouth, b.mouth, k);
+  _tr.faceN.lerpVectors(a.faceN, b.faceN, k).normalize();
+  return _tr;
+}
+
 function renderAt(t) {
+  getTrail(); // antes de posar os bonecos (a pré-simulação mexe no A)
   const L = loopLen();
   t = ((t % L) + L) % L;
   const nf = frameCount();
   const beatLen = 60 / cfg.bpm;
   // stop-motion: tudo que se move muda só a cada pose
-  const pose = Math.floor((t / beatLen) * cfg.posesPerBeat + 1e-6);
-  const beatF = pose / cfg.posesPerBeat;
-  const tp = beatF * beatLen;
+  const pose = poseOf(t);
+  const tp = pose / cfg.poseRate;
+  const beatF = tp / beatLen;
   const frame = Math.floor((tp / L) * nf + 1e-6) % nf;
   const beat = Math.floor(beatF + 1e-6);
   const bar = Math.floor(beat / 4);
@@ -429,7 +464,7 @@ function renderAt(t) {
   const pal = palette(a);
 
   const smokeState = A.update(a);
-  B.update(a);
+  B.update(a, { mouse: room.mouse, keyboard: room.keyboardW });
   room.update(a, pal);
   scene.updateMatrixWorld();
 
@@ -453,7 +488,7 @@ function renderAt(t) {
   camera.updateMatrixWorld();
 
   // luzes (práticas do cenário)
-  const { ember, glow, mouth, exhale } = smokeState;
+  const { ember, glow } = smokeState;
   setLight(0, 0, 2.4, 0, pal.c, 0.35 + 1.2 * a.bass, 0.35);
   setLight(1, -0.55, 1.15, -1.25, COL.screen, 0.7 + 0.15 * a.mid, 1.4);
   setLight(2, 1.95, 2.15, 0.0, COL.neon, 0.9 * (0.8 + 0.5 * a.mid), 1.1);
@@ -468,40 +503,49 @@ function renderAt(t) {
   shared.uFogNear.value = 1.5;
   shared.uFogFar.value = 9;
 
-  // fumaça (em poses, como algodão animado quadro a quadro)
-  const life = beatLen * 4;
+  // fumaça: cada partícula nasce onde a brasa (ou a boca) estava no instante
+  // em que foi solta e fica no ar — sobe, abre e se desfaz
+  const trail = getTrail();
+  const P = cfg.bars * 4;
+  const life = 7; // batidas
   stream.forEach((s, i) => {
-    const age = (tp + (i / STREAM_N) * life) % life;
+    const age = (beatF + (i / STREAM_N) * life) % life;
+    const born = beatF - age;
+    const src = trailAt(trail, born);
     const k = age / life;
     const seed = i * 1.37;
+    const sec = age * beatLen;
     s.position.set(
-      ember.x + Math.sin(k * 5 + seed) * 0.05 * k,
-      ember.y + 0.01 + k * 0.55,
-      ember.z + Math.cos(k * 4 + seed * 1.3) * 0.05 * k
+      src.ember.x + Math.sin(sec * 1.7 + seed) * 0.035 * k - 0.05 * sec * k,
+      src.ember.y + 0.005 + sec * 0.15 - 0.012 * sec * sec,
+      src.ember.z + Math.cos(sec * 1.3 + seed * 1.3) * 0.035 * k
     );
     s.quaternion.copy(camera.quaternion);
-    s.rotateZ(seed * 2);
-    s.scale.setScalar(0.025 + k * 0.16);
-    s.material.uniforms.uOpacity.value = 0.32 * (1 - k) ** 1.6 * Math.min(1, k * 10);
+    s.rotateZ(seed * 2 + sec * 0.4);
+    s.scale.set(0.018 + k * 0.17, 0.03 + k * 0.24, 1);
+    s.material.uniforms.uOpacity.value = 0.26 * (1 - k) ** 1.7 * Math.min(1, age * 6);
   });
-  // baforada: sai da boca pra cima (ele está olhando pro teto) e se espalha
-  const c8 = beatF % 8;
+  // baforada: sai da boca para fora/cima, desacelera e se espalha
   exhaleP.forEach((s, i) => {
-    const born = 5.7 + (i / EXHALE_N) * 1.6;
-    const age = (((c8 - born) % 8) + 8) % 8; // em batidas
-    const on = age < 3.4;
+    const cyc = ((beatF % 16) + 16) % 16;
+    const bornC = 6.5 + (i / EXHALE_N) * 1.9;
+    const age = (((cyc - bornC) % 16) + 16) % 16;
+    const on = age < 4.2;
     s.visible = on;
     if (!on) return;
-    const k = age / 3.4;
+    const src = trailAt(trail, beatF - age);
+    const k = age / 4.2;
     const seed = i * 2.31;
-    const dir = v3b.set(-0.35 + Math.sin(seed) * 0.25, 1, Math.cos(seed * 1.7) * 0.25).normalize();
-    s.position.copy(mouth).addScaledVector(dir, 0.04 + Math.sqrt(k) * 0.55);
+    const sec = age * beatLen;
+    const dir = v3b.copy(src.faceN).multiplyScalar(0.7).add(v3.set(Math.sin(seed) * 0.25, 0.5, Math.cos(seed * 1.7) * 0.25)).normalize();
+    const reach = 0.32 * (1 - Math.exp(-sec * 2.2));
+    s.position.copy(src.mouth).addScaledVector(dir, 0.02 + reach);
+    s.position.y += sec * 0.06;
     s.quaternion.copy(camera.quaternion);
-    s.rotateZ(seed);
-    s.scale.setScalar(0.04 + k * 0.3);
-    s.material.uniforms.uOpacity.value = 0.3 * (1 - k) ** 1.5 * Math.min(1, age * 4);
+    s.rotateZ(seed + sec * 0.5);
+    s.scale.setScalar(0.03 + Math.sqrt(k) * 0.32);
+    s.material.uniforms.uOpacity.value = 0.34 * (1 - k) ** 1.5 * Math.min(1, age * 5);
   });
-  void exhale;
 
   // sombra da lâmpada: profundidade vista da lâmpada
   hidden.length = 0;
@@ -541,14 +585,34 @@ async function loadAudio(url, ctx) {
 window.vis = {
   async init(o = {}) {
     Object.assign(cfg, o);
+    trailCache = null;
     setSize(cfg.vertical);
     scaleShots();
     if (o.audioUrl) analyze(await loadAudio(o.audioUrl), frameCount(), cfg.fps);
     return { frames: frameCount(), seconds: loopLen(), w: OUT_W, h: OUT_H };
   },
+  poseKey(i) {
+    return poseOf(i / cfg.fps);
+  },
   renderFrame(i) {
     renderAt(i / cfg.fps);
     return canvas.toDataURL('image/png');
+  },
+};
+
+// só para inspeção automática (testes de colisão etc.)
+window.__dbg = {
+  THREE,
+  A,
+  B,
+  room,
+  scene,
+  cfg,
+  pose(beatF) {
+    const a = { beatF, beat: Math.floor(beatF), beatPhase: beatF % 1, high: 0, bass: 0, mid: 0, kick: 0, snare: 0, bands: new Array(8).fill(0), pose: 0, frame: 0, t: 0, bar: Math.floor(beatF / 4), section: 0, loopPos: beatF / (cfg.bars * 4), bpm: cfg.bpm };
+    A.update(a);
+    B.update(a, { mouse: room.mouse, keyboard: room.keyboardW });
+    scene.updateMatrixWorld(true);
   },
 };
 

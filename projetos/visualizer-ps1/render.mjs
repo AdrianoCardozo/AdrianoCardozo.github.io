@@ -73,9 +73,17 @@ const ff = spawn('ffmpeg', [
   '-c:a', 'aac', '-b:a', '256k', '-shortest', '-movflags', '+faststart', once,
 ], { stdio: ['pipe', 'inherit', 'inherit'] });
 
+// Em stop-motion cada pose fica parada por alguns quadros de vídeo: renderiza
+// cada pose uma vez só e repete a imagem nos quadros seguintes.
+let lastKey = null;
+let buf = null;
 for (let i = 0; i < info.frames; i++) {
-  const url = await page.evaluate((n) => window.vis.renderFrame(n), i);
-  const buf = Buffer.from(url.slice(url.indexOf(',') + 1), 'base64');
+  const key = await page.evaluate((n) => window.vis.poseKey(n), i);
+  if (key !== lastKey) {
+    const url = await page.evaluate((n) => window.vis.renderFrame(n), i);
+    buf = Buffer.from(url.slice(url.indexOf(',') + 1), 'base64');
+    lastKey = key;
+  }
   if (!ff.stdin.write(buf)) await new Promise((r) => ff.stdin.once('drain', r));
   if (i % 30 === 0) process.stdout.write(`\rframe ${i}/${info.frames}`);
 }
