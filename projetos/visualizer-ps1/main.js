@@ -343,18 +343,19 @@ const CAMS = [
 // o número de compassos mudar. O último corte cai exatamente no início do loop.
 // As tragadas do A acontecem nas batidas 4–6 de cada 8 (closes 20 e 28 pegam).
 const SHOTS_32 = [
-  { at: 0, cam: 0, tgt: 'room', fov: 64 },
-  { at: 4, cam: 3, tgt: 'B', fov: 28 },
-  { at: 8, cam: 1, tgt: 'A', fov: 26 },
-  { at: 12, cam: 2, tgt: 'room', fov: 66 },
-  { at: 16, cam: 1, tgt: 'pc', fov: 34 },
-  { at: 18, cam: 0, tgt: 'foot', fov: 24 },
-  { at: 20, cam: 1, tgt: 'A', fov: 22 },
-  { at: 22, cam: 2, tgt: 'AB', fov: 50 },
-  { at: 24, cam: 3, tgt: 'A', fov: 26 },
-  { at: 26, cam: 0, tgt: 'pc', fov: 34 },
-  { at: 28, cam: 3, tgt: 'A', fov: 21 },
-  { at: 30, cam: 2, tgt: 'room', fov: 68 },
+  // at: batida | cam: quina | arm: braço que tira a câmera da quina (m) | slide: deslize no plano (m)
+  { at: 0, cam: 0, tgt: 'room', fov: 62, slide: [0.18, -0.06, -0.12] },
+  { at: 4, cam: 3, tgt: 'B', fov: 30, arm: [1.0, -0.85, 0.15], slide: [0.06, 0.0, 0.05] },
+  { at: 8, cam: 1, tgt: 'A', fov: 30, arm: [-0.7, -0.15, -0.7], slide: [0.0, -0.06, -0.06] },
+  { at: 12, cam: 2, tgt: 'room', fov: 64, slide: [-0.12, -0.04, 0.1] },
+  { at: 16, cam: 1, tgt: 'pc', fov: 34, arm: [-0.4, -0.3, -0.3], slide: [-0.05, 0, -0.04] },
+  { at: 18, cam: 0, tgt: 'foot', fov: 26, arm: [1.0, -1.0, -0.6], slide: [0.05, 0, -0.05] },
+  { at: 20, cam: 3, tgt: 'A', fov: 22, arm: [0.6, -0.4, 0.6], slide: [0.05, -0.03, 0.05] },
+  { at: 22, cam: 2, tgt: 'AB', fov: 50, slide: [-0.08, -0.03, 0.06] },
+  { at: 24, cam: 0, tgt: 'A', fov: 24, arm: [0.8, -0.4, -0.5], slide: [0.06, 0, -0.04] },
+  { at: 26, cam: 1, tgt: 'pc', fov: 32, arm: [-0.3, -0.25, -0.2], slide: [-0.05, -0.02, -0.05] },
+  { at: 28, cam: 2, tgt: 'B', fov: 30, arm: [-1.0, -0.7, 0.1], slide: [-0.06, 0, 0.04] },
+  { at: 30, cam: 3, tgt: 'room', fov: 64, slide: [0.1, -0.04, 0.1] },
 ];
 let SHOTS = SHOTS_32;
 const scaleShots = () => (SHOTS = SHOTS_32.map((s) => ({ ...s, at: (s.at * cfg.bars * 4) / 32 })));
@@ -372,7 +373,7 @@ const v3b = new THREE.Vector3();
 function target(name) {
   if (name === 'A') return A.head.getWorldPosition(v3).add(v3b.set(0, 0.1, 0));
   if (name === 'B') return B.head.getWorldPosition(v3).add(v3b.set(0, 0.1, 0));
-  if (name === 'foot') return A.foot.getWorldPosition(v3).add(v3b.set(0, 0.25, 0));
+  if (name === 'foot') return A.foot.getWorldPosition(v3).add(v3b.set(0.1, 0.12, 0.1));
   if (name === 'pc') return v3.set(-0.55, 1.08, -1.55);
   if (name === 'AB') {
     A.head.getWorldPosition(v3);

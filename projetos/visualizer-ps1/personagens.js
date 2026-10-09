@@ -234,14 +234,29 @@ function hoodieTex() {
 
 function jacketTex() {
   return wrapTex(96, 48, (g, w, h) => {
-    g.fillStyle = '#7c522c';
+    // jaqueta de trabalho verde-oliva lavada (contrasta com a pele)
+    g.fillStyle = '#41452f';
     g.fillRect(0, 0, w, h);
     weave(g, w, h, 0.12, 5);
     const r = rand(6);
     for (let i = 0; i < 40; i++) {
-      g.fillStyle = `rgba(50,28,12,${0.05 + r() * 0.08})`;
+      g.fillStyle = `rgba(20,22,12,${0.06 + r() * 0.1})`;
       g.fillRect(r() * w, r() * h, 1 + r() * 3, 0.3 + r());
     }
+    // costas: pala com costura dupla e etiqueta vermelha
+    g.strokeStyle = 'rgba(214,190,120,0.55)';
+    g.lineWidth = 0.25;
+    g.setLineDash([0.6, 0.4]);
+    g.beginPath();
+    g.moveTo(0, 12);
+    g.lineTo(24, 14);
+    g.moveTo(72, 14);
+    g.lineTo(96, 12);
+    g.stroke();
+    g.setLineDash([]);
+    g.fillStyle = '#9e1620';
+    g.fillRect(93.5, 5, 5, 3);
+    g.fillRect(-1.5, 5, 3, 3);
     // camiseta branca aparecendo na frente aberta
     g.fillStyle = '#e8e3d8';
     g.fillRect(42, 0, 12, h);
@@ -714,7 +729,7 @@ export function buildA() {
 
     // braço esquerdo largado sobre o encosto, dedos marcando o tempo
     // (braço quase esticado ao longo do topo do encosto, mão pendendo na ponta)
-    solveIK(s.armL.sh, s.armL.el, s.armL.hand, L(0.8, 0.99, -0.4), dirW(0.1, -1, -0.35).normalize(), ARM[0], ARM[1], 1);
+    solveIK(s.armL.sh, s.armL.el, s.armL.hand, L(0.66, 1.0, -0.47), dirW(0.1, -1, -0.35).normalize(), ARM[0], ARM[1], 1);
     setWorldQuat(s.armL.hand, handQuat(dirW(0.75, -0.65, -0.1), dirW(0, -1, 0.2), 1));
     s.armL.hand.rotateX(0.2 * nodA(t - 0.12));
 
@@ -756,7 +771,7 @@ export function buildA() {
 export function buildB() {
   const skin = '#6b4329';
   const jacketM = fabric({ map: jacketTex() });
-  const sleeve = fabric({ map: clothTex('#6a4524', 31) });
+  const sleeve = fabric({ map: clothTex('#3d412c', 31) });
   const s = skeleton({
     skin,
     torsoMat: jacketM,
