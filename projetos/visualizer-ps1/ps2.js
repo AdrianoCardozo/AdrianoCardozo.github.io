@@ -59,10 +59,20 @@ const frag = /* glsl */ `
   uniform float uShine;
   uniform vec3 uFogColor;
   uniform float uFogAmt;
+  uniform float uSheen;
+  uniform float uWear;
   varying vec3 vWorld;
   varying vec3 vNormal;
   varying vec2 vUv;
   varying float vFog;
+
+  // ruído de valor 3D (imperfeições: poeira, digitais, desgaste)
+  float h3(vec3 p) { return fract(sin(dot(p, vec3(127.1, 311.7, 74.7))) * 43758.5453); }
+  float vnoise(vec3 p) {
+    vec3 i = floor(p); vec3 f = fract(p); f = f * f * (3.0 - 2.0 * f);
+    return mix(mix(mix(h3(i), h3(i + vec3(1,0,0)), f.x), mix(h3(i + vec3(0,1,0)), h3(i + vec3(1,1,0)), f.x), f.y),
+               mix(mix(h3(i + vec3(0,0,1)), h3(i + vec3(1,0,1)), f.x), mix(h3(i + vec3(0,1,1)), h3(i + vec3(1,1,1)), f.x), f.y), f.z);
+  }
 
   float shadow(vec3 n, vec3 l) {
     vec4 sc = uShadowMatrix * vec4(vWorld + n * 0.006, 1.0);
@@ -97,10 +107,19 @@ const frag = /* glsl */ `
       spec += uLightCol[i] * pow(max(dot(n, normalize(l + v)), 0.0), uShine) * att;
     }
     vec3 base = uColor * tex.rgb;
+    // imperfeições: manchas de brilho (digitais/poeira) e leve variação de tinta
+    float nLow = vnoise(vWorld * 18.0);
+    float nHigh = vnoise(vWorld * 140.0);
+    float wear = uWear * (nLow * 0.6 + nHigh * 0.4);
+    base *= 1.0 + (nLow - 0.5) * 0.07 * uWear;
+    float specK = uSpec * (0.65 + 0.7 * nLow) * (1.0 - 0.35 * nHigh * uWear);
     vec3 light = mix(lit, vec3(1.0), uUnlit);
-    // reflexo de borda bem leve (plástico pega luz no contorno)
-    float rim = pow(1.0 - max(dot(n, v), 0.0), 3.0) * uSpec * 0.35;
-    vec3 c = base * light + base * uEmissive + spec * uSpec + rim * lit;
+    // reflexo de borda (plástico) e brilho aveludado (tecido)
+    float fres = 1.0 - max(dot(n, v), 0.0);
+    float rim = pow(fres, 3.0) * uSpec * 0.35;
+    vec3 sheen = pow(fres, 2.0) * uSheen * lit * (0.8 + 0.4 * nHigh);
+    vec3 c = base * light + base * uEmissive + spec * specK + rim * lit + sheen * base * 2.0;
+    c *= 1.0 - 0.06 * wear * (1.0 - uUnlit);
     c = mix(c, uFogColor, vFog * uFogAmt);
     gl_FragColor = vec4(c, tex.a * uOpacity);
   }
@@ -116,6 +135,8 @@ export function mat({
   spec = 0.06,
   shine = 24,
   alphaTest = 0.4,
+  sheen = 0,
+  wear = 1,
   side = THREE.FrontSide,
 } = {}) {
   const c = new THREE.Color(color);
@@ -139,13 +160,15 @@ export function mat({
       uSpec: { value: spec },
       uShine: { value: shine },
       uFogAmt: { value: fog },
+      uSheen: { value: sheen },
+      uWear: { value: unlit ? 0 : wear },
     },
   });
 }
 
 // Presets de material: plástico pintado (pele/acessórios do boneco), tecido e metal.
 export const plastic = (o) => mat({ spec: 0.45, shine: 50, ...o });
-export const fabric = (o) => mat({ spec: 0.02, shine: 8, ...o });
+export const fabric = (o) => mat({ spec: 0.02, shine: 8, sheen: 0.22, ...o });
 export const metal = (o) => mat({ spec: 1.4, shine: 70, emissive: 0.12, ...o });
 
 // Textura desenhada num <canvas>. O desenho usa coordenadas "lógicas" (w×h) e

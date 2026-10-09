@@ -8,6 +8,7 @@ import * as THREE from './three.module.min.js';
 import { shared, mat, canvasTex, hash } from './ps2.js';
 import { buildRoom, ROOM } from './cena.js';
 import { buildA, buildB } from './personagens.js';
+import { easeInOut } from './rig.js';
 
 const PI = Math.PI;
 const params = new URLSearchParams(location.search);
@@ -32,10 +33,6 @@ const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x020002);
 const rtOpts = { type: THREE.HalfFloatType, minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter };
 const rt = new THREE.WebGLRenderTarget(OUT_W, OUT_H, { ...rtOpts, samples: 4, depthTexture: new THREE.DepthTexture(OUT_W, OUT_H) });
-const half = new THREE.WebGLRenderTarget(OUT_W / 2, OUT_H / 2, rtOpts);
-const halfB = new THREE.WebGLRenderTarget(OUT_W / 2, OUT_H / 2, rtOpts);
-const quarter = new THREE.WebGLRenderTarget(OUT_W / 4, OUT_H / 4, rtOpts);
-const quarterB = new THREE.WebGLRenderTarget(OUT_W / 4, OUT_H / 4, rtOpts);
 const bloomA = new THREE.WebGLRenderTarget(OUT_W / 4, OUT_H / 4, rtOpts);
 const bloomB = new THREE.WebGLRenderTarget(OUT_W / 4, OUT_H / 4, rtOpts);
 
@@ -57,7 +54,6 @@ const fsPass = (fragmentShader, uniforms) => {
 };
 const postCam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
 
-const copy = fsPass(`uniform sampler2D t; varying vec2 vUv; void main(){ gl_FragColor = vec4(texture2D(t, vUv).rgb, 1.0); }`, { t: { value: null } });
 const bright = fsPass(
   `uniform sampler2D t; varying vec2 vUv;
    void main(){ vec3 c = texture2D(t, vUv).rgb; float l = max(c.r, max(c.g, c.b));
@@ -72,53 +68,159 @@ const blur = fsPass(
      gl_FragColor = vec4(c, 1.0); }`,
   { t: { value: null }, dir: { value: new THREE.Vector2() } }
 );
-// composição final: foco raso de maquete + brilho + cor/grão de filme
-const post = fsPass(
-  /* glsl */ `
-    uniform sampler2D tScene, tDepth, tHalf, tQuarter, tBloom;
-    uniform float uNear, uFar, uFocus, uDof, uExposure, uSeed;
+// oclusão de ambiente (SSAO): sombra de contato onde as coisas se encostam
+const aoRT = new THREE.WebGLRenderTarget(OUT_W / 2, OUT_H / 2, rtOpts);
+const aoB = new THREE.WebGLRenderTarget(OUT_W / 2, OUT_H / 2, rtOpts);
+const sceneAO = new THREE.WebGLRenderTarget(OUT_W, OUT_H, rtOpts);
+const dofRT = new THREE.WebGLRenderTarget(OUT_W / 2, OUT_H / 2, rtOpts);
+const DEPTH_GLSL = /* glsl */ `
+  uniform sampler2D tDepth;
+  uniform mat4 uProj, uInvProj;
+  uniform float uNear, uFar;
+  vec3 vpos(vec2 uv) {
+    float z = texture2D(tDepth, uv).r * 2.0 - 1.0;
+    vec4 p = uInvProj * vec4(uv * 2.0 - 1.0, z, 1.0);
+    return p.xyz / p.w;
+  }
+  float linDepth(vec2 uv) {
+    float z = texture2D(tDepth, uv).r * 2.0 - 1.0;
+    return 2.0 * uNear * uFar / (uFar + uNear - z * (uFar - uNear));
+  }
+  float h12(vec2 p, float s) { return fract(sin(dot(p, vec2(12.9898, 78.233)) + s * 0.731) * 43758.5453); }
+`;
+const camU = () => ({
+  tDepth: { value: rt.depthTexture },
+  uProj: { value: new THREE.Matrix4() },
+  uInvProj: { value: new THREE.Matrix4() },
+  uNear: { value: 0.05 },
+  uFar: { value: 20 },
+});
+const ao = fsPass(
+  /* glsl */ `${DEPTH_GLSL}
     uniform vec2 uRes;
+    uniform float uRadius;
     varying vec2 vUv;
-    float linDepth(vec2 uv) {
-      float z = texture2D(tDepth, uv).r * 2.0 - 1.0;
-      return 2.0 * uNear * uFar / (uFar + uNear - z * (uFar - uNear));
-    }
-    float h12(vec2 p) { return fract(sin(dot(p, vec2(12.9898, 78.233)) + uSeed * 0.731) * 43758.5453); }
     void main() {
-      float d = linDepth(vUv);
-      float coc = clamp(abs(d - uFocus) / d * uDof, 0.0, 1.0);
-      vec3 sharp = texture2D(tScene, vUv).rgb;
-      vec3 c = mix(sharp, texture2D(tHalf, vUv).rgb, smoothstep(0.04, 0.4, coc));
-      c = mix(c, texture2D(tQuarter, vUv).rgb, smoothstep(0.4, 1.0, coc));
+      vec3 P = vpos(vUv);
+      vec2 px = 1.0 / uRes;
+      vec3 N = normalize(cross(vpos(vUv + vec2(px.x, 0.0)) - P, vpos(vUv + vec2(0.0, px.y)) - P));
+      if (dot(N, -P) < 0.0) N = -N;
+      float a = h12(vUv * uRes, 1.0) * 6.2831;
+      vec3 T = normalize(cross(N, abs(N.y) < 0.9 ? vec3(0.0, 1.0, 0.0) : vec3(1.0, 0.0, 0.0)));
+      T = T * cos(a) + cross(N, T) * sin(a);
+      vec3 Bt = cross(N, T);
+      float occ = 0.0;
+      for (int i = 0; i < 16; i++) {
+        float t = (float(i) + 0.5) / 16.0;
+        float phi = float(i) * 2.39996;
+        float rr = sqrt(t);
+        vec3 k = vec3(cos(phi) * rr, sin(phi) * rr, sqrt(1.0 - t));
+        vec3 S = P + (T * k.x + Bt * k.y + N * k.z) * uRadius * mix(0.12, 1.0, t * t);
+        vec4 c = uProj * vec4(S, 1.0);
+        vec2 suv = c.xy / c.w * 0.5 + 0.5;
+        float sz = vpos(suv).z;
+        float range = smoothstep(0.0, 1.0, uRadius / abs(P.z - sz));
+        occ += (sz >= S.z + 0.003 ? 1.0 : 0.0) * range;
+      }
+      gl_FragColor = vec4(vec3(1.0 - occ / 16.0), 1.0);
+    }`,
+  { ...camU(), uRes: { value: new THREE.Vector2(OUT_W / 2, OUT_H / 2) }, uRadius: { value: 0.14 } }
+);
+const applyAO = fsPass(
+  `uniform sampler2D tScene, tAO; uniform float uAmt; varying vec2 vUv;
+   void main(){ vec3 c = texture2D(tScene, vUv).rgb; float a = texture2D(tAO, vUv).r;
+     float l = max(c.r, max(c.g, c.b));
+     // luzes/telas não recebem oclusão
+     float k = mix(1.0, a, uAmt * (1.0 - smoothstep(0.9, 1.6, l)));
+     gl_FragColor = vec4(c * k, 1.0); }`,
+  { tScene: { value: rt.texture }, tAO: { value: aoRT.texture }, uAmt: { value: 0.85 } }
+);
+// desfoque de lente com bokeh (discos de luz), juntando amostras em espiral
+const bokeh = fsPass(
+  /* glsl */ `${DEPTH_GLSL}
+    uniform sampler2D tCol;
+    uniform vec2 uPx;
+    uniform float uFocus, uDof, uMax;
+    varying vec2 vUv;
+    float coc(float d) { return clamp(abs(d - uFocus) / d * uDof, 0.0, 1.0) * uMax; }
+    void main() {
+      float dc = linDepth(vUv);
+      float cc = coc(dc);
+      vec3 acc = texture2D(tCol, vUv).rgb;
+      float tot = 1.0;
+      float r = 0.6;
+      float ang = h12(vUv * 997.0, 3.0) * 6.2831;
+      for (int i = 0; i < 110; i++) {
+        if (r >= uMax) break;
+        vec2 uv = vUv + vec2(cos(ang), sin(ang)) * r * uPx;
+        float ds = linDepth(uv);
+        float cs = coc(ds);
+        if (ds > dc) cs = min(cs, cc * 1.6 + 0.5); // fundo não vaza por cima do que está em foco
+        float m = smoothstep(r - 1.2, r + 0.4, cs);
+        vec3 col = texture2D(tCol, uv).rgb;
+        float lum = dot(col, vec3(0.3, 0.59, 0.11));
+        float w = m * (1.0 + 2.0 * max(lum - 0.85, 0.0));
+        acc += col * w;
+        tot += w;
+        ang += 2.39996323;
+        r += 1.3 / r;
+      }
+      gl_FragColor = vec4(acc / tot, cc / uMax);
+    }`,
+  { ...camU(), tCol: { value: sceneAO.texture }, uPx: { value: new THREE.Vector2(2 / OUT_W, 2 / OUT_H) }, uFocus: { value: 2 }, uDof: { value: 1.5 }, uMax: { value: 13 } }
+);
+// composição final: lente (distorção, aberração, tremor de tripé) + foco + brilho + filme
+const post = fsPass(
+  /* glsl */ `${DEPTH_GLSL}
+    uniform sampler2D tScene, tDof, tBloom;
+    uniform float uFocus, uDof, uExposure, uSeed;
+    uniform vec2 uRes, uWeave;
+    varying vec2 vUv;
+    vec2 lens(vec2 uv, float k) {
+      vec2 q = uv - 0.5;
+      float r2 = dot(q * vec2(1.0, 0.5625), q * vec2(1.0, 0.5625));
+      return 0.5 + q * (1.0 + k * r2) * 0.988 + uWeave;
+    }
+    vec3 at(vec2 uv) {
+      float d = linDepth(uv);
+      float cocN = clamp(abs(d - uFocus) / d * uDof, 0.0, 1.0);
+      vec4 b = texture2D(tDof, uv);
+      return mix(texture2D(tScene, uv).rgb, b.rgb, smoothstep(0.06, 0.4, max(cocN, b.a * 0.9)));
+    }
+    void main() {
+      vec2 uvG = lens(vUv, -0.06);
+      vec3 c;
+      c.r = at(lens(vUv, -0.065)).r;
+      c.g = at(uvG).g;
+      c.b = at(lens(vUv, -0.055)).b;
       // halo avermelhado em volta das luzes (halação de película)
-      c += texture2D(tBloom, vUv).rgb * vec3(1.0, 0.72, 0.6) * 0.85;
+      c += texture2D(tBloom, uvG).rgb * vec3(1.0, 0.7, 0.55) * 0.9;
       c *= uExposure;
-      c = vec3(1.0) - exp(-c * 1.15);                          // resposta de filme (sem estourar)
+      c = vec3(1.0) - exp(-c * 1.15);                          // resposta de filme
       float l = dot(c, vec3(0.299, 0.587, 0.114));
-      c = mix(vec3(l), c, 0.9);                                // um pouco menos saturado
-      c *= mix(vec3(0.93, 1.0, 1.07), vec3(1.06, 1.0, 0.9), smoothstep(0.0, 0.6, l)); // sombras frias, luz quente
-      c = mix(c, c * c * (3.0 - 2.0 * c), 0.22);               // curva em S
-      c = c * 0.965 + 0.014;                                   // preto de filme (nunca 100%)
+      c = mix(vec3(l), c, 0.88);
+      c *= mix(vec3(0.92, 1.0, 1.08), vec3(1.07, 1.0, 0.88), smoothstep(0.0, 0.6, l)); // sombras frias, luz quente
+      c = mix(c, c * c * (3.0 - 2.0 * c), 0.2);
+      c = c * 0.96 + 0.016;                                   // preto de filme
       vec2 q = vUv - 0.5;
-      c *= 1.0 - dot(q * vec2(1.0, 0.8), q * vec2(1.0, 0.8)) * 0.75; // vinheta da lente
-      float g = h12(floor(vUv * uRes / 1.5)) + h12(floor(vUv * uRes / 1.5) + 17.0) - 1.0;
-      c += g * 0.04 * (1.0 - l * 0.55);                       // grão de película
+      c *= 1.0 - dot(q * vec2(1.0, 0.8), q * vec2(1.0, 0.8)) * 0.7;
+      vec2 gp = floor(vUv * uRes / 1.4);
+      float g = h12(gp, uSeed) + h12(gp + 17.0, uSeed) - 1.0;
+      c += g * 0.035 * (1.0 - l * 0.55);                      // grão de película
       gl_FragColor = vec4(clamp(c, 0.0, 1.0), 1.0);
     }
   `,
   {
-    tScene: { value: rt.texture },
-    tDepth: { value: rt.depthTexture },
-    tHalf: { value: half.texture },
-    tQuarter: { value: quarter.texture },
+    ...camU(),
+    tScene: { value: sceneAO.texture },
+    tDof: { value: dofRT.texture },
     tBloom: { value: bloomA.texture },
-    uNear: { value: 0.05 },
-    uFar: { value: 20 },
     uFocus: { value: 2 },
     uDof: { value: 1.5 },
     uExposure: { value: 1 },
     uSeed: { value: 0 },
     uRes: { value: new THREE.Vector2(OUT_W, OUT_H) },
+    uWeave: { value: new THREE.Vector2() },
   }
 );
 
@@ -139,15 +241,26 @@ function blurInto(a, b, iters, spread) {
   }
 }
 
-function runPost() {
-  // versões desfocadas da imagem para o foco raso
-  copy.m.uniforms.t.value = rt.texture;
-  pass(copy, half);
-  blurInto(half, halfB, 2, 1);
-  copy.m.uniforms.t.value = half.texture;
-  pass(copy, quarter);
-  blurInto(quarter, quarterB, 3, 1.2);
-  // brilho das luzes
+function runPost(cam, focus, dof, exposure, seed, weave) {
+  for (const p of [ao, bokeh, post]) {
+    const u = p.m.uniforms;
+    u.uProj.value.copy(cam.projectionMatrix);
+    u.uInvProj.value.copy(cam.projectionMatrixInverse);
+    u.uNear.value = cam.near;
+    u.uFar.value = cam.far;
+  }
+  for (const p of [bokeh, post]) {
+    p.m.uniforms.uFocus.value = focus;
+    p.m.uniforms.uDof.value = dof;
+  }
+  post.m.uniforms.uExposure.value = exposure;
+  post.m.uniforms.uSeed.value = seed;
+  post.m.uniforms.uWeave.value.copy(weave);
+  pass(ao, aoRT);
+  blurInto(aoRT, aoB, 1, 1);
+  pass(applyAO, sceneAO);
+  pass(bokeh, dofRT);
+  bright.m.uniforms.t.value = sceneAO.texture;
   pass(bright, bloomA);
   blurInto(bloomA, bloomB, 3, 1);
   pass(post, null);
@@ -157,8 +270,11 @@ function setSize(vertical) {
   OUT_W = vertical ? 1080 : 1920;
   OUT_H = vertical ? 1920 : 1080;
   rt.setSize(OUT_W, OUT_H);
-  for (const r of [half, halfB]) r.setSize(OUT_W / 2, OUT_H / 2);
-  for (const r of [quarter, quarterB, bloomA, bloomB]) r.setSize(OUT_W / 4, OUT_H / 4);
+  for (const r of [aoRT, aoB, dofRT]) r.setSize(OUT_W / 2, OUT_H / 2);
+  sceneAO.setSize(OUT_W, OUT_H);
+  ao.m.uniforms.uRes.value.set(OUT_W / 2, OUT_H / 2);
+  bokeh.m.uniforms.uPx.value.set(2 / OUT_W, 2 / OUT_H);
+  for (const r of [bloomA, bloomB]) r.setSize(OUT_W / 4, OUT_H / 4);
   post.m.uniforms.uRes.value.set(OUT_W, OUT_H);
   renderer.setSize(OUT_W, OUT_H, false);
   camera.aspect = OUT_W / OUT_H;
@@ -468,10 +584,15 @@ function renderAt(t) {
   room.update(a, pal);
   scene.updateMatrixWorld();
 
-  // câmera travada no tripé; só uma aproximação lenta, também em poses
+  // câmera de motion control: parte da quina (com um braço que a afasta da
+  // parede), desliza poucos centímetros durante o plano e segue o alvo
   const shot = shotAt(beatF);
-  camera.position.copy(CAMS[shot.cam]);
+  const k = easeInOut(Math.min(1, Math.max(0, shot.prog)));
+  const arm = shot.arm || [0, 0, 0];
+  const slide = shot.slide || [0, 0, 0];
+  camera.position.copy(CAMS[shot.cam]).add(v3.set(arm[0] + slide[0] * k, arm[1] + slide[1] * k, arm[2] + slide[2] * k));
   const tgt = target(shot.tgt).clone();
+  if (shot.aim) tgt.add(v3.fromArray(shot.aim));
   camera.lookAt(tgt);
   if (cfg.camOverride) {
     // usado só para inspecionar a cena (ex.: ?render + vis.init({ camOverride }))
@@ -480,7 +601,7 @@ function renderAt(t) {
     tgt.copy(o.tgt ? v3.fromArray(o.tgt) : target(o.who));
     camera.lookAt(tgt);
   }
-  let fov = cfg.camOverride?.fov ?? shot.fov * (1 - 0.06 * shot.prog);
+  let fov = cfg.camOverride?.fov ?? shot.fov * (1 - (shot.zoom ?? 0.04) * k);
   if (cfg.vertical) fov = Math.min(110, fov * 1.55);
   camera.fov = fov;
   camera.aspect = OUT_W / OUT_H;
@@ -563,17 +684,15 @@ function renderAt(t) {
   shared.uShadowMatrix.value.copy(biasM).multiply(shadowCam.projectionMatrix).multiply(shadowCam.matrixWorldInverse);
 
   // foco na pessoa/objeto do plano; foco mais raso nos closes (cara de maquete)
-  const pu = post.m.uniforms;
-  pu.uFocus.value = camera.position.distanceTo(tgt);
-  pu.uDof.value = cfg.camOverride ? 1.2 : fov < 40 ? 2.4 : 1.3;
-  pu.uNear.value = camera.near;
-  pu.uFar.value = camera.far;
-  pu.uExposure.value = 1.45 + 0.07 * (hash(pose * 1.7) - 0.5); // oscilação de luz entre poses
-  pu.uSeed.value = Math.floor(t * 24) % 997; // grão a 24 qps, como película
-
+  // foco na pessoa/objeto do plano; mais raso nos closes (cara de maquete)
+  const focus = camera.position.distanceTo(tgt);
+  const dof = cfg.camOverride ? 1.2 : fov < 40 ? 2.1 : 1.15;
+  const exposure = 1.45 + 0.05 * (hash(pose * 1.7) - 0.5); // oscilação de luz entre poses
+  // tremor de tripé: a câmera de stop-motion leva esbarrões mínimos entre poses
+  const weave = v3.set((hash(pose * 3.1) - 0.5) * 0.0007, (hash(pose * 5.3) - 0.5) * 0.0005, 0);
   renderer.setRenderTarget(rt);
   renderer.render(scene, camera);
-  runPost();
+  runPost(camera, focus, dof, exposure, pose % 997, weave);
 }
 
 // ---------------- API (export) e prévia ao vivo ----------------
