@@ -196,19 +196,19 @@ const post = fsPass(
       c.g = at(uvG).g;
       c.b = at(lens(vUv, -0.055)).b;
       // halo avermelhado em volta das luzes (halação de película)
-      c += texture2D(tBloom, uvG).rgb * vec3(1.0, 0.7, 0.55) * 0.9;
+      c += texture2D(tBloom, uvG).rgb * vec3(1.0, 0.7, 0.55) * 0.7;
       c *= uExposure;
-      c = vec3(1.0) - exp(-c * 1.15);                          // resposta de filme
+      c = vec3(1.0) - exp(-c * 1.2);                           // resposta de filme
       float l = dot(c, vec3(0.299, 0.587, 0.114));
       c = mix(vec3(l), c, 0.88);
       c *= mix(vec3(0.92, 1.0, 1.08), vec3(1.07, 1.0, 0.88), smoothstep(0.0, 0.6, l)); // sombras frias, luz quente
       c = mix(c, c * c * (3.0 - 2.0 * c), 0.2);
-      c = c * 0.96 + 0.016;                                   // preto de filme
+      c = c * 0.97 + 0.011;                                   // preto de filme
       vec2 q = vUv - 0.5;
-      c *= 1.0 - dot(q * vec2(1.0, 0.8), q * vec2(1.0, 0.8)) * 0.7;
-      vec2 gp = floor(vUv * uRes / 1.4);
-      float g = h12(gp, uSeed) + h12(gp + 17.0, uSeed) - 1.0;
-      c += g * 0.035 * (1.0 - l * 0.55);                      // grão de película
+      c *= 1.0 - dot(q * vec2(1.0, 0.8), q * vec2(1.0, 0.8)) * 0.45;
+      vec2 gp = floor(vUv * uRes);
+      float g = (h12(gp, uSeed) + h12(gp + 17.0, uSeed) + h12(gp + 41.0, uSeed) - 1.5) * 0.8;
+      c += g * 0.024 * (0.45 + 0.55 * smoothstep(0.02, 0.3, l)) * (1.0 - 0.5 * l); // grão fino, mais nos médios
       gl_FragColor = vec4(clamp(c, 0.0, 1.0), 1.0);
     }
   `,
@@ -374,17 +374,24 @@ const SHOTS_32 = [
   // tgt: enquadramento (travado no plano) | focus: onde fica o foco | dof: força do desfoque
   // lift/shift: mira mais alta + deslocamento de lente (tira a distorção dos planos abertos)
   { at: 0, cam: 0, tgt: 'room', fov: 58, dof: 0.55, lift: 0.7, shift: -0.32, slide: [0.18, -0.06, -0.12] },
-  { at: 4, cam: 3, tgt: 'B', fov: 34, arm: [0.75, -0.75, 0.05], slide: [0.06, 0.0, 0.05], dof: 1.4 },
-  { at: 8, cam: 1, tgt: 'A', fov: 28, arm: [-0.7, -0.15, -0.7], slide: [0.0, -0.06, -0.06], dof: 1.6 },
-  { at: 12, cam: 3, tgt: 'room', focus: 'B', fov: 56, dof: 0.7, lift: 0.6, shift: -0.3, arm: [0.25, -0.1, 0.2], slide: [0.1, -0.04, 0.1] }, // B vira pro A e levanta a mão: foco nele
+  // B 3/4 de frente, de cima dos monitores (antes só se via o topo do boné)
+  { at: 4, cam: 3, tgt: 'B', fov: 30, arm: [0.85, -1.0, 0.17], slide: [0.04, 0.0, 0.03], dof: 1.2 },
+  // baforada vista mais de lado e mais baixo: a fumaça atravessa o quadro
+  { at: 8, cam: 1, tgt: 'A', fov: 30, arm: [-0.8, -0.53, -0.85], slide: [0.0, -0.04, -0.04], dof: 1.3 },
+  { at: 12, cam: 3, tgt: 'room', focus: 'B', fov: 52, dof: 0.45, lift: 0.6, shift: -0.3, arm: [0.5, -0.2, 0.4], slide: [0.1, -0.04, 0.1] }, // B vira pro A e levanta a mão: foco nele
   { at: 16, cam: 0, tgt: 'pc', aim: [0.15, 0.04, -0.05], fov: 34, arm: [0.65, -0.73, -1.45], slide: [0.05, 0, -0.04], dof: 1.1 }, // por cima do ombro do B, foco na tela
-  { at: 18, cam: 2, tgt: 'foot', fov: 30, arm: [-0.6, -1.3, 0.6], slide: [-0.04, 0, 0.03], dof: 1.4 },
-  { at: 20, cam: 3, tgt: 'A', fov: 22, arm: [0.6, -0.4, 0.6], slide: [0.05, -0.03, 0.05], dof: 1.5 },
+  // tênis em ângulo baixo, foco no bico (o encosto do sofá saiu do quadro)
+  { at: 18, cam: 2, tgt: 'foot', aim: [-0.16, -0.12, -0.08], fov: 26, arm: [-0.75, -1.43, 0.6], slide: [-0.03, 0, 0.02], dof: 1.2 },
+  // A sobe o cigarro: 3/4 do lado do cigarro
+  { at: 20, cam: 2, tgt: 'A', fov: 30, arm: [-0.5, -0.78, 0.6], slide: [0.04, -0.02, 0.03], dof: 1.2 },
   { at: 22, cam: 0, tgt: 'AB', fov: 44, arm: [0.35, -0.2, -0.25], slide: [0.08, -0.03, -0.06], dof: 0.7 },
-  { at: 24, cam: 1, tgt: 'A', fov: 17, arm: [-0.75, -0.2, -0.75], slide: [-0.03, -0.02, -0.03], dof: 1.7 },
-  { at: 26, cam: 3, tgt: 'hands', fov: 30, arm: [1.3, -0.95, 0.05], slide: [0.04, -0.02, 0.0], dof: 1.4 },
-  { at: 28, cam: 2, tgt: 'B', fov: 30, arm: [-1.0, -0.7, 0.1], slide: [-0.06, 0, 0.04], dof: 1.5 },
-  { at: 30, cam: 3, tgt: 'room', fov: 54, dof: 0.55, lift: 0.6, shift: -0.28, arm: [0.2, -0.05, 0.25], slide: [0.12, -0.04, 0.06] },
+  // close extremo da baforada, mais perto e mais baixo (lente menos tele)
+  { at: 24, cam: 1, tgt: 'A', fov: 24, arm: [-0.9, -1.03, -1.0], slide: [-0.03, -0.02, -0.03], dof: 1.6 },
+  // mãos ao longo da mesa, vindo da esquerda do B
+  { at: 26, cam: 3, tgt: 'hands', fov: 30, arm: [0.6, -1.4, 0.43], slide: [0.03, 0, 0.02], dof: 1.0 },
+  // B olhando pro A com a mão no ar: câmera ~40° fora da linha do olhar (antes ele parecia encarar a lente)
+  { at: 28, cam: 2, tgt: 'B', fov: 30, arm: [-1.35, -0.75, 0.05], slide: [-0.05, 0, 0.03], dof: 1.4 },
+  { at: 30, cam: 3, tgt: 'room', focus: 'B', fov: 52, dof: 0.45, lift: 0.6, shift: -0.28, arm: [0.55, -0.2, 0.45], slide: [0.12, -0.04, 0.06] },
 ];
 let SHOTS = SHOTS_32;
 const scaleShots = () => (SHOTS = SHOTS_32.map((s) => ({ ...s, at: (s.at * cfg.bars * 4) / 32 })));
@@ -399,6 +406,7 @@ function shotAt(beatF) {
 
 const v3 = new THREE.Vector3();
 const v3b = new THREE.Vector3();
+const v3c = new THREE.Vector3();
 // Alvos de enquadramento/foco. Para não "acenar" junto com a cabeça, os alvos
 // dos personagens usam a posição média do plano (tabela pré-calculada).
 function target(name, sh) {
@@ -575,6 +583,8 @@ const COL = {
   ember: new THREE.Color(1.0, 0.42, 0.12),
   tv: new THREE.Color(0.6, 0.7, 1.0),
   bulb: new THREE.Color(1.0, 0.76, 0.5),
+  keyA: new THREE.Color(1.0, 0.8, 0.62),
+  keyB: new THREE.Color(1.0, 0.87, 0.74),
 };
 
 // ---------------- frame ----------------
@@ -701,7 +711,8 @@ function renderAt(t) {
   const bassS = a.bassS ?? a.bass;
   const midS = a.midS ?? a.mid;
   const highS = a.highS ?? a.high;
-  setLight(0, 0, 2.4, 0, pal.c, 0.35 + 1.0 * bassS, 0.35);
+  // fita de LED do teto (cor da paleta): banha paredes e teto, não é mais a luz principal dos rostos
+  setLight(0, 0, 2.45, 0, pal.c, 0.2 + 0.6 * bassS, 0.5);
   // brilho dos monitores na altura do rosto do B (antes vinha de baixo e azul demais: rosto cinza)
   setLight(1, -0.55, 1.34, -1.3, COL.screen, 1.35 + 0.1 * midS, 1.3);
   setLight(2, 1.95, 2.15, 0.0, COL.neon, 0.9 * (0.8 + 0.4 * midS), 1.1);
@@ -711,7 +722,10 @@ function renderAt(t) {
   setLight(6, 1.55, 0.55, 1.15, COL.tv, 0.3 + 0.2 * highS, 2.5);
   const B0 = room.BULB;
   setLight(7, B0.x, B0.y - 0.05, B0.z, COL.bulb, 1.55, 0.32);
-  shared.uAmbient.value.set(0.055 + 0.03 * pal.c.r * bassS, 0.045 + 0.022 * pal.c.g * bassS, 0.065 + 0.03 * pal.c.b * bassS);
+  // luzes de rosto motivadas (abajur fora de quadro / rebatedor do monitor), como num set de stop-motion
+  setLight(8, 1.2, 1.5, 0.55, COL.keyA, 0.85, 4);
+  setLight(9, -0.9, 1.62, -1.32, COL.keyB, 0.8, 4); // frente-esquerda do B, lado da câmera do close
+  shared.uAmbient.value.set(0.045 + 0.02 * pal.c.r * bassS, 0.04 + 0.016 * pal.c.g * bassS, 0.055 + 0.02 * pal.c.b * bassS);
   shared.uFogColor.value.set(0.03 + pal.c.r * 0.03, 0.02 + pal.c.g * 0.015, 0.03 + pal.c.b * 0.03);
   shared.uFogNear.value = 1.5;
   shared.uFogFar.value = 9;
@@ -745,6 +759,9 @@ function renderAt(t) {
   // baforada: velocidade inicial pra fora da boca que freia (arrasto), depois
   // sobe (empuxo) com turbulência; emissão espalhada por toda a expiração
   const wins = A.exhaleWindows;
+  // direção da câmera: a baforada sai atravessando o quadro (nas câmeras de cima o rosto
+  // virado pro teto aponta pra lente, e a fumaça voava direto no vidro / no desfoque)
+  const camF = v3c.set(0, 0, -1).applyQuaternion(camera.quaternion);
   exhaleP.forEach((s, idx) => {
     const wi = Math.floor(idx / EXHALE_N);
     const i = idx % EXHALE_N;
@@ -760,19 +777,22 @@ function renderAt(t) {
     const sec = age * beatLen;
     const seed = i * 2.31 + wi * 7.7;
     const strength = 0.55 + 0.45 * (1 - (born - w0) / (w1 - w0)); // primeiras saem mais fortes
-    const dir = v3b.copy(src.faceN).add(v3.set(Math.sin(seed) * 0.18, 0.15, Math.cos(seed * 1.7) * 0.18)).normalize();
-    const reach = 0.42 * strength * (1 - Math.exp(-sec * 2.6)); // arrasto
-    const lift = 0.07 * sec;
-    const curl = 0.05 * k * Math.sin(sec * 2.0 + seed);
-    s.position.copy(src.mouth).addScaledVector(src.faceN, 0.018).addScaledVector(dir, reach);
+    const dir = v3b.copy(src.faceN).addScaledVector(camF, -0.6 * src.faceN.dot(camF)).normalize();
+    dir.add(v3.set(Math.sin(seed) * 0.18, 0.15, Math.cos(seed * 1.7) * 0.18)).normalize();
+    // nuvem que se forma na frente da boca e cresce (no close o quadro tem ~40 cm: alcance curto)
+    const reach = 0.17 * strength * (1 - Math.exp(-sec * 1.5)); // arrasto
+    const lift = 0.035 * sec * sec / (0.6 + sec); // empuxo só depois que o sopro perde força
+    const curl = 0.04 * k * Math.sin(sec * 2.0 + seed);
+    s.position.copy(src.mouth).addScaledVector(src.faceN, 0.01).addScaledVector(dir, reach);
     s.position.y += lift;
     s.position.x += curl;
     s.position.z += 0.04 * k * Math.cos(sec * 1.6 + seed);
-    const vel = dir.clone().multiplyScalar(0.42 * strength * 2.6 * Math.exp(-sec * 2.6)).add(v3.set(0, 0.07, 0));
+    const vel = dir.clone().multiplyScalar(0.17 * strength * 1.5 * Math.exp(-sec * 1.5)).add(v3.set(0, 0.035, 0));
     orient(s, vel, 0.3 * Math.sin(seed));
-    const sz = 0.025 + Math.pow(k, 0.7) * 0.2;
+    const sz = 0.022 + Math.pow(k, 0.6) * 0.22;
     s.scale.set(sz, sz * 1.35, 1);
-    s.material.uniforms.uOpacity.value = 0.42 * (1 - k) ** 1.5 * Math.min(1, age * 6);
+    const nearCam = THREE.MathUtils.smoothstep(s.position.distanceTo(camera.position), 0.25, 0.55);
+    s.material.uniforms.uOpacity.value = 0.5 * (1 - k) ** 1.6 * Math.min(1, age * 6) * nearCam;
   });
 
   // sombra da lâmpada: profundidade vista da lâmpada
@@ -801,7 +821,7 @@ function renderAt(t) {
     const e = f * f * (3 - 2 * f);
     return hash(i0 * 1.7) * (1 - e) + hash((i0 + 1) * 1.7) * e;
   };
-  const exposure = 1.45 * (1 + 0.02 * (vn(pose / 5) - 0.5));
+  const exposure = 1.55 * (1 + 0.02 * (vn(pose / 5) - 0.5));
   // tremor de tripé: a câmera de stop-motion leva esbarrões mínimos entre poses
   const weave = v3.set((vn(pose / 3 + 11) - 0.5) * 0.0006, (vn(pose / 3 + 37) - 0.5) * 0.0004, 0);
   renderer.setRenderTarget(rt);
@@ -843,6 +863,8 @@ window.__dbg = {
   A,
   B,
   room,
+  get exhaleP() { return exhaleP; },
+  get camera() { return camera; },
   scene,
   cfg,
   pose(beatF) {

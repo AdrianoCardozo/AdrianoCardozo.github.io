@@ -6,7 +6,7 @@ import * as THREE from './three.module.min.js';
 // Cores em valores de tela direto (sem conversão sRGB/linear).
 THREE.ColorManagement.enabled = false;
 
-export const MAX_LIGHTS = 8;
+export const MAX_LIGHTS = 10;
 export const SHADOW_LIGHT = 7; // índice da luz que projeta sombra (lâmpada)
 
 // Uniforms compartilhados por todos os materiais (atualizados uma vez por frame).
