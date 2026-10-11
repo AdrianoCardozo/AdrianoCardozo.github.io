@@ -496,7 +496,7 @@ export function buildRoom(scene) {
   const chair = new THREE.Group();
   const chM = plastic({ map: leatherTex(), spec: 0.25, shine: 30 });
   const chR = plastic({ color: 0x7e0e16, spec: 0.25 });
-  put(chair, rbox(0.52, 0.09, 0.5, chM, 0.035), 0, 0.46, 0);
+  put(chair, rbox(0.52, 0.09, 0.5, chM, 0.035), 0, 0.44, 0); // assento (a coxa afunda ~2 cm, como espuma)
   const back = put(chair, rbox(0.5, 0.75, 0.09, chM, 0.035), 0, 0.86, -0.26);
   back.rotation.x = -0.12;
   for (const sx of [1, -1]) {
@@ -576,7 +576,8 @@ export function buildRoom(scene) {
   }
   const boom = put(mic, tube(0.011, 0.011, 0.6, micM, 8), -0.2, 1.5, 0);
   boom.rotation.z = PI / 2 - 0.25;
-  put(mic, rbox(0.065, 0.17, 0.065, metal({ color: 0xb8b8bc }), 0.03), -0.48, 1.52, 0);
+  // microfone dinâmico preto (estilo SM7B): não vira um borrão claro em primeiro plano
+  put(mic, rbox(0.065, 0.17, 0.065, metal({ color: 0x242427, spec: 0.6 }), 0.03), -0.48, 1.52, 0);
   const pop = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 0.006, 24), mat({ color: 0x050505, opacity: 0.55, side: THREE.DoubleSide }));
   pop.rotation.z = PI / 2;
   pop.position.set(-0.62, 1.52, 0);

@@ -138,13 +138,35 @@ function headTex(skin, o) {
       g.fill();
       g.beginPath();
       if (o.beard === 'full') {
-        g.moveTo(18, 30);
-        g.quadraticCurveTo(19, 52, 32, 54);
-        g.quadraticCurveTo(45, 52, 46, 30);
-        g.lineTo(44, 31);
-        g.quadraticCurveTo(43, 46, 36, 45.5);
-        g.lineTo(28, 45.5);
-        g.quadraticCurveTo(21, 46, 20, 31);
+        // barba curta cheia: costeleta larga descendo pela mandíbula até o queixo,
+        // borda macia (não um contorno fino, que lia como jugular de capacete)
+        g.fill();
+        g.save();
+        g.filter = 'blur(3px)';
+        g.fillStyle = 'rgba(16,10,8,0.9)';
+        g.beginPath();
+        g.moveTo(17.2, 29);
+        g.quadraticCurveTo(17.5, 53, 32, 55.5);
+        g.quadraticCurveTo(46.5, 53, 46.8, 29);
+        g.lineTo(42.6, 30.5);
+        g.quadraticCurveTo(42.4, 44.5, 37, 45.2);
+        g.lineTo(27, 45.2);
+        g.quadraticCurveTo(21.6, 44.5, 21.4, 30.5);
+        g.closePath();
+        g.fill();
+        g.restore();
+        // pelos curtos: pontinhos irregulares dentro da barba
+        const rb = rand(77);
+        for (let k = 0; k < 260; k++) {
+          const ax = 17.5 + rb() * 29;
+          const ay = 30 + rb() * 25;
+          const inSide = (ax < 22 || ax > 42) && ay < 50;
+          const inChin = ay > 45.5 && Math.abs(ax - 32) < 14 - (ay - 45.5) * 0.9;
+          if (!inSide && !inChin) continue;
+          g.fillStyle = `rgba(${rb() < 0.5 ? '6,4,3' : '48,32,24'},${0.35 + rb() * 0.4})`;
+          g.fillRect(ax, ay, 0.35, 0.35 + rb() * 0.4);
+        }
+        g.beginPath();
       } else {
         // cavanhaque: tufo macio no queixo
         g.fill();
@@ -158,6 +180,49 @@ function headTex(skin, o) {
       g.fill();
     }
     grain(g, w, h, 10, o.seed || 3);
+  });
+}
+
+// Mandíbula: esfera própria (mesmo mapeamento da cabeça, frente em x = 32).
+// Antes reaproveitava a textura da cabeça e pintava olhos/sobrancelhas no queixo.
+function jawTex(skin, beard) {
+  return canvasTex(128, 64, (g, w, h) => {
+    g.fillStyle = shade(skin, -0.1); // mesmo tom da parte baixa do rosto pintado
+    g.fillRect(0, 0, w, h);
+    g.fillStyle = 'rgba(0,0,0,0)';
+    g.fillRect(0, 0, w, h);
+    const low = g.createLinearGradient(0, 30, 0, 64);
+    low.addColorStop(0, 'rgba(0,0,0,0)');
+    low.addColorStop(1, 'rgba(0,0,0,0.4)');
+    g.fillStyle = low;
+    g.fillRect(0, 0, w, h);
+    g.save();
+    g.filter = 'blur(4px)';
+    if (beard === 'full') {
+      // barba curta cobrindo mandíbula e queixo, com pele logo abaixo do lábio
+      g.fillStyle = 'rgba(16,10,8,0.92)';
+      g.fillRect(-4, 20, 72, 50);
+      g.fillStyle = skin;
+      g.beginPath();
+      g.ellipse(32, 21, 8.5, 4.5, 0, 0, PI * 2);
+      g.fill();
+    } else if (beard === 'goatee') {
+      g.fillStyle = 'rgba(22,14,10,0.88)';
+      g.beginPath();
+      g.ellipse(32, 41, 6, 11, 0, 0, PI * 2);
+      g.fill();
+    }
+    g.restore();
+    if (beard) {
+      const rb = rand(91);
+      for (let k = 0; k < 420; k++) {
+        const ax = beard === 'full' ? rb() * 64 : 26 + rb() * 12;
+        const ay = beard === 'full' ? 24 + rb() * 40 : 31 + rb() * 20;
+        g.fillStyle = `rgba(${rb() < 0.5 ? '5,3,2' : '52,36,26'},${0.3 + rb() * 0.4})`;
+        g.fillRect(ax, ay, 0.35, 0.35 + rb() * 0.45);
+      }
+    }
+    grain(g, w, h, 10, 19);
   });
 }
 
@@ -401,6 +466,76 @@ function shadesTex() {
   });
 }
 
+// ---------------- tecido com dobras de verdade ----------------
+// Roupa de boneco 1:6 tem dobras grossas e irregulares; cilindro liso entrega o CG.
+// Desloca os vértices ao longo da normal com uma soma de ondas (cristas quase
+// horizontais = franzido de manga/calça) e, opcionalmente, empilha anéis numa ponta.
+let clothSeed = 1;
+function wrinkle(geo, { amp = 0.006, freq = 110, tilt = 0.55, vertical = 0, stack = 0, stackAt = -1, lump = 0.25, seed = clothSeed++ } = {}) {
+  const r = rand(seed * 7919 + 13);
+  geo.computeBoundingBox();
+  const { min, max } = geo.boundingBox;
+  const H = max.y - min.y;
+  const waves = [];
+  for (let i = 0; i < 7; i++) {
+    const vert = i < vertical; // cristas verticais (caimento do moletom)
+    const a = (r() - 0.5) * 2 * tilt;
+    const az = r() * PI * 2;
+    const f = freq * (0.6 + r() * 0.8);
+    const dir = vert ? new THREE.Vector3(Math.cos(az), 0, Math.sin(az)) : new THREE.Vector3(Math.sin(a) * Math.cos(az), Math.cos(a), Math.sin(a) * Math.sin(az));
+    waves.push({ k: dir.multiplyScalar(f), ph: r() * PI * 2, w: (0.55 + r() * 0.45) / (i < 2 ? 1 : 1.6) });
+  }
+  const lumps = [0, 1, 2].map(() => ({ k: new THREE.Vector3(r() - 0.5, r() - 0.5, r() - 0.5).normalize().multiplyScalar(18 + r() * 14), ph: r() * PI * 2 }));
+  const p = geo.attributes.position;
+  const n = geo.attributes.normal;
+  const v = new THREE.Vector3();
+  for (let i = 0; i < p.count; i++) {
+    const side = 1 - Math.abs(n.getY(i)); // tampas não deformam
+    if (side < 0.5) continue;
+    v.fromBufferAttribute(p, i);
+    let d = 0;
+    for (const w of waves) {
+      const x = Math.sin(v.dot(w.k) + w.ph);
+      d += w.w * (x > 0 ? x * x * 0.9 : x * 0.6); // crista mais marcada que o vale
+    }
+    d *= amp / 2.2;
+    for (const l of lumps) d += amp * lump * Math.sin(v.dot(l.k) + l.ph);
+    if (stack) {
+      // anéis empilhados perto de uma ponta (barra da calça sobre o tênis, punho)
+      const e = stackAt < 0 ? (v.y - min.y) / H : (max.y - v.y) / H;
+      const fall = Math.max(0, 1 - e / 0.35);
+      d += stack * fall * fall * (0.55 + 0.45 * Math.sin(e * 95 + Math.atan2(v.z, v.x) * 2 + seed));
+    }
+    // ponta presa (costura no ombro/cintura/joelho) quase não deforma
+    const ey = (v.y - min.y) / H;
+    const pin = Math.min(1, Math.min(ey, 1 - ey) / 0.08 + 0.15);
+    d *= side * pin;
+    p.setXYZ(i, v.x + n.getX(i) * d, v.y + n.getY(i) * d, v.z + n.getZ(i) * d);
+  }
+  p.needsUpdate = true;
+  geo.computeVertexNormals();
+  // a costura do cilindro duplica vértices: média das normais para não marcar uma linha
+  const nn = geo.attributes.normal;
+  const groups = new Map();
+  for (let i = 0; i < p.count; i++) {
+    const key = `${p.getX(i).toFixed(5)},${p.getY(i).toFixed(5)},${p.getZ(i).toFixed(5)}`;
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(i);
+  }
+  for (const ids of groups.values()) {
+    if (ids.length < 2) continue;
+    v.set(0, 0, 0);
+    for (const i of ids) v.x += nn.getX(i), v.y += nn.getY(i), v.z += nn.getZ(i);
+    v.normalize();
+    for (const i of ids) nn.setXYZ(i, v.x, v.y, v.z);
+  }
+  nn.needsUpdate = true;
+  return geo;
+}
+function cloth(rTop, rBot, h, m, opts = {}) {
+  return new THREE.Mesh(wrinkle(new THREE.CylinderGeometry(rTop, rBot, h, 30, 22), opts), m);
+}
+
 // ---------------- esqueleto ----------------
 // Mão de boneco articulada: palma, quatro dedos com duas falanges e polegar.
 // Pivô da mão pende em -Y; a palma olha para -x (mão esquerda) / +x (direita).
@@ -485,11 +620,12 @@ function skeleton({ skin, torsoMat, sleeveMat, pantsMat, shoeMats, torsoR = 0.26
   const hips = pivot(root, 0, 0.95, 0);
   add(hips, rbox(0.4, 0.17, 0.27, pantsMat, 0.06), 0, -0.02, 0); // pelve
   const torso = pivot(hips, 0, 0, 0);
-  const chest = add(torso, new THREE.Mesh(new THREE.CylinderGeometry(torsoR, torsoR * 0.86, 0.62, 24, 4), torsoMat), 0, 0.31, 0);
+  const chest = add(torso, cloth(torsoR, torsoR * 0.86, 0.62, torsoMat, { amp: 0.009, freq: 40, vertical: 3, tilt: 0.8, stack: 0.006, stackAt: -1 }), 0, 0.31, 0);
   chest.scale.z = 0.6;
   // ombros arredondados do moletom/jaqueta
   // (mais largo que o cilindro na altura da borda superior, para a borda não aparecer como um balde)
-  add(torso, ball(torsoR * 1.05, 0.075, torsoR * 0.63, torsoMat), 0, 0.605, 0);
+  // (no tecido liso da manga: a estampa do tronco esticada na esfera viraria um segundo coração)
+  add(torso, ball(torsoR * 1.05, 0.075, torsoR * 0.63, sleeveMat), 0, 0.605, 0);
   const neck = pivot(torso, 0, 0.62, 0);
   add(neck, tube(0.048, 0.054, 0.12, skinM), 0, 0.03, 0);
   const head = pivot(neck, 0, 0.07, 0.005);
@@ -497,10 +633,10 @@ function skeleton({ skin, torsoMat, sleeveMat, pantsMat, shoeMats, torsoR = 0.26
   const arm = (side) => {
     const sh = pivot(torso, side * (torsoR + 0.04), 0.54, 0);
     add(sh, ball(0.082, 0.082, 0.082, sleeveMat), 0, 0, 0);
-    add(sh, tube(0.077, 0.07, 0.3, sleeveMat), 0, -0.15, 0);
+    add(sh, cloth(0.077, 0.07, 0.3, sleeveMat, { amp: 0.007, freq: 85 }), 0, -0.15, 0);
     const el = pivot(sh, 0, -0.3, 0);
     add(el, ball(0.07, 0.07, 0.07, sleeveMat), 0, 0, 0);
-    add(el, tube(0.068, 0.06, 0.27, sleeveMat), 0, -0.13, 0);
+    add(el, cloth(0.068, 0.06, 0.27, sleeveMat, { amp: 0.007, freq: 95, stack: 0.006, stackAt: -1 }), 0, -0.13, 0);
     add(el, tube(0.063, 0.063, 0.03, sleeveMat), 0, -0.265, 0); // punho
     const hd = pivot(el, 0, -0.29, 0);
     const rig = hand(hd, skinM, side);
@@ -509,10 +645,10 @@ function skeleton({ skin, torsoMat, sleeveMat, pantsMat, shoeMats, torsoR = 0.26
   const leg = (side) => {
     const th = pivot(hips, side * 0.11, -0.03, 0);
     add(th, ball(0.1, 0.1, 0.1, pantsMat), 0, 0, 0);
-    add(th, tube(0.1, 0.092, 0.45, pantsMat), 0, -0.22, 0);
+    add(th, cloth(0.1, 0.092, 0.45, pantsMat, { amp: 0.007, freq: 58, tilt: 0.95, lump: 0.35 }), 0, -0.22, 0);
     const kn = pivot(th, 0, -0.45, 0);
     add(kn, ball(0.093, 0.093, 0.093, pantsMat), 0, 0, 0);
-    add(kn, tube(0.092, 0.108, 0.42, pantsMat), 0, -0.2, 0);
+    add(kn, cloth(0.092, 0.108, 0.42, pantsMat, { amp: 0.007, freq: 62, tilt: 0.9, lump: 0.35, stack: 0.012, stackAt: -1 }), 0, -0.2, 0);
     const ft = pivot(kn, 0, -0.43, 0);
     shoe(ft, ...shoeMats);
     return { th, kn, ft };
@@ -521,11 +657,11 @@ function skeleton({ skin, torsoMat, sleeveMat, pantsMat, shoeMats, torsoR = 0.26
 }
 
 // cabeça esculpida: esfera pintada + nariz, orelhas e queixo em volume
-function sculptHead(s, skin, tex) {
+function sculptHead(s, skin, tex, beard) {
   const sk = s.skinM;
   const headM = plastic({ map: tex });
   const h = add(s.head, ball(0.108, 0.135, 0.12, headM, 28), 0, 0.135, 0);
-  add(s.head, ball(0.072, 0.046, 0.062, headM, 16), 0, 0.052, 0.03); // mandíbula (rente ao crânio)
+  add(s.head, ball(0.072, 0.046, 0.062, plastic({ map: jawTex(skin, beard) }), 20), 0, 0.052, 0.03); // mandíbula (rente ao crânio)
   const nose = add(s.head, rbox(0.026, 0.042, 0.022, sk, 0.01), 0, 0.12, 0.112);
   nose.rotation.x = -0.22;
   add(s.head, ball(0.019, 0.012, 0.013, sk), 0, 0.1, 0.116); // ponta do nariz
@@ -674,7 +810,7 @@ export function buildA() {
   add(s.legR.th, rbox(0.035, 0.14, 0.13, pocket, 0.01), -0.1, -0.27, 0);
   const chainG = chainRig(s.torso, 0xb9bec7, 0.62, 0.105);
 
-  const headMesh = sculptHead(s, skin, headTex(skin, { eyes: false, beard: 'goatee', lips: '#6e3d2d', seed: 5, browMesh: true }));
+  const headMesh = sculptHead(s, skin, headTex(skin, { eyes: false, beard: 'goatee', lips: '#6e3d2d', seed: 5, browMesh: true }), 'goatee');
   // sobrancelhas aparecem por cima dos óculos — o rosto consegue atuar
   const face = faceRig(s, skin, { brows: true, browV: 22.4 });
   const hairM = fabric({ color: 0x100c0a });
@@ -930,7 +1066,7 @@ export function buildB() {
   collar.rotation.set(PI / 2, 0, PI * 0.8);
   add(s.torso, collar, 0, 0.62, -0.01);
 
-  sculptHead(s, skin, headTex(skin, { eyes: true, beard: 'full', lips: '#4a281c', hair: 'fade', seed: 8, browMesh: true }));
+  sculptHead(s, skin, headTex(skin, { eyes: true, beard: 'full', lips: '#4a281c', hair: 'fade', seed: 8, browMesh: true }), 'full');
   const face = faceRig(s, skin, { lids: true, brows: true });
   // boné de beisebol virado pra trás
   const capM = fabric({ map: clothTex('#121212', 51), spec: 0.04 });
@@ -952,7 +1088,9 @@ export function buildB() {
   const bill = new THREE.Mesh(billGeo, capRed);
   bill.rotation.set(-PI / 2 - 0.45, 0, 0); // aponta pra trás e cai em direção à nuca
   add(s.head, bill, 0, 0.205, -0.115);
-  add(s.head, rbox(0.06, 0.012, 0.008, plastic({ color: 0xbdbdbd }), 0.003), 0, 0.212, 0.128);
+  // ajuste snapback (atrás do boné = na testa): tira preta com botões de pressão, não uma barra clara
+  add(s.head, rbox(0.064, 0.011, 0.007, plastic({ color: 0x141414, spec: 0.3 }), 0.003), 0, 0.212, 0.128);
+  for (const sx of [-0.012, 0.004, 0.02]) add(s.head, ball(0.0035, 0.0035, 0.002, metal({ color: 0x8a8a8e }), 8), sx, 0.212, 0.1325);
 
   // óculos de grau: armação grossa de acetato preto com detalhe dourado
   const fr = plastic({ color: 0x0b0b0b, spec: 0.9, shine: 80 });
@@ -1037,7 +1175,7 @@ export function buildB() {
     const br = breath(t);
 
     // corpo
-    s.hips.position.set(0, 0.635, 0);
+    s.hips.position.set(0, 0.642, 0);
     s.hips.rotation.set(0, 0, 0);
     const lb = lookBody(t);
     s.torso.rotation.set(0.16 - 0.08 * lb + 0.05 * n + 0.03 * st, -0.22 * lb, 0.02 * Math.sin((t / 2) * PI));
