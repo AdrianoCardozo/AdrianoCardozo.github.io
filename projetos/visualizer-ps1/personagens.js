@@ -1054,13 +1054,13 @@ export function buildB() {
     torsoR: 0.265,
   });
   const chainG = chainRig(s.torso, 0xe0b54a, 0.62, 0.1);
-  const hoodM = fabric({ map: clothTex('#5f5d5a', 35) });
+  const hoodM = fabric({ map: clothTex('#4b4947', 35) }); // moletom cinza-chumbo (não vira um disco claro nas costas)
   // capuz do moletom por baixo da jaqueta, caído e achatado contra as costas
   const hoodRoll = new THREE.Mesh(new THREE.TorusGeometry(0.118, 0.03, 8, 20, PI * 1.2), hoodM);
   hoodRoll.rotation.set(PI / 2 + 0.25, 0, PI * 0.9);
   add(s.torso, hoodRoll, 0, 0.632, -0.03);
-  const hood = add(s.torso, ball(0.1, 0.075, 0.032, hoodM), 0, 0.575, -0.17);
-  hood.rotation.x = -0.4;
+  const hood = add(s.torso, ball(0.088, 0.062, 0.024, hoodM), 0, 0.585, -0.168);
+  hood.rotation.x = -0.5;
   add(s.armL.el, tube(0.064, 0.064, 0.04, hoodM), 0, -0.28, 0);
   add(s.armR.el, tube(0.064, 0.064, 0.04, hoodM), 0, -0.28, 0);
   const collar = new THREE.Mesh(new THREE.TorusGeometry(0.1, 0.03, 8, 18, PI * 1.4), fabric({ color: 0x3d2614 }));

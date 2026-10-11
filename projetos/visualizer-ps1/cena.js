@@ -578,10 +578,7 @@ export function buildRoom(scene) {
   boom.rotation.z = PI / 2 - 0.25;
   // microfone dinâmico preto (estilo SM7B): não vira um borrão claro em primeiro plano
   put(mic, rbox(0.065, 0.17, 0.065, metal({ color: 0x242427, spec: 0.6 }), 0.03), -0.48, 1.52, 0);
-  const pop = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 0.006, 24), mat({ color: 0x050505, opacity: 0.55, side: THREE.DoubleSide }));
-  pop.rotation.z = PI / 2;
-  pop.position.set(-0.62, 1.52, 0);
-  mic.add(pop);
+  // (sem pop filter: o disco preto virava uma mancha oval em primeiro plano)
   room.add(mic);
 
   // ---------- cama / janela (parede esquerda) ----------

@@ -376,8 +376,8 @@ const SHOTS_32 = [
   { at: 0, cam: 0, tgt: 'room', fov: 58, dof: 0.55, lift: 0.7, shift: -0.32, slide: [0.18, -0.06, -0.12] },
   { at: 4, cam: 3, tgt: 'B', fov: 34, arm: [0.75, -0.75, 0.05], slide: [0.06, 0.0, 0.05], dof: 1.4 },
   { at: 8, cam: 1, tgt: 'A', fov: 28, arm: [-0.7, -0.15, -0.7], slide: [0.0, -0.06, -0.06], dof: 1.6 },
-  { at: 12, cam: 3, tgt: 'room', fov: 56, dof: 0.55, lift: 0.6, shift: -0.3, arm: [0.25, -0.1, 0.2], slide: [0.1, -0.04, 0.1] },
-  { at: 16, cam: 0, tgt: 'pc', focus: 'B', fov: 34, arm: [0.9, -0.6, -1.3], slide: [0.05, 0, -0.04], dof: 1.1 },
+  { at: 12, cam: 3, tgt: 'room', focus: 'B', fov: 56, dof: 0.7, lift: 0.6, shift: -0.3, arm: [0.25, -0.1, 0.2], slide: [0.1, -0.04, 0.1] }, // B vira pro A e levanta a mão: foco nele
+  { at: 16, cam: 0, tgt: 'pc', aim: [0.15, 0.04, -0.05], fov: 34, arm: [0.65, -0.73, -1.45], slide: [0.05, 0, -0.04], dof: 1.1 }, // por cima do ombro do B, foco na tela
   { at: 18, cam: 2, tgt: 'foot', fov: 30, arm: [-0.6, -1.3, 0.6], slide: [-0.04, 0, 0.03], dof: 1.4 },
   { at: 20, cam: 3, tgt: 'A', fov: 22, arm: [0.6, -0.4, 0.6], slide: [0.05, -0.03, 0.05], dof: 1.5 },
   { at: 22, cam: 0, tgt: 'AB', fov: 44, arm: [0.35, -0.2, -0.25], slide: [0.08, -0.03, -0.06], dof: 0.7 },
