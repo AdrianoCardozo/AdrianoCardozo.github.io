@@ -569,7 +569,7 @@ function setLight(i, x, y, z, col, k, fall) {
   shared.uLightFall.value[i] = fall;
 }
 const COL = {
-  screen: new THREE.Color(0.45, 0.6, 1.0),
+  screen: new THREE.Color(0.64, 0.72, 1.0),
   neon: new THREE.Color(1.0, 0.12, 0.38),
   moon: new THREE.Color(0.3, 0.38, 0.85),
   ember: new THREE.Color(1.0, 0.42, 0.12),
@@ -702,7 +702,8 @@ function renderAt(t) {
   const midS = a.midS ?? a.mid;
   const highS = a.highS ?? a.high;
   setLight(0, 0, 2.4, 0, pal.c, 0.35 + 1.0 * bassS, 0.35);
-  setLight(1, -0.55, 1.18, -1.22, COL.screen, 1.0 + 0.1 * midS, 1.3);
+  // brilho dos monitores na altura do rosto do B (antes vinha de baixo e azul demais: rosto cinza)
+  setLight(1, -0.55, 1.34, -1.3, COL.screen, 1.35 + 0.1 * midS, 1.3);
   setLight(2, 1.95, 2.15, 0.0, COL.neon, 0.9 * (0.8 + 0.4 * midS), 1.1);
   setLight(3, -1.9, 1.55, -0.55, COL.moon, 0.4, 0.9);
   setLight(4, ember.x, ember.y, ember.z, COL.ember, 0.025 * (0.5 + glow), 90);
