@@ -338,7 +338,8 @@ function smokeTexture(seed, stretch) {
 }
 const wispTex = [smokeTexture(1, 1.8), smokeTexture(2, 2.2), smokeTexture(3, 1.6)];
 const puffTex = [smokeTexture(4, 1.1), smokeTexture(5, 1.25)];
-const smokeMat = (map) => mat({ map, color: 0xb9b8bf, emissive: 0.03, opacity: 0.5, alphaTest: 0.003, spec: 0, wear: 0 });
+// fumaça clara e um pouco emissiva: lê como fumaça contraluz sobre o fundo escuro
+const smokeMat = (map) => mat({ map, color: 0xd6d4dc, emissive: 0.16, opacity: 0.5, alphaTest: 0.003, spec: 0, wear: 0 });
 const STREAM_N = 64;
 const EXHALE_N = 34; // por janela de baforada
 const stream = [];
@@ -441,7 +442,7 @@ const PALS = [
   { c: new THREE.Color(1.0, 0.06, 0.08) }, // vermelho
   { c: new THREE.Color(1.0, 0.34, 0.04) }, // âmbar queimado
   { c: new THREE.Color(0.55, 0.12, 1.0) }, // roxo ácido
-  { c: new THREE.Color(0.35, 1.0, 0.12) }, // verde tóxico
+  { c: new THREE.Color(0.22, 0.42, 1.0) }, // azul elétrico
 ];
 function palette(a) {
   let p;
@@ -654,7 +655,9 @@ function renderAt(t) {
     loopPos: tp / L,
     section: bar < cfg.bars / 4 ? 0 : bar < cfg.bars / 2 ? 1 : 2,
   };
-  const pal = palette(a);
+  // a paleta troca no compasso real (junto com o corte), não na pose
+  const realBar = Math.floor(t / beatLen / 4 + 1e-6);
+  const pal = palette({ ...a, bar: realBar, section: realBar < cfg.bars / 4 ? 0 : realBar < cfg.bars / 2 ? 1 : 2 });
 
   const smokeState = A.update(a);
   B.update(a, { mouse: room.mouse, keyboard: room.keyboardW });
@@ -736,7 +739,7 @@ function renderAt(t) {
     const vel = v3b.set(-0.035 * k + 0.08 * k * Math.cos(sec * 2.3 + seed), 0.16 - 0.016 * sec, 0);
     orient(s, vel, 0);
     s.scale.set(0.006 + k * 0.07, 0.02 + k * 0.13, 1);
-    s.material.uniforms.uOpacity.value = 0.24 * (1 - k) ** 1.8 * Math.min(1, age * 5);
+    s.material.uniforms.uOpacity.value = 0.3 * (1 - k) ** 1.8 * Math.min(1, age * 5);
   });
   // baforada: velocidade inicial pra fora da boca que freia (arrasto), depois
   // sobe (empuxo) com turbulência; emissão espalhada por toda a expiração
@@ -768,7 +771,7 @@ function renderAt(t) {
     orient(s, vel, 0.3 * Math.sin(seed));
     const sz = 0.025 + Math.pow(k, 0.7) * 0.2;
     s.scale.set(sz, sz * 1.35, 1);
-    s.material.uniforms.uOpacity.value = 0.3 * (1 - k) ** 1.6 * Math.min(1, age * 6);
+    s.material.uniforms.uOpacity.value = 0.42 * (1 - k) ** 1.5 * Math.min(1, age * 6);
   });
 
   // sombra da lâmpada: profundidade vista da lâmpada
@@ -820,8 +823,12 @@ window.vis = {
     if (o.audioUrl) analyze(await loadAudio(o.audioUrl), frameCount(), cfg.fps);
     return { frames: frameCount(), seconds: loopLen(), w: OUT_W, h: OUT_H };
   },
+  // mesma pose + mesmo plano + mesmo compasso => mesma imagem (o render reaproveita)
   poseKey(i) {
-    return poseOf(i / cfg.fps);
+    const L = loopLen();
+    const t = (((i / cfg.fps) % L) + L) % L;
+    const beatLen = 60 / cfg.bpm;
+    return `${poseOf(t)}_${shotAt(t / beatLen).idx}_${Math.floor(t / beatLen / 4 + 1e-6)}`;
   },
   renderFrame(i) {
     renderAt(i / cfg.fps);
