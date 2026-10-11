@@ -427,7 +427,7 @@ function target(name, sh) {
   if (name === 'B') return B.head.getWorldPosition(v3).add(v3b.set(0, 0.11, 0));
   if (name === 'foot') return A.foot.getWorldPosition(v3).add(v3b.set(0.08, 0.1, 0.08));
   if (name === 'pc') return v3.set(-0.55, 1.08, -1.55);
-  if (name === 'hands') return v3.copy(room.keyboardW).lerp(room.mouse.getWorldPosition(v3b), 0.5).add(v3b.set(0, 0.06, 0.05));
+  if (name === 'hands') return v3.copy(room.keyboardW).add(v3b.set(0.17, 0.06, 0.05)); // ponto fixo entre teclado e mouse
   if (name === 'AB') {
     A.head.getWorldPosition(v3);
     B.head.getWorldPosition(v3b);
