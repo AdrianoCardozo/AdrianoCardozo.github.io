@@ -780,8 +780,9 @@ function renderAt(t) {
     const sec = age * beatLen;
     const seed = i * 2.31 + wi * 7.7;
     const strength = 0.55 + 0.45 * (1 - (born - w0) / (w1 - w0)); // primeiras saem mais fortes
-    const dir = v3b.copy(src.faceN).addScaledVector(camF, -0.8 * src.faceN.dot(camF)).normalize().multiplyScalar(0.45);
-    dir.addScaledVector(camR, 0.8).add(v3.set(Math.sin(seed) * 0.12, 0.12, Math.cos(seed * 1.7) * 0.12)).normalize();
+    // (a cabeça tomba pra trás além da vertical: a normal do rosto aponta pra parede e a
+    // fumaça sumia atrás da cabeça — por isso a direção vem da câmera, levemente pra cima e pra lente)
+    const dir = v3b.copy(camR).multiplyScalar(0.85).addScaledVector(camF, -0.12).add(v3.set(Math.sin(seed) * 0.1, 0.32, Math.cos(seed * 1.7) * 0.1)).normalize();
     // nuvem que se forma na frente da boca e cresce (no close o quadro tem ~40 cm: alcance curto)
     const reach = 0.17 * strength * (1 - Math.exp(-sec * 1.5)); // arrasto
     const lift = 0.035 * sec * sec / (0.6 + sec); // empuxo só depois que o sopro perde força

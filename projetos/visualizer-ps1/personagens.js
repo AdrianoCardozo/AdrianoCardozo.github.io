@@ -143,21 +143,20 @@ function headTex(skin, o) {
         // borda macia (não um contorno fino, que lia como jugular de capacete)
         g.fill();
         g.beginPath();
-        g.moveTo(17.2, 29);
+        g.moveTo(17.0, 31);
         g.quadraticCurveTo(17.5, 53, 32, 55.5);
-        g.quadraticCurveTo(46.5, 53, 46.8, 29);
-        g.lineTo(42.6, 30.5);
-        g.quadraticCurveTo(42.4, 44.5, 37, 45.2);
-        g.lineTo(27, 45.2);
-        g.quadraticCurveTo(21.6, 44.5, 21.4, 30.5);
+        g.quadraticCurveTo(46.5, 53, 47.0, 31);
+        g.quadraticCurveTo(43.5, 36, 38.5, 44.6); // linha da bochecha em diagonal até o canto da boca
+        g.lineTo(25.5, 44.6);
+        g.quadraticCurveTo(20.5, 36, 17.0, 31);
         g.closePath();
-        g.fillStyle = 'rgba(16,10,8,0.72)';
+        g.fillStyle = 'rgba(16,10,8,0.7)';
         g.fill();
         // borda esfumada à mão: contornos cada vez mais largos e transparentes
         g.lineJoin = 'round';
-        for (let k = 1; k <= 5; k++) {
-          g.strokeStyle = `rgba(16,10,8,${0.1 - k * 0.012})`;
-          g.lineWidth = k * 0.55;
+        for (let k = 1; k <= 7; k++) {
+          g.strokeStyle = `rgba(16,10,8,${0.09 - k * 0.011})`;
+          g.lineWidth = k * 0.8;
           g.stroke();
         }
         // pelos curtos: pontinhos irregulares dentro da barba
@@ -165,7 +164,7 @@ function headTex(skin, o) {
         for (let k = 0; k < 260; k++) {
           const ax = 17.5 + rb() * 29;
           const ay = 30 + rb() * 25;
-          const inSide = (ax < 22 || ax > 42) && ay < 50;
+          const inSide = (ax < 22 + (ay - 31) * 0.3 || ax > 42 - (ay - 31) * 0.3) && ay < 50 && ay > 31;
           const inChin = ay > 45.5 && Math.abs(ax - 32) < 14 - (ay - 45.5) * 0.9;
           if (!inSide && !inChin) continue;
           g.fillStyle = `rgba(${rb() < 0.5 ? '6,4,3' : '48,32,24'},${0.35 + rb() * 0.4})`;
@@ -944,15 +943,15 @@ export function buildA() {
 
   // ---------- atuação (em batidas; loop de 32) ----------
   const P = 32;
-  // tragadas nas batidas 6 e 21,5: sobe, puxa, desce; a baforada cai dentro dos closes (b8–12 e b24–26)
+  // tragadas nas batidas 6 e 21 (segura a fumaça ~0,5 s antes de soltar no close): sobe, puxa, desce; a baforada cai dentro dos closes (b8–12 e b24–26)
   // leva o cigarro à boca em ~0,55 s e devolve em ~0,57 s (antes: 0,4 s com easing dobrado = salto de 30 cm por pose)
-  const puff = curve([[0, 0], [5.5, 0], [6.55, 1, 'inOut'], [7.85, 1, 'linear'], [8.95, 0, 'inOut'], [21.0, 0], [22.05, 1, 'inOut'], [23.35, 1, 'linear'], [24.45, 0, 'inOut']], P);
-  const drag = curve([[0, 0], [6.6, 0], [6.8, 1, 'out'], [7.8, 1, 'linear'], [7.9, 0, 'in'], [22.1, 0], [22.3, 1, 'out'], [23.3, 1, 'linear'], [23.4, 0, 'in']], P);
+  const puff = curve([[0, 0], [5.5, 0], [6.55, 1, 'inOut'], [7.85, 1, 'linear'], [8.95, 0, 'inOut'], [20.5, 0], [21.55, 1, 'inOut'], [22.85, 1, 'linear'], [23.95, 0, 'inOut']], P);
+  const drag = curve([[0, 0], [6.6, 0], [6.8, 1, 'out'], [7.8, 1, 'linear'], [7.9, 0, 'in'], [21.6, 0], [21.8, 1, 'out'], [22.8, 1, 'linear'], [22.9, 0, 'in']], P);
   const exhaleC = curve([[0, 0], [8.25, 0], [8.65, 1, 'out'], [10.2, 0.4, 'inOut'], [11.1, 0, 'inOut'], [23.75, 0], [24.15, 1, 'out'], [25.7, 0.4, 'inOut'], [26.6, 0, 'inOut']], P);
   // respiração acompanha a tragada: puxa na tragada, solta com a fumaça
-  const breath = curve([[0, 0.4], [2.5, 0.8], [5, 0.2], [7.85, 1, 'inOut'], [10.6, 0, 'inOut'], [13, 0.7], [15.5, 0.15], [18, 0.6], [21.3, 0.25], [23.35, 1, 'inOut'], [26.1, 0, 'inOut'], [28.2, 0.7], [30.2, 0.15]], P);
+  const breath = curve([[0, 0.4], [2.5, 0.8], [5, 0.2], [7.85, 1, 'inOut'], [10.6, 0, 'inOut'], [13, 0.7], [15.5, 0.15], [18, 0.6], [20.8, 0.25], [22.85, 1, 'inOut'], [26.1, 0, 'inOut'], [28.2, 0.7], [30.2, 0.15]], P);
   // olhar: no teto; desce para a tragada; volta mais pra cima soltando a fumaça
-  const lookUp = curve([[0, 1], [5.6, 1], [6.6, 0.45, 'inOut'], [8.1, 0.55], [8.9, 1.12, 'out'], [11, 1], [21.1, 1], [22.1, 0.45, 'inOut'], [23.6, 0.55], [24.4, 1.12, 'out'], [26.5, 1]], P);
+  const lookUp = curve([[0, 1], [5.6, 1], [6.6, 0.45, 'inOut'], [8.1, 0.55], [8.9, 1.12, 'out'], [11, 1], [20.6, 1], [21.6, 0.45, 'inOut'], [23.1, 0.55], [24.4, 1.12, 'out'], [26.5, 1]], P);
   const turn = curve([[0, -0.05], [11.6, -0.05], [12.6, 0.2, 'inOut'], [15, 0.14], [16.5, -0.05, 'inOut'], [26, -0.05], [27.5, -0.22, 'inOut'], [30.5, -0.15], [31.8, -0.05, 'inOut']], P);
   // bater a cinza (dois toques do indicador), com o queixo apontando pro B
   const flick = curve([[0, 0], [12.5, 0], [12.58, 1, 'out'], [12.7, 0, 'in'], [12.78, 1, 'out'], [12.92, 0, 'in'], [28.5, 0], [28.58, 1, 'out'], [28.7, 0, 'in'], [28.78, 1, 'out'], [28.92, 0, 'in']], P);
@@ -1330,7 +1329,10 @@ export function buildB() {
     const airW = s.torso.localToWorld(new THREE.Vector3(0.2, 1.0 + 0.04 * n, 0.2));
     let wristL = kbWrist.clone();
     if (gs > 0) wristL.lerp(glassesW, gs);
-    if (hu > 0) wristL.lerp(airW, hu); // hu > 1 = passa um pouco do ponto
+    if (hu > 0) {
+      wristL.lerp(airW, hu); // hu > 1 = passa um pouco do ponto
+      wristL.y += 0.14 * Math.sin(Math.min(1, Math.max(0, hu)) * PI); // sobe em arco
+    }
     if (hu < 0) wristL.add(tmp.set(0, 0.03 * hu, 0)); // antecipação: afunda antes de subir
     // com a mão no alto o polo "pra baixo" ficaria oposto ao alvo (cotovelo virava): vai pro lado
     const poleL = dirW(0.7, -1, -0.4).normalize().lerp(dirW(1, -0.15, 0.35).normalize(), Math.max(0, Math.min(1, hu))).normalize();
