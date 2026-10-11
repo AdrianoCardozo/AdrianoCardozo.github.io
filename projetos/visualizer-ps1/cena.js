@@ -418,7 +418,7 @@ export function buildRoom(scene) {
   // teclado e mouse do computador
   const kbM = plastic({ color: 0x141416, spec: 0.3 });
   put(desk, rbox(0.44, 0.022, 0.14, [kbM, kbM, plastic({ map: keysTex(), spec: 0.35 }), kbM, kbM, kbM], 0.006), -0.05, 0.792, 0.16);
-  const mouse = put(desk, rbox(0.06, 0.03, 0.1, plastic({ color: 0x0f0f11, spec: 0.6, shine: 70 }), 0.025), 0.32, 0.795, 0.17);
+  const mouse = put(desk, rbox(0.06, 0.03, 0.1, plastic({ color: 0x38383e, spec: 0.6, shine: 70 }), 0.025), 0.32, 0.795, 0.17); // cinza: lê como mouse
   const mouseLed = put(mouse, rbox(0.008, 0.004, 0.03, mat({ color: 0xff2040, emissive: 1, unlit: true }), 0.002), 0, 0.016, -0.02);
   // teclado MIDI (à esquerda) e controlador de pads (à direita)
   const midi = put(desk, rbox(0.5, 0.045, 0.17, [kbM, kbM, plastic({ map: pianoTex() }), kbM, kbM, kbM], 0.008), -0.66, 0.8, 0.14, 0.18);

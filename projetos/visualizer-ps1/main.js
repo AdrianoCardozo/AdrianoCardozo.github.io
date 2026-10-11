@@ -375,22 +375,22 @@ const SHOTS_32 = [
   // lift/shift: mira mais alta + deslocamento de lente (tira a distorção dos planos abertos)
   { at: 0, cam: 0, tgt: 'room', fov: 58, dof: 0.55, lift: 0.7, shift: -0.32, slide: [0.18, -0.06, -0.12] },
   // B 3/4 de frente, de cima dos monitores (antes só se via o topo do boné)
-  { at: 4, cam: 3, tgt: 'B', fov: 30, arm: [0.85, -1.0, 0.17], slide: [0.04, 0.0, 0.03], dof: 1.2 },
+  { at: 4, cam: 3, tgt: 'B', fov: 34, arm: [0.97, -1.03, 0.15], slide: [0.03, 0.0, 0.02], dof: 1.2 }, // na altura dos olhos, ~30° da frente dele
   // baforada vista mais de lado e mais baixo: a fumaça atravessa o quadro
   { at: 8, cam: 1, tgt: 'A', fov: 30, arm: [-0.8, -0.53, -0.85], slide: [0.0, -0.04, -0.04], dof: 1.3 },
   { at: 12, cam: 3, tgt: 'room', focus: 'B', fov: 52, dof: 0.45, lift: 0.6, shift: -0.3, arm: [0.5, -0.2, 0.4], slide: [0.1, -0.04, 0.1] }, // B vira pro A e levanta a mão: foco nele
-  { at: 16, cam: 0, tgt: 'pc', aim: [0.15, 0.04, -0.05], fov: 34, arm: [0.65, -0.73, -1.45], slide: [0.05, 0, -0.04], dof: 1.1 }, // por cima do ombro do B, foco na tela
+  { at: 16, cam: 0, tgt: 'pc', aim: [0.15, 0.04, -0.05], fov: 34, arm: [0.5, -0.7, -1.52], slide: [0.05, 0, -0.04], dof: 1.1 }, // por cima do ombro do B, foco na tela
   // tênis em ângulo baixo, foco no bico (o encosto do sofá saiu do quadro)
   { at: 18, cam: 2, tgt: 'foot', aim: [-0.16, -0.12, -0.08], fov: 26, arm: [-0.75, -1.43, 0.6], slide: [-0.03, 0, 0.02], dof: 1.2 },
   // A sobe o cigarro: 3/4 do lado do cigarro
   { at: 20, cam: 2, tgt: 'A', fov: 30, arm: [-0.5, -0.78, 0.6], slide: [0.04, -0.02, 0.03], dof: 1.2 },
   { at: 22, cam: 0, tgt: 'AB', fov: 44, arm: [0.35, -0.2, -0.25], slide: [0.08, -0.03, -0.06], dof: 0.7 },
   // close extremo da baforada, mais perto e mais baixo (lente menos tele)
-  { at: 24, cam: 1, tgt: 'A', fov: 24, arm: [-0.9, -1.03, -1.0], slide: [-0.03, -0.02, -0.03], dof: 1.6 },
+  { at: 24, cam: 1, tgt: 'A', fov: 24, arm: [-0.85, -0.8, -0.95], slide: [-0.03, -0.02, -0.03], dof: 1.6 }, // altura da boca: rosto, não o queixo
   // mãos ao longo da mesa, vindo da esquerda do B
   { at: 26, cam: 3, tgt: 'hands', fov: 30, arm: [0.6, -1.4, 0.43], slide: [0.03, 0, 0.02], dof: 1.0 },
   // B olhando pro A com a mão no ar: câmera ~40° fora da linha do olhar (antes ele parecia encarar a lente)
-  { at: 28, cam: 2, tgt: 'B', fov: 30, arm: [-1.35, -0.75, 0.05], slide: [-0.05, 0, 0.03], dof: 1.4 },
+  { at: 28, cam: 2, tgt: 'B', fov: 33, arm: [-1.35, -0.75, 0.05], slide: [-0.05, 0, 0.03], dof: 1.4 },
   { at: 30, cam: 3, tgt: 'room', focus: 'B', fov: 52, dof: 0.45, lift: 0.6, shift: -0.28, arm: [0.55, -0.2, 0.45], slide: [0.12, -0.04, 0.06] },
 ];
 let SHOTS = SHOTS_32;
@@ -594,6 +594,14 @@ const poseOf = (t) => {
   const L = loopLen();
   return Math.floor((((t % L) + L) % L) * cfg.poseRate + 1e-6);
 };
+// não troca de pose no último quadro antes de um corte (a pose nova aparecia 1 quadro no plano velho)
+const effPose = (t) => {
+  const f = 1 / cfg.fps;
+  const bl = 60 / cfg.bpm;
+  const p = poseOf(t);
+  if (shotAt((t + f) / bl).idx !== shotAt(t / bl).idx && poseOf(t - f) !== p) return poseOf(t - f);
+  return p;
+};
 const hidden = [];
 
 // Trajetória da brasa e da boca ao longo do loop (para a fumaça ficar no ar
@@ -607,9 +615,10 @@ function getTrail() {
   const pts = [];
   for (let i = 0; i < N; i++) {
     const beatF = (i / N) * P;
-    const a = { beatF, beat: Math.floor(beatF), beatPhase: beatF % 1, high: 0, bass: 0, mid: 0, kick: 0, pose: i };
+    // mesmo índice de pose do render (o 'boil' por pose bate com o da trilha da fumaça)
+    const a = { beatF, beat: Math.floor(beatF), beatPhase: beatF % 1, high: 0, bass: 0, mid: 0, kick: 0, pose: Math.floor(((beatF * 60) / cfg.bpm) * cfg.poseRate + 1e-6) };
     const st = A.update(a);
-    B.update(a, { mouse: room.mouse, keyboard: room.keyboardW });
+    B.update(a, { mouse: room.mouse, keyboard: room.keyboardW, chair: room.chair });
     pts.push({
       ember: st.ember.clone(),
       mouth: st.mouth.clone(),
@@ -645,7 +654,7 @@ function renderAt(t) {
   const nf = frameCount();
   const beatLen = 60 / cfg.bpm;
   // stop-motion: tudo que se move muda só a cada pose
-  const pose = poseOf(t);
+  const pose = effPose(t);
   const tp = pose / cfg.poseRate;
   const beatF = tp / beatLen;
   const frame = Math.floor((tp / L) * nf + 1e-6) % nf;
@@ -670,7 +679,7 @@ function renderAt(t) {
   const pal = palette({ ...a, bar: realBar, section: realBar < cfg.bars / 4 ? 0 : realBar < cfg.bars / 2 ? 1 : 2 });
 
   const smokeState = A.update(a);
-  B.update(a, { mouse: room.mouse, keyboard: room.keyboardW });
+  B.update(a, { mouse: room.mouse, keyboard: room.keyboardW, chair: room.chair });
   room.update(a, pal);
   scene.updateMatrixWorld();
 
@@ -740,7 +749,7 @@ function renderAt(t) {
     const vc = vel.clone().applyQuaternion(camQ.clone().invert());
     s.rotateZ(Math.atan2(vc.y, vc.x) - PI / 2 + spin);
   };
-  const lifeS = 6; // batidas
+  const lifeS = 6.4; // batidas (32/5: o fio de fumaça fecha o loop sem se refazer na emenda)
   stream.forEach((s, i) => {
     const age = (((beatF + (i / STREAM_N) * lifeS) % lifeS) + lifeS) % lifeS;
     const src = trailAt(trail, beatF - age);
@@ -782,12 +791,13 @@ function renderAt(t) {
     const strength = 0.55 + 0.45 * (1 - (born - w0) / (w1 - w0)); // primeiras saem mais fortes
     // (a cabeça tomba pra trás além da vertical: a normal do rosto aponta pra parede e a
     // fumaça sumia atrás da cabeça — por isso a direção vem da câmera, levemente pra cima e pra lente)
-    const dir = v3b.copy(camR).multiplyScalar(0.85).addScaledVector(camF, -0.12).add(v3.set(Math.sin(seed) * 0.1, 0.32, Math.cos(seed * 1.7) * 0.1)).normalize();
+    const dir = v3b.copy(camR).multiplyScalar(0.85).addScaledVector(camF, -0.12).add(v3.set(Math.sin(seed) * 0.2, 0.32 + 0.1 * Math.sin(seed * 2.3), Math.cos(seed * 1.7) * 0.2)).normalize();
     // nuvem que se forma na frente da boca e cresce (no close o quadro tem ~40 cm: alcance curto)
     const reach = 0.17 * strength * (1 - Math.exp(-sec * 1.5)); // arrasto
     const lift = 0.035 * sec * sec / (0.6 + sec); // empuxo só depois que o sopro perde força
     const curl = 0.04 * k * Math.sin(sec * 2.0 + seed);
-    s.position.copy(src.mouth).addScaledVector(src.faceN, 0.01).addScaledVector(dir, reach);
+    // nasce na frente dos lábios do ponto de vista da câmera (senão o nariz/bochecha escondem o começo)
+    s.position.copy(src.mouth).addScaledVector(src.faceN, 0.012).addScaledVector(camF, -0.045).addScaledVector(dir, reach);
     s.position.y += lift;
     s.position.x += curl;
     s.position.z += 0.04 * k * Math.cos(sec * 1.6 + seed);
@@ -853,7 +863,7 @@ window.vis = {
     const L = loopLen();
     const t = (((i / cfg.fps) % L) + L) % L;
     const beatLen = 60 / cfg.bpm;
-    return `${poseOf(t)}_${shotAt(t / beatLen).idx}_${Math.floor(t / beatLen / 4 + 1e-6)}`;
+    return `${effPose(t)}_${shotAt(t / beatLen).idx}_${Math.floor(t / beatLen / 4 + 1e-6)}`;
   },
   renderFrame(i) {
     renderAt(i / cfg.fps);
@@ -874,7 +884,7 @@ window.__dbg = {
   pose(beatF) {
     const a = { beatF, beat: Math.floor(beatF), beatPhase: beatF % 1, high: 0, bass: 0, mid: 0, kick: 0, snare: 0, bands: new Array(8).fill(0), pose: 0, frame: 0, t: 0, bar: Math.floor(beatF / 4), section: 0, loopPos: beatF / (cfg.bars * 4), bpm: cfg.bpm };
     A.update(a);
-    B.update(a, { mouse: room.mouse, keyboard: room.keyboardW });
+    B.update(a, { mouse: room.mouse, keyboard: room.keyboardW, chair: room.chair });
     scene.updateMatrixWorld(true);
   },
 };

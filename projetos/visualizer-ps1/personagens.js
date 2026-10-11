@@ -175,9 +175,9 @@ function headTex(skin, o) {
         // cavanhaque: tufo macio no queixo
         g.fill();
         const tuft = g.createRadialGradient(32, 49, 0.3, 32, 49, 4.2);
-        tuft.addColorStop(0, 'rgba(20,12,8,0.95)');
-        tuft.addColorStop(0.6, 'rgba(20,12,8,0.7)');
-        tuft.addColorStop(1, 'rgba(20,12,8,0)');
+        tuft.addColorStop(0, 'rgba(14,9,6,0.97)');
+        tuft.addColorStop(0.78, 'rgba(14,9,6,0.85)');
+        tuft.addColorStop(1, 'rgba(14,9,6,0)');
         g.fillStyle = tuft;
         g.beginPath();
         g.ellipse(32, 49, 3, 4.6, 0, 0, PI * 2);
@@ -188,7 +188,7 @@ function headTex(skin, o) {
           const ay = 44.5 + rt() * 9;
           if (((ax - 32) / 3.2) ** 2 + ((ay - 49) / 4.8) ** 2 > 1) continue;
           g.fillStyle = `rgba(${rt() < 0.5 ? '4,3,2' : '46,30,22'},${0.4 + rt() * 0.4})`;
-          g.fillRect(ax, ay, 0.3, 0.35 + rt() * 0.4);
+          g.fillRect(ax, ay, 0.3, 0.3);
         }
         g.beginPath();
       }
@@ -539,7 +539,7 @@ function weldNormals(geo) {
   nn.needsUpdate = true;
 }
 function cloth(rTop, rBot, h, m, opts = {}) {
-  return new THREE.Mesh(wrinkle(new THREE.CylinderGeometry(rTop, rBot, h, 30, 22), opts), m);
+  return new THREE.Mesh(wrinkle(new THREE.CylinderGeometry(rTop, rBot, h, 30, 22, !!opts.open), opts), m);
 }
 
 // "Boil" de stop-motion: o animador nunca reposiciona o boneco exatamente igual de uma
@@ -552,8 +552,7 @@ function boil(obj, pose, id, amp) {
 }
 function boilFigure(s, pose, base, extra = []) {
   const P = pose || 0;
-  [s.torso, s.neck, s.head].forEach((o, i) => boil(o, P, base + i, 0.006));
-  [s.armL.sh, s.armR.sh, s.armL.el, s.armR.el].forEach((o, i) => boil(o, P, base + 10 + i, 0.005));
+  [s.torso, s.neck, s.head].forEach((o, i) => boil(o, P, base + i, 0.004));
   extra.forEach(([o, amp], i) => boil(o, P, base + 20 + i, amp));
 }
 
@@ -665,8 +664,9 @@ function skeleton({ skin, torsoMat, sleeveMat, pantsMat, shoeMats, torsoR = 0.26
     add(sh, cloth(0.077, 0.07, 0.3, sleeveMat, { amp: 0.007, freq: 85 }), 0, -0.15, 0);
     const el = pivot(sh, 0, -0.3, 0);
     add(el, ball(0.07, 0.07, 0.07, sleeveMat), 0, 0, 0).rotation.z = PI / 2;
-    add(el, cloth(0.068, 0.052, 0.27, sleeveMat, { amp: 0.007, freq: 95, stack: 0.006, stackAt: -1 }), 0, -0.13, 0);
-    add(el, tube(0.047, 0.042, 0.04, sleeveMat, 22), 0, -0.272, 0); // punho canelado, apertado no pulso
+    add(el, cloth(0.068, 0.046, 0.27, sleeveMat, { amp: 0.007, freq: 95, stack: 0.006, stackAt: -1, open: true }), 0, -0.13, 0);
+    const cuffR = add(el, new THREE.Mesh(new THREE.TorusGeometry(0.036, 0.011, 10, 24), sleeveMat), 0, -0.272, 0); // punho canelado (anel, sem tampa)
+    cuffR.rotation.x = PI / 2;
     const hd = pivot(el, 0, -0.29, 0);
     const rig = hand(hd, skinM, side);
     return { sh, el, hand: hd, rig };
@@ -947,17 +947,18 @@ export function buildA() {
   // leva o cigarro à boca em ~0,55 s e devolve em ~0,57 s (antes: 0,4 s com easing dobrado = salto de 30 cm por pose)
   const puff = curve([[0, 0], [5.5, 0], [6.55, 1, 'inOut'], [7.85, 1, 'linear'], [8.95, 0, 'inOut'], [20.5, 0], [21.55, 1, 'inOut'], [22.85, 1, 'linear'], [23.95, 0, 'inOut']], P);
   const drag = curve([[0, 0], [6.6, 0], [6.8, 1, 'out'], [7.8, 1, 'linear'], [7.9, 0, 'in'], [21.6, 0], [21.8, 1, 'out'], [22.8, 1, 'linear'], [22.9, 0, 'in']], P);
-  const exhaleC = curve([[0, 0], [8.25, 0], [8.65, 1, 'out'], [10.2, 0.4, 'inOut'], [11.1, 0, 'inOut'], [23.75, 0], [24.15, 1, 'out'], [25.7, 0.4, 'inOut'], [26.6, 0, 'inOut']], P);
+  const exhaleC = curve([[0, 0], [8.25, 0], [8.65, 1, 'inOut'], [10.2, 0.4, 'inOut'], [11.1, 0, 'inOut'], [23.75, 0], [24.15, 1, 'inOut'], [25.7, 0.4, 'inOut'], [26.6, 0, 'inOut']], P);
   // respiração acompanha a tragada: puxa na tragada, solta com a fumaça
   const breath = curve([[0, 0.4], [2.5, 0.8], [5, 0.2], [7.85, 1, 'inOut'], [10.6, 0, 'inOut'], [13, 0.7], [15.5, 0.15], [18, 0.6], [20.8, 0.25], [22.85, 1, 'inOut'], [26.1, 0, 'inOut'], [28.2, 0.7], [30.2, 0.15]], P);
   // olhar: no teto; desce para a tragada; volta mais pra cima soltando a fumaça
-  const lookUp = curve([[0, 1], [5.6, 1], [6.6, 0.45, 'inOut'], [8.1, 0.55], [8.9, 1.12, 'out'], [11, 1], [20.6, 1], [21.6, 0.45, 'inOut'], [23.1, 0.55], [24.4, 1.12, 'out'], [26.5, 1]], P);
+  const lookUp = curve([[0, 1], [5.6, 1], [6.6, 0.45, 'inOut'], [8.1, 0.55], [8.9, 1.12, 'inOut'], [11, 1], [20.6, 1], [21.6, 0.45, 'inOut'], [23.1, 0.55], [24.4, 1.12, 'inOut'], [26.5, 1]], P);
   const turn = curve([[0, -0.05], [11.6, -0.05], [12.6, 0.2, 'inOut'], [15, 0.14], [16.5, -0.05, 'inOut'], [26, -0.05], [27.5, -0.22, 'inOut'], [30.5, -0.15], [31.8, -0.05, 'inOut']], P);
   // bater a cinza (dois toques do indicador), com o queixo apontando pro B
   const flick = curve([[0, 0], [12.5, 0], [12.58, 1, 'out'], [12.7, 0, 'in'], [12.78, 1, 'out'], [12.92, 0, 'in'], [28.5, 0], [28.58, 1, 'out'], [28.7, 0, 'in'], [28.78, 1, 'out'], [28.92, 0, 'in']], P);
   // sobrancelhas: relaxadas; sobem satisfeitas soltando a fumaça
-  const browUp = curve([[0, 0.1], [8.6, 0.1], [9.0, 0.9, 'out'], [10.6, 0.2, 'inOut'], [24.1, 0.1], [24.5, 0.9, 'out'], [26.1, 0.2, 'inOut']], P);
-  const tapCurve = curve([[0, 0], [0.1, 0, 'linear'], [0.48, 1, 'out'], [0.8, 0.82, 'inOut'], [0.97, 0, 'in']], 1);
+  const browUp = curve([[0, 0.1], [8.6, 0.1], [9.0, 0.9, 'inOut'], [10.6, 0.2, 'inOut'], [24.1, 0.1], [24.5, 0.9, 'inOut'], [26.1, 0.2, 'inOut']], P);
+  // bico no chão na batida, sobe no contratempo (antecipação) e bate de novo no tempo
+  const tapCurve = curve([[0, 0], [0.4, 0, 'linear'], [0.72, 1, 'inOut'], [0.86, 0.95, 'inOut'], [0.99, 0, 'in']], 1);
   // A (chapado, largado): balança em meio-tempo, um pouco atrás da batida — o groove do trap.
   // Durante a tragada a cabeça quase para (a mão está presa na boca).
   const accentHalf = (k) => [1, 0.8, 1.12, 0.85][k % 4];
@@ -1030,12 +1031,12 @@ export function buildA() {
       eul.set(Math.cos(ang) * o + 0.18, 0, Math.sin(ang) * o * 1.15);
       dv.set(0, -1, 0).applyEuler(eul).applyQuaternion(qH); // penteado (no mundo)
       dv.lerp(tmp.set(0, -1, 0), 0.8).normalize(); // gravidade (cabelo pesado cai)
-      dv.addScaledVector(hf, -lag * 0.9 * w).normalize(); // inércia do balanço
+      dv.addScaledVector(hf, -lag * 0.5 * w).normalize(); // inércia do balanço
       p.getWorldPosition(pw);
       // não atravessa a cabeça nem cai na frente do rosto
       out.subVectors(pw, hc).normalize();
       const dOut = dv.dot(out);
-      if (dOut < 0.2) dv.addScaledVector(out, 0.2 - dOut).normalize();
+      if (dOut < 0.06) dv.addScaledVector(out, 0.06 - dOut).normalize(); // deita rente ao couro cabeludo
       const tipF = pw.clone().addScaledVector(dv, len).sub(hc).dot(hf);
       if (tipF > 0.03) dv.addScaledVector(hf, -(tipF - 0.03) / len).normalize();
       // pontas não entram no corpo: empurra pra fora da cápsula do tronco
@@ -1102,7 +1103,8 @@ export function buildA() {
     const restQ = handQuat(dirW(0, -0.25, 1), tmp.set(0, -1, 0), -1).clone();
     // pose da tragada no espaço da cabeça (x = esquerda do A, y = cima, z = frente do rosto)
     const dirH = (x, y, z) => new THREE.Vector3(x, y, z).applyQuaternion(qH).normalize();
-    const mouthQ = handQuat(dirH(0.8, 0.45, 0.25), dirH(0.1, -0.15, -1), -1).clone();
+    // cigarro inclinado pra longe do rosto (pra baixo/direita/frente), brasa longe das lentes
+    const mouthQ = handQuat(dirH(0.85, -0.3, 0.3), dirH(0.4, 0.6, -0.7), -1).clone();
     const k = pf; // a curva já tem easing
     const handQ = restQ.clone().slerp(mouthQ, k);
     const filterW = filterLocal.clone().applyQuaternion(handQ);
@@ -1131,7 +1133,7 @@ export function buildA() {
   }
 
   // janelas (em batidas) em que a boca solta fumaça
-  const exhaleWindows = [[8.35, 10.9], [23.85, 26.4]]; // a 2ª baforada cai inteira no close extremo (b24–26)
+  const exhaleWindows = [[8.35, 9.9], [23.85, 25.35]]; // a 2ª baforada cai inteira no close extremo (b24–26)
   return { group: s.root, update, head: s.head, headMesh, foot: s.legR.ft, exhaleC, exhaleWindows, rig: s };
 }
 
@@ -1156,8 +1158,10 @@ export function buildB() {
   add(s.torso, hoodRoll, 0, 0.632, -0.03);
   const hood = add(s.torso, ball(0.088, 0.062, 0.024, hoodM), 0, 0.585, -0.168);
   hood.rotation.x = -0.5;
-  add(s.armL.el, tube(0.045, 0.041, 0.036, hoodM, 22), 0, -0.288, 0);
-  add(s.armR.el, tube(0.045, 0.041, 0.036, hoodM, 22), 0, -0.288, 0);
+  for (const el of [s.armL.el, s.armR.el]) {
+    const c = add(el, new THREE.Mesh(new THREE.TorusGeometry(0.034, 0.011, 10, 24), hoodM), 0, -0.29, 0);
+    c.rotation.x = PI / 2;
+  }
   const collar = new THREE.Mesh(new THREE.TorusGeometry(0.1, 0.03, 8, 18, PI * 1.4), fabric({ color: 0x3d2614 }));
   collar.rotation.set(PI / 2, 0, PI * 0.8);
   add(s.torso, collar, 0, 0.62, -0.01);
@@ -1183,7 +1187,8 @@ export function buildB() {
   billGeo.computeVertexNormals();
   const bill = new THREE.Mesh(billGeo, capRed);
   bill.rotation.set(-PI / 2 - 0.2, 0, 0); // aponta pra trás, só um pouco caída
-  add(s.head, bill, 0, 0.205, -0.115);
+  bill.scale.setScalar(0.88);
+  add(s.head, bill, 0, 0.2, -0.108);
   // ajuste snapback (atrás do boné = na testa): tira preta com botões de pressão, não uma barra clara
   add(s.head, rbox(0.064, 0.011, 0.007, plastic({ color: 0x141414, spec: 0.3 }), 0.003), 0, 0.212, 0.128);
   for (const sx of [-0.012, 0.004, 0.02]) add(s.head, ball(0.0035, 0.0035, 0.002, metal({ color: 0x8a8a8e }), 8), sx, 0.212, 0.1325);
@@ -1205,9 +1210,11 @@ export function buildB() {
   }
   add(gl, rbox(0.02, 0.007, 0.012, gold, 0.003), 0, 0.018, 0.002);
   const glBase = gl.position.clone();
-  add(s.armL.hand, tube(0.026, 0.026, 0.014, gold, 20), 0, 0.004, 0); // relógio no pulso
-  add(s.armL.hand, rbox(0.009, 0.028, 0.028, gold, 0.004), 0.025, 0.004, 0); // caixa
-  add(s.armL.hand, rbox(0.002, 0.021, 0.021, plastic({ color: 0x0c0c0e, spec: 1.5, shine: 120 }), 0.002), 0.03, 0.004, 0); // mostrador
+  const strap = new THREE.Mesh(new THREE.TorusGeometry(0.022, 0.004, 8, 22), gold);
+  strap.rotation.x = PI / 2;
+  add(s.armL.hand, strap, 0, 0.004, 0); // pulseira em volta do pulso
+  add(s.armL.hand, rbox(0.008, 0.02, 0.02, gold, 0.004), 0.024, 0.004, 0); // caixa no dorso
+  add(s.armL.hand, rbox(0.002, 0.015, 0.015, plastic({ color: 0x0c0c0e, spec: 1.5, shine: 120 }), 0.002), 0.0285, 0.004, 0); // mostrador
 
   // ---------- atuação (em batidas; loop de 32) ----------
   const P = 32;
@@ -1267,9 +1274,19 @@ export function buildB() {
   function update(a, env = {}) {
     const t = a.beatF;
     const g = s.root;
+    // a cadeira gira com ele (antes só o tronco torcia ~100° com a cadeira parada)
+    const lb = lookBody(t);
+    if (g.userData.baseRy === undefined) g.userData.baseRy = g.rotation.y;
+    const swivel = -0.75 * lb;
+    g.rotation.y = g.userData.baseRy + swivel;
+    if (env.chair) env.chair.rotation.y = g.userData.baseRy + swivel;
     g.updateMatrixWorld(true);
     const L = (x, y, z) => g.localToWorld(W.set(x, y, z)).clone();
     const dirW = (x, y, z) => tmp.set(x, y, z).applyQuaternion(g.quaternion).clone();
+    // os pés acompanham só metade do giro (empurram o chão e ficam)
+    const qFeet = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), g.userData.baseRy + swivel * 0.3);
+    const Lf = (x, y, z) => new THREE.Vector3(x, y, z).applyQuaternion(qFeet).add(g.position);
+    const dirF = (x, y, z) => new THREE.Vector3(x, y, z).applyQuaternion(qFeet);
     const lk = look(t);
     const hu = handUp(t);
     const gs = glasses(t);
@@ -1280,24 +1297,25 @@ export function buildB() {
     // corpo
     s.hips.position.set(0, 0.642, 0);
     s.hips.rotation.set(0, 0, 0);
-    const lb = lookBody(t);
-    s.torso.rotation.set(0.16 - 0.08 * lb + 0.05 * n + 0.03 * st, -0.5 * lb, 0.02 * Math.sin((t / 2) * PI));
+    // aceno mais contido; a 'cara de grave' recua o queixo (abre o rosto pra câmera em vez de esconder)
+    s.torso.rotation.set(0.16 - 0.08 * lb + 0.035 * n, -0.15 * lb, 0.02 * Math.sin((t / 2) * PI));
     s.torso.scale.set(1 + 0.01 * br, 1 + 0.005 * br, 1 + 0.015 * br);
-    s.neck.rotation.set(-0.1 + 0.15 * n + 0.07 * st, -0.42 * lk, 0);
-    s.head.rotation.set(-0.06 + 0.08 * nodB(t - 0.06) + 0.06 * st, -0.82 * lk + 0.05 * Math.sin((t / 8) * PI * 2), -0.04 * Math.sin((t / 2) * PI) - 0.08 * lk);
+    s.neck.rotation.set(-0.1 + 0.11 * n - 0.05 * st, -0.33 * lk, 0.03 * st);
+    s.head.rotation.set(-0.06 + 0.065 * nodB(t - 0.06) - 0.05 * st, -0.6 * lk + 0.05 * Math.sin((t / 8) * PI * 2), -0.04 * Math.sin((t / 2) * PI) - 0.08 * lk + 0.04 * st);
     face.set({ blink: blinkAt(t), open: Math.max(sing(t), 0.35 * st), browIn: st, browUp: 0.7 * hu });
-    gl.position.copy(glBase).add(tmp.set(0, 0.004 * Math.sin(gs * PI), 0));
+    gl.position.copy(glBase).add(tmp.set(0, 0.011 * Math.sin(gs * PI), -0.004 * Math.sin(gs * PI))); // o empurrão sobe os óculos de verdade
     chainG.rotation.x = -(chainSpring(t) - bodyBob(t)) * 9;
 
     // pernas: pés plantados (IK); o direito marca o tempo com o calcanhar
     const heel = 0.025 * nodB(t - 0.02) * (lk > 0.5 ? 1.6 : 1);
-    solveIK(s.legL.th, s.legL.kn, s.legL.ft, L(0.17, ANKLE_H, 0.5), dirW(0.3, 0.1, 1).normalize(), LEG[0], LEG[1], -1);
-    solveIK(s.legR.th, s.legR.kn, s.legR.ft, L(-0.15, ANKLE_H + heel, 0.47), dirW(-0.3, 0.1, 1).normalize(), LEG[0], LEG[1], -1);
+    // virado, recolhe os pés pra perto da cadeira (não entram no gabinete da mesa)
+    solveIK(s.legL.th, s.legL.kn, s.legL.ft, Lf(0.17, ANKLE_H, 0.5 - 0.1 * lb), dirF(0.3, 0.1, 1).normalize(), LEG[0], LEG[1], -1);
+    solveIK(s.legR.th, s.legR.kn, s.legR.ft, Lf(-0.15 + 0.06 * lb, ANKLE_H + heel, 0.47 - 0.2 * lb), dirF(-0.3, 0.1, 1).normalize(), LEG[0], LEG[1], -1);
     const fq = new THREE.Quaternion();
-    setWorldQuat(s.legL.ft, fq.copy(g.quaternion).multiply(new THREE.Quaternion().setFromAxisAngle(tmp.set(0, 1, 0), 0.2)));
+    setWorldQuat(s.legL.ft, fq.copy(qFeet).multiply(new THREE.Quaternion().setFromAxisAngle(tmp.set(0, 1, 0), 0.2)));
     setWorldQuat(
       s.legR.ft,
-      fq.copy(g.quaternion).multiply(new THREE.Quaternion().setFromAxisAngle(tmp.set(0, 1, 0), -0.18)).multiply(new THREE.Quaternion().setFromAxisAngle(tmp.set(1, 0, 0), heel * 6))
+      fq.copy(qFeet).multiply(new THREE.Quaternion().setFromAxisAngle(tmp.set(0, 1, 0), -0.18)).multiply(new THREE.Quaternion().setFromAxisAngle(tmp.set(1, 0, 0), heel * 6))
     );
 
     // mão direita no mouse (o mouse anda junto com a mão)
@@ -1313,7 +1331,7 @@ export function buildB() {
       mouse.position.set(mouseBase.x + dx, mouseBase.y, mouseBase.z + dz);
       mouse.updateMatrixWorld(true);
       const mw = mouse.getWorldPosition(new THREE.Vector3());
-      const wristR = mw.clone().addScaledVector(dirW(0, 0, 1), -0.085).add(tmp.set(0, 0.1 - 0.004 * clickAt(t), 0));
+      const wristR = mw.clone().addScaledVector(dirW(0, 0, 1), -0.085).add(tmp.set(0, 0.09 - 0.004 * clickAt(t), 0));
       // virado pro A, solta o mouse: a mão escorrega pra borda da mesa
       const rel = smooth(clamp01((lookBody(t) - 0.2) / 0.5));
       if (rel > 0) wristR.lerp(mw.clone().addScaledVector(dirW(0, 0, 1), -0.24).add(tmp.set(0, 0.07, 0)), rel);
@@ -1322,9 +1340,15 @@ export function buildB() {
       s.armR.hand.rotateX(0.12 * clickAt(t));
     }
 
+    // ombro esquerdo sobe junto quando a mão vai pro alto
+    if (s.armL.sh.userData.y0 === undefined) s.armL.sh.userData.y0 = s.armL.sh.position.y;
+    s.armL.sh.position.y = s.armL.sh.userData.y0 + 0.04 * Math.max(0, Math.min(1, hu));
+
     // mão esquerda: teclado / óculos / mão no ar
     const kbWrist = (env.keyboard ? env.keyboard.clone() : L(0.1, 0.8, 0.5)).add(dirW(0.08, 0, -0.07)).add(tmp.set(0, 0.075 - 0.008 * keyAt(t), 0));
-    const glassesW = gl.getWorldPosition(new THREE.Vector3()).add(dirW(0.02, -0.11, 0.06));
+    const qHB = s.head.getWorldQuaternion(new THREE.Quaternion());
+    const dirHB = (x, y, z) => new THREE.Vector3(x, y, z).applyQuaternion(qHB).normalize();
+    const glassesW = gl.getWorldPosition(new THREE.Vector3()).add(new THREE.Vector3(0.012, -0.122, 0.03).applyQuaternion(qHB)); // dedo na ponte
     // mão no ar acima da cabeça (lê nos planos abertos), no referencial do tronco que gira pro A
     const airW = s.torso.localToWorld(new THREE.Vector3(0.2, 1.0 + 0.04 * n, 0.2));
     let wristL = kbWrist.clone();
@@ -1339,7 +1363,7 @@ export function buildB() {
     solveIK(s.armL.sh, s.armL.el, s.armL.hand, wristL, poleL, ARM[0], ARM[1], 1);
     const qKb = handQuat(fwdDown, tmp.set(0, -1, 0), 1).clone();
     const qUp = handQuat(dirW(0, 1, 0.2), dirW(-0.2, 0, 1), 1).clone();
-    const qGl = handQuat(dirW(-0.2, 1, -0.2), dirW(0, 0, -1), 1).clone();
+    const qGl = handQuat(dirHB(0.08, 1, -0.12), dirHB(0.15, 0, -1), 1).clone();
     const qL = qKb.clone().slerp(qGl, gs).slerp(qUp, Math.max(0, Math.min(1, hu)));
     setWorldQuat(s.armL.hand, qL);
     // poses dos dedos: teclas / empurrando os óculos / mão aberta no ar
