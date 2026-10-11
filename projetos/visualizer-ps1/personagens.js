@@ -356,17 +356,33 @@ const denim = (base, seed) =>
   });
 
 function dreadTex() {
+  // lã de dread: fios torcidos em hélice (diagonal que fecha a volta), sem anéis regulares
   return canvasTex(8, 32, (g, w, h) => {
-    g.fillStyle = '#15100d';
+    g.fillStyle = '#18120f';
     g.fillRect(0, 0, w, h);
     const r = rand(41);
-    for (let y = 0; y < h; y += 1.2 + r() * 0.8) {
-      g.fillStyle = `rgba(80,62,50,${0.25 + r() * 0.3})`;
-      g.fillRect(0, y, w, 0.5);
-      g.fillStyle = 'rgba(0,0,0,0.5)';
-      g.fillRect(0, y + 0.6, w, 0.3);
+    g.lineCap = 'round';
+    for (let k = 0; k < 150; k++) {
+      const y = r() * (h + 6) - 3;
+      const lift = 2.2 + r() * 1.2;
+      const c = r();
+      g.strokeStyle = c < 0.5 ? `rgba(92,72,58,${0.12 + r() * 0.22})` : `rgba(0,0,0,${0.15 + r() * 0.25})`;
+      g.lineWidth = 0.25 + r() * 0.5;
+      for (const dx of [-w, 0]) {
+        g.beginPath();
+        g.moveTo(dx, y);
+        g.lineTo(dx + w, y + lift);
+        g.stroke();
+      }
     }
-    grain(g, w, h, 18, 42);
+    // nós e fiapos irregulares
+    for (let k = 0; k < 26; k++) {
+      g.fillStyle = `rgba(${r() < 0.5 ? '70,54,44' : '5,3,2'},${0.18 + r() * 0.2})`;
+      g.beginPath();
+      g.ellipse(r() * w, r() * h, 0.6 + r() * 1.2, 0.4 + r() * 0.7, r() * 3, 0, PI * 2);
+      g.fill();
+    }
+    grain(g, w, h, 22, 42);
   });
 }
 
@@ -397,21 +413,44 @@ const HAND_POSES = {
   drape: { curl: [0.5, 0.55, 0.6, 0.65], tip: 0.45, spread: 0.05, thumb: 0.4 },
   push: { curl: [0.05, 1.3, 1.4, 1.45], tip: [0.1, 1.2, 1.2, 1.2], spread: 0.02, thumb: 1.0 },
 };
+// Afina uma malha ao longo de y (escala em z de s0 no topo a s1 na base), corrigindo as normais.
+function taperZ(mesh, s0, s1) {
+  const geo = mesh.geometry;
+  geo.computeBoundingBox();
+  const { min, max } = geo.boundingBox;
+  const p = geo.attributes.position;
+  const n = geo.attributes.normal;
+  for (let i = 0; i < p.count; i++) {
+    const k = (max.y - p.getY(i)) / (max.y - min.y);
+    const s = s0 + (s1 - s0) * k;
+    p.setZ(i, p.getZ(i) * s);
+    const nx = n.getX(i), ny = n.getY(i), nz = n.getZ(i) / s;
+    const l = Math.hypot(nx, ny, nz) || 1;
+    n.setXYZ(i, nx / l, ny / l, nz / l);
+  }
+  p.needsUpdate = true;
+  n.needsUpdate = true;
+  return mesh;
+}
 function hand(parent, skinM, side) {
-  add(parent, tube(0.022, 0.022, 0.03, skinM, 10), 0, 0.0, 0); // pino do pulso
-  add(parent, rbox(0.032, 0.078, 0.072, skinM, 0.013), 0, -0.047, 0);
+  add(parent, ball(0.016, 0.024, 0.023, skinM, 14), 0, -0.004, 0); // pulso
+  // palma esculpida: afina no pulso, alarga nos nós dos dedos; base do polegar saliente
+  add(parent, taperZ(rbox(0.03, 0.076, 0.07, skinM, 0.0145), 0.78, 1.0), 0, -0.047, 0);
+  add(parent, ball(0.011, 0.021, 0.013, skinM, 12), -side * 0.007, -0.04, 0.024);
   const fingers = [];
   const zs = [0.026, 0.009, -0.009, -0.025];
   const lens = [0.042, 0.046, 0.043, 0.035];
   zs.forEach((z, i) => {
     const f1 = pivot(parent, 0, -0.084, z);
-    add(f1, rbox(0.017, lens[i] * 0.55, 0.016, skinM, 0.007), 0, -lens[i] * 0.27, 0);
+    add(f1, rbox(0.017, lens[i] * 0.55, 0.0158, skinM, 0.0076), 0, -lens[i] * 0.27, 0);
     const f2 = pivot(f1, 0, -lens[i] * 0.55, 0);
-    add(f2, rbox(0.015, lens[i] * 0.45, 0.015, skinM, 0.007), 0, -lens[i] * 0.22, 0);
+    add(f2, taperZ(rbox(0.015, lens[i] * 0.47, 0.0148, skinM, 0.0072), 1.0, 0.86), 0, -lens[i] * 0.22, 0);
     fingers.push([f1, f2]);
   });
   const th = pivot(parent, side * -0.006, -0.03, 0.036);
-  add(th, rbox(0.018, 0.045, 0.018, skinM, 0.008), 0, -0.02, 0.006);
+  add(th, rbox(0.018, 0.026, 0.018, skinM, 0.0085), 0, -0.011, 0.006);
+  const th2 = pivot(th, 0, -0.024, 0.006);
+  add(th2, taperZ(rbox(0.016, 0.024, 0.016, skinM, 0.0078), 1.0, 0.85), 0, -0.01, 0);
   const at = (v, i) => (Array.isArray(v) ? v[i] : v);
   const pose = (name, k = 1, from = 'relax') => {
     const A = HAND_POSES[from];
@@ -424,7 +463,9 @@ function hand(parent, skinM, side) {
       f1.rotation.x = mix(at(A.spread, i), at(B.spread, i)) * (1.5 - i);
       f2.rotation.z = -side * mix(at(A.tip, i), at(B.tip, i));
     });
-    th.rotation.set(0.45 + 0.4 * mix(A.thumb, B.thumb), 0, -side * 0.5 * mix(A.thumb, B.thumb));
+    const tk = mix(A.thumb, B.thumb);
+    th.rotation.set(0.45 + 0.4 * tk, 0, -side * 0.5 * tk);
+    th2.rotation.z = -side * 0.45 * tk;
   };
   pose('relax', 0);
   return { pose, fingers };
@@ -447,7 +488,8 @@ function skeleton({ skin, torsoMat, sleeveMat, pantsMat, shoeMats, torsoR = 0.26
   const chest = add(torso, new THREE.Mesh(new THREE.CylinderGeometry(torsoR, torsoR * 0.86, 0.62, 24, 4), torsoMat), 0, 0.31, 0);
   chest.scale.z = 0.6;
   // ombros arredondados do moletom/jaqueta
-  add(torso, ball(torsoR * 0.98, 0.07, torsoR * 0.6, torsoMat), 0, 0.6, 0);
+  // (mais largo que o cilindro na altura da borda superior, para a borda não aparecer como um balde)
+  add(torso, ball(torsoR * 1.05, 0.075, torsoR * 0.63, torsoMat), 0, 0.605, 0);
   const neck = pivot(torso, 0, 0.62, 0);
   add(neck, tube(0.048, 0.054, 0.12, skinM), 0, 0.03, 0);
   const head = pivot(neck, 0, 0.07, 0.005);
@@ -876,7 +918,12 @@ export function buildB() {
   });
   const chainG = chainRig(s.torso, 0xe0b54a, 0.62, 0.1);
   const hoodM = fabric({ map: clothTex('#5f5d5a', 35) });
-  add(s.torso, ball(0.15, 0.08, 0.08, hoodM), 0, 0.6, -0.16);
+  // capuz do moletom por baixo da jaqueta, caído e achatado contra as costas
+  const hoodRoll = new THREE.Mesh(new THREE.TorusGeometry(0.118, 0.03, 8, 20, PI * 1.2), hoodM);
+  hoodRoll.rotation.set(PI / 2 + 0.25, 0, PI * 0.9);
+  add(s.torso, hoodRoll, 0, 0.632, -0.03);
+  const hood = add(s.torso, ball(0.1, 0.075, 0.032, hoodM), 0, 0.575, -0.17);
+  hood.rotation.x = -0.4;
   add(s.armL.el, tube(0.064, 0.064, 0.04, hoodM), 0, -0.28, 0);
   add(s.armR.el, tube(0.064, 0.064, 0.04, hoodM), 0, -0.28, 0);
   const collar = new THREE.Mesh(new THREE.TorusGeometry(0.1, 0.03, 8, 18, PI * 1.4), fabric({ color: 0x3d2614 }));
