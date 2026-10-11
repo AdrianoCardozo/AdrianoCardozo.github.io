@@ -650,16 +650,20 @@ function skeleton({ skin, torsoMat, sleeveMat, pantsMat, shoeMats, torsoR = 0.26
   const torso = pivot(hips, 0, 0, 0);
   const chest = add(torso, cloth(torsoR, torsoR * 0.86, 0.62, torsoMat, { amp: 0.009, freq: 40, vertical: 3, tilt: 0.8, stack: 0.006, stackAt: -1 }), 0, 0.31, 0);
   chest.scale.z = 0.6;
+  // coluna: pivô do peito na altura da cintura. Ombros, braços e pescoço seguem o 'chestP';
+  // o cilindro do moletom curva junto (bendSpine), sem costura nem junta aparente.
+  const chestP = pivot(torso, 0, SPINE.waist, 0);
+  const W0 = SPINE.waist;
   // ombros arredondados do moletom/jaqueta
   // (mais largo que o cilindro na altura da borda superior, para a borda não aparecer como um balde)
   // (no tecido liso da manga: a estampa do tronco esticada na esfera viraria um segundo coração)
-  add(torso, ball(torsoR * 1.05, 0.075, torsoR * 0.63, sleeveMat), 0, 0.605, 0);
-  const neck = pivot(torso, 0, 0.62, 0);
+  add(chestP, ball(torsoR * 1.05, 0.075, torsoR * 0.63, sleeveMat), 0, 0.605 - W0, 0);
+  const neck = pivot(chestP, 0, 0.62 - W0, 0);
   add(neck, tube(0.05, 0.058, 0.12, skinM, 28), 0, 0.03, 0);
   const head = pivot(neck, 0, 0.07, 0.005);
 
   const arm = (side) => {
-    const sh = pivot(torso, side * (torsoR + 0.04), 0.54, 0);
+    const sh = pivot(chestP, side * (torsoR + 0.04), 0.54 - W0, 0);
     add(sh, ball(0.082, 0.082, 0.082, sleeveMat), 0, 0, 0).rotation.z = PI / 2;
     add(sh, cloth(0.077, 0.07, 0.3, sleeveMat, { amp: 0.007, freq: 85 }), 0, -0.15, 0);
     const el = pivot(sh, 0, -0.3, 0);
@@ -682,7 +686,45 @@ function skeleton({ skin, torsoMat, sleeveMat, pantsMat, shoeMats, torsoR = 0.26
     shoe(ft, ...shoeMats);
     return { th, kn, ft };
   };
-  return { root, hips, torso, neck, head, skinM, armL: arm(1), armR: arm(-1), legL: leg(1), legR: leg(-1) };
+  return { root, hips, torso, chest: chestP, bendSpine: spineBender(chest, chestP), neck, head, skinM, armL: arm(1), armR: arm(-1), legL: leg(1), legR: leg(-1) };
+}
+
+// Curvatura da coluna: cada anel do cilindro do tronco gira em torno do pivô da cintura
+// por uma fração da rotação do peito (0 embaixo → 1 acima da faixa). O topo coincide com
+// o 'chestP' (ombros e pescoço presos nele); a barriga dobra suave, como tecido sobre a coluna.
+const SPINE = { waist: 0.2, lo: 0.04, hi: 0.4 };
+function spineBender(mesh, chestP) {
+  const geo = mesh.geometry;
+  const P = geo.attributes.position;
+  const N = geo.attributes.normal;
+  const P0 = P.array.slice();
+  const N0 = N.array.slice();
+  const oy = mesh.position.y;
+  const sz = mesh.scale.z;
+  const q = new THREE.Quaternion();
+  const I = new THREE.Quaternion();
+  const v = new THREE.Vector3();
+  const nv = new THREE.Vector3();
+  let bent = false;
+  return () => {
+    const qc = chestP.quaternion;
+    if (!bent && Math.abs(qc.w) > 0.999999) return;
+    for (let i = 0; i < P.count; i++) {
+      // espaço do tronco (o cilindro tem deslocamento em y e escala em z)
+      const y = P0[i * 3 + 1] + oy;
+      const k = clamp01((y - SPINE.lo) / (SPINE.hi - SPINE.lo));
+      const w = k * k * (3 - 2 * k);
+      q.copy(I).slerp(qc, w);
+      v.set(P0[i * 3], y - SPINE.waist, P0[i * 3 + 2] * sz).applyQuaternion(q);
+      P.setXYZ(i, v.x, v.y + SPINE.waist - oy, v.z / sz);
+      nv.set(N0[i * 3], N0[i * 3 + 1], N0[i * 3 + 2] / sz).normalize().applyQuaternion(q);
+      N.setXYZ(i, nv.x, nv.y, nv.z * sz);
+    }
+    P.needsUpdate = true;
+    N.needsUpdate = true;
+    geo.computeBoundingSphere();
+    bent = Math.abs(qc.w) <= 0.999999;
+  };
 }
 
 // cabeça esculpida: esfera pintada + nariz, orelhas e queixo em volume
@@ -866,14 +908,14 @@ export function buildA() {
     torsoR: 0.27,
   });
   // capuz caído nas costas, embolado em volta do pescoço
-  add(s.torso, ball(0.19, 0.085, 0.09, sleeve), 0, 0.6, -0.15);
+  add(s.chest, ball(0.19, 0.085, 0.09, sleeve), 0, 0.6 - SPINE.waist, -0.15);
   const hoodRim = new THREE.Mesh(new THREE.TorusGeometry(0.11, 0.028, 8, 20, PI * 1.25), sleeve);
   hoodRim.rotation.set(PI / 2, 0, PI * 0.875);
-  add(s.torso, hoodRim, 0, 0.615, -0.02);
+  add(s.chest, hoodRim, 0, 0.615 - SPINE.waist, -0.02);
   const pocket = fabric({ map: denim('#4c4736', 22) });
   add(s.legL.th, rbox(0.035, 0.14, 0.13, pocket, 0.01), 0.1, -0.27, 0);
   add(s.legR.th, rbox(0.035, 0.14, 0.13, pocket, 0.01), -0.1, -0.27, 0);
-  const chainG = chainRig(s.torso, 0xb9bec7, 0.62, 0.105);
+  const chainG = chainRig(s.chest, 0xb9bec7, 0.62 - SPINE.waist, 0.105);
 
   const headMesh = sculptHead(s, skin, headTex(skin, { eyes: false, beard: 'goatee', lips: '#6e3d2d', seed: 5, browMesh: true }));
   // sobrancelhas aparecem por cima dos óculos — o rosto consegue atuar
@@ -1150,13 +1192,13 @@ export function buildB() {
     shoeMats: [plastic({ color: 0x161616, spec: 0.25 }), plastic({ color: 0x3a1410, spec: 0.1 }), fabric({ color: 0x222222 })],
     torsoR: 0.265,
   });
-  const chainG = chainRig(s.torso, 0xe0b54a, 0.62, 0.1);
+  const chainG = chainRig(s.chest, 0xe0b54a, 0.62 - SPINE.waist, 0.1);
   const hoodM = fabric({ map: clothTex('#4b4947', 35) }); // moletom cinza-chumbo (não vira um disco claro nas costas)
   // capuz do moletom por baixo da jaqueta, caído e achatado contra as costas
   const hoodRoll = new THREE.Mesh(new THREE.TorusGeometry(0.118, 0.03, 8, 20, PI * 1.2), hoodM);
   hoodRoll.rotation.set(PI / 2 + 0.25, 0, PI * 0.9);
-  add(s.torso, hoodRoll, 0, 0.632, -0.03);
-  const hood = add(s.torso, ball(0.088, 0.062, 0.024, hoodM), 0, 0.585, -0.168);
+  add(s.chest, hoodRoll, 0, 0.632 - SPINE.waist, -0.03);
+  const hood = add(s.chest, ball(0.088, 0.062, 0.024, hoodM), 0, 0.585 - SPINE.waist, -0.168);
   hood.rotation.x = -0.5;
   for (const el of [s.armL.el, s.armR.el]) {
     const c = add(el, new THREE.Mesh(new THREE.TorusGeometry(0.034, 0.011, 10, 24), hoodM), 0, -0.29, 0);
@@ -1164,7 +1206,7 @@ export function buildB() {
   }
   const collar = new THREE.Mesh(new THREE.TorusGeometry(0.1, 0.03, 8, 18, PI * 1.4), fabric({ color: 0x3d2614 }));
   collar.rotation.set(PI / 2, 0, PI * 0.8);
-  add(s.torso, collar, 0, 0.62, -0.01);
+  add(s.chest, collar, 0, 0.62 - SPINE.waist, -0.01);
 
   sculptHead(s, skin, headTex(skin, { eyes: true, beard: 'full', lips: '#4a281c', hair: 'fade', seed: 8, browMesh: true }));
   const face = faceRig(s, skin, { lids: true, brows: true });
