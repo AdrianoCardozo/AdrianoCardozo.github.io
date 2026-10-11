@@ -672,21 +672,50 @@ export function buildRoom(scene) {
   put(rack, tube(0.012, 0.012, 1.3, steel, 8), 0, 1.6, 0).rotation.z = PI / 2;
   put(rack, tube(0.012, 0.012, 1.6, steel, 8), -0.65, 0.8, 0);
   put(rack, tube(0.012, 0.012, 1.6, steel, 8), 0.65, 0.8, 0);
-  const clothes = ['#4a4a2e', '#d8d0be', '#151515', '#c46a1c', '#5b3a25', '#2d2d33', '#8e0f18'];
+  // peças de roupa de verdade (cabide, corpo com ombros, mangas penduradas), em tons escuros:
+  // em primeiro plano nos abertos não viram borrões claros
+  const clothes = ['#3d3d26', '#8f887a', '#151515', '#7a4214', '#4a2f1e', '#26262c', '#6a0c13'];
+  const hookM = metal({ color: 0x77777c, spec: 0.8 });
   clothes.forEach((c, i) => {
     const m = fabric({ map: canvasTex(16, 16, (g, w, h) => {
       g.fillStyle = c;
       g.fillRect(0, 0, w, h);
       weave(g, w, h, 0.14, 90 + i);
     }) });
-    const h = put(rack, rbox(0.05 + (i % 2) * 0.03, 0.75 + (i % 3) * 0.1, 0.5, m, 0.02), -0.55 + i * 0.18, 1.2 - (i % 3) * 0.05, 0);
-    h.rotation.y = PI / 2 + (hash(i + 3) - 0.5) * 0.3;
+    const gar = new THREE.Group();
+    gar.position.set(-0.55 + i * 0.18, 0, 0);
+    gar.rotation.y = PI / 2 + (hash(i + 3) - 0.5) * 0.3;
+    rack.add(gar);
+    const len = 0.62 + (i % 3) * 0.1;
+    const hook = new THREE.Mesh(new THREE.TorusGeometry(0.018, 0.003, 6, 14, PI * 1.4), hookM);
+    hook.rotation.z = -PI * 0.2;
+    put(gar, hook, 0, 1.6, 0);
+    for (const sx of [1, -1]) put(gar, rbox(0.2, 0.008, 0.008, hookM, 0.003), sx * 0.1, 1.54, 0).rotation.z = -sx * 0.32; // braços do cabide
+    put(gar, rbox(0.42, len, 0.05 + (i % 2) * 0.025, m, 0.045), 0, 1.5 - len / 2, 0); // corpo (ombros arredondados)
+    for (const sx of [1, -1]) {
+      const sl = put(gar, rbox(0.085, len * 0.82, 0.045, m, 0.03), sx * 0.21, 1.49 - (len * 0.82) / 2, 0.012); // mangas
+      sl.rotation.z = sx * 0.06;
+    }
   });
   // tênis no chão
   const sneakers = [[0.3, 1.4, 0xe8e2d6], [-1.55, -0.25, 0x111111], [1.0, -0.6, 0x8a7d6a]];
+  // pares de tênis (solado claro em camadas, cabedal, biqueira e cadarço) — antes eram cápsulas
+  const soleW = plastic({ color: 0xe9e4da, spec: 0.12 });
+  const laceM = fabric({ color: 0xdedad0 });
+  const sneaker = (x, z, ry, c) => {
+    const g = new THREE.Group();
+    g.position.set(x, 0, z);
+    g.rotation.y = ry;
+    room.add(g);
+    const up = plastic({ color: c, spec: 0.15 });
+    put(g, rbox(0.12, 0.032, 0.3, soleW, 0.012), 0, 0.016, 0);
+    put(g, rbox(0.108, 0.07, 0.22, up, 0.03), 0, 0.062, -0.025);
+    put(g, ball(0.054, 0.034, 0.05, up, 14), 0, 0.046, 0.085);
+    for (let k = 0; k < 3; k++) put(g, rbox(0.06, 0.005, 0.008, laceM, 0.002), 0, 0.098 - k * 0.008, 0.0 + k * 0.025);
+  };
   sneakers.forEach(([x, z, c], i) => {
-    put(room, rbox(0.12, 0.09, 0.3, plastic({ color: c, spec: 0.15 }), 0.035), x, 0.045, z, i);
-    put(room, rbox(0.12, 0.09, 0.3, plastic({ color: c, spec: 0.15 }), 0.035), x + 0.15, 0.045, z + 0.05, i + 0.3);
+    sneaker(x, z, i, c === 0xe8e2d6 ? 0x9a1b22 : c);
+    sneaker(x + 0.15, z + 0.05, i + 0.3, c === 0xe8e2d6 ? 0x9a1b22 : c);
   });
   // cabos no chão (do PC e dos monitores)
   const cable = plastic({ color: 0x050505, spec: 0.3 });

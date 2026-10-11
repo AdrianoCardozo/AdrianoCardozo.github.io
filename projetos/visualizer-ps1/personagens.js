@@ -543,6 +543,21 @@ function cloth(rTop, rBot, h, m, opts = {}) {
   return new THREE.Mesh(wrinkle(new THREE.CylinderGeometry(rTop, rBot, h, 30, 22), opts), m);
 }
 
+// "Boil" de stop-motion: o animador nunca reposiciona o boneco exatamente igual de uma
+// foto pra outra. Microvariação determinística por pose (a mesma pose repete o mesmo erro),
+// pequena nas juntas e um pouco maior no cabelo e na corrente.
+function boil(obj, pose, id, amp) {
+  obj.rotation.x += (hash(pose * 1.31 + id * 7.7) - 0.5) * amp;
+  obj.rotation.y += (hash(pose * 2.17 + id * 3.1) - 0.5) * amp;
+  obj.rotation.z += (hash(pose * 0.73 + id * 5.9) - 0.5) * amp;
+}
+function boilFigure(s, pose, base, extra = []) {
+  const P = pose || 0;
+  [s.torso, s.neck, s.head].forEach((o, i) => boil(o, P, base + i, 0.006));
+  [s.armL.sh, s.armR.sh, s.armL.el, s.armR.el].forEach((o, i) => boil(o, P, base + 10 + i, 0.005));
+  extra.forEach(([o, amp], i) => boil(o, P, base + 20 + i, amp));
+}
+
 // ---------------- esqueleto ----------------
 // Mão de boneco articulada: palma, quatro dedos com duas falanges e polegar.
 // Pivô da mão pende em -Y; a palma olha para -x (mão esquerda) / +x (direita).
@@ -1075,8 +1090,8 @@ export function buildA() {
     setWorldQuat(s.legR.ft, qW);
 
     // braço esquerdo pousado no topo do encosto, mão caindo por cima da borda
-    solveIK(s.armL.sh, s.armL.el, s.armL.hand, L(0.66, 0.945 + 0.006 * br, -0.47), dirW(0.15, -0.55, -1).normalize(), ARM[0], ARM[1], 1);
-    setWorldQuat(s.armL.hand, handQuat(dirW(1, -0.45, -0.2), dirW(0.05, -1, -0.1), 1));
+    solveIK(s.armL.sh, s.armL.el, s.armL.hand, L(0.68, 1.0 + 0.006 * br, -0.44), dirW(0.1, 0.3, -1).normalize(), ARM[0], ARM[1], 1);
+    setWorldQuat(s.armL.hand, handQuat(dirW(1, -0.15, -0.1), dirW(0.05, -1, -0.1), 1));
     s.armL.hand.rotateZ(-0.22 * nodA(t - 0.12)); // dedos marcando o tempo
     s.armL.rig.pose('drape');
 
@@ -1099,11 +1114,14 @@ export function buildA() {
     const wrist = restWrist.clone().lerp(mouthWrist, k).add(arc);
     // polo do cotovelo: atrás/fora no repouso → à frente/baixo com a mão na boca.
     // (um polo fixo ficava quase oposto à direção ombro→boca e o cotovelo virava de lado numa pose)
-    const poleR = dirW(-1, -0.7, -0.2).normalize().lerp(dirW(0, -0.6, 1).normalize(), k).normalize();
+    // √k: o polo de 'boca' domina até a mão estar perto da coxa (o cotovelo não passa do ponto e volta)
+    const poleR = dirW(-1, -0.7, -0.2).normalize().lerp(dirW(0, -0.6, 1).normalize(), Math.sqrt(k)).normalize();
     solveIK(s.armR.sh, s.armR.el, s.armR.hand, wrist, poleR, ARM[0], ARM[1], 1);
     setWorldQuat(s.armR.hand, handQ);
     s.armR.hand.rotateX(-0.3 * flick(t));
     s.armR.rig.pose('cig');
+
+    boilFigure(s, a.pose, 100, [...dreads.map((d) => [d, 0.03]), [chainG, 0.02]]);
 
     // brasa: acende forte quando ele puxa
     const glow = 0.55 + 0.2 * Math.sin(t * PI * 3) + 0.3 * a.high + 2.2 * dr;
@@ -1199,9 +1217,9 @@ export function buildB() {
   const look = curve([[0, 0], [11.85, 0], [12.6, 1, 'inOut'], [14.95, 1, 'linear'], [15.7, 0, 'inOut'], [27.85, 0], [28.6, 1, 'inOut'], [30.95, 1, 'linear'], [31.7, 0, 'inOut']], P);
   const lookBody = curve([[0, 0], [12.0, 0], [12.95, 1, 'inOut'], [15.1, 1, 'linear'], [15.95, 0, 'inOut'], [28.0, 0], [28.95, 1, 'inOut'], [31.1, 1, 'linear'], [31.95, 0, 'inOut']], P);
   // sobe em ~0,35 s (senoidal), passa 6% do ponto e assenta — sem estalo de 17 cm por pose
-  const handUp = curve([[0, 0], [12.3, 0], [12.5, -0.06, 'inOut'], [13.15, 1.06, 'inOut'], [13.45, 1, 'inOut'], [15.1, 1, 'linear'], [15.95, 0, 'inOut'], [28.3, 0], [28.5, -0.06, 'inOut'], [29.15, 1.06, 'inOut'], [29.45, 1, 'inOut'], [31.1, 1, 'linear'], [31.95, 0, 'inOut']], P);
-  // ajeita os óculos na batida 18
-  const glasses = curve([[0, 0], [17.45, 0], [18.25, 1, 'inOut'], [18.7, 1, 'linear'], [19.45, 0, 'inOut']], P);
+  const handUp = curve([[0, 0], [12.25, 0], [12.45, -0.06, 'inOut'], [13.25, 1.06, 'inOut'], [13.55, 1, 'inOut'], [15.1, 1, 'linear'], [15.95, 0, 'inOut'], [28.25, 0], [28.45, -0.06, 'inOut'], [29.25, 1.06, 'inOut'], [29.55, 1, 'inOut'], [31.1, 1, 'linear'], [31.95, 0, 'inOut']], P);
+  // ajeita os óculos dentro do close dele (b7), não no corte pro pé
+  const glasses = curve([[0, 0], [6.75, 0], [7.45, 1, 'inOut'], [7.7, 1, 'linear'], [8.4, 0, 'inOut']], P);
   // "cara de grave" no 3 dos compassos pares
   const stank = curve([[0, 0], [5.8, 0], [6.08, 1, 'smooth'], [6.75, 0, 'inOut'], [13.8, 0], [14.08, 1, 'smooth'], [14.75, 0, 'inOut'], [21.8, 0], [22.08, 1, 'smooth'], [22.75, 0, 'inOut'], [29.8, 0], [30.08, 1, 'smooth'], [30.75, 0, 'inOut']], P);
   // piscadas em tempos irregulares
@@ -1222,6 +1240,12 @@ export function buildB() {
   // teclas: atalhos/notas tocadas pela mão esquerda
   const keys = [0.5, 0.75, 2.5, 4.5, 4.75, 8.5, 8.75, 10.5, 16.5, 16.75, 20.5, 22.5, 24.5, 24.75, 26.5];
   const keyAt = (t) => keys.reduce((k, c) => Math.max(k, t >= c && t < c + 0.2 ? Math.sin(((t - c) / 0.2) * PI) : 0), 0);
+  const FINGER_ORDER = [0, 1, 0, 2, 1, 0, 3, 1];
+  const keyFinger = (t) => {
+    const tt = ((t % P) + P) % P;
+    const i = keys.findIndex((c) => tt >= c && tt < c + 0.2);
+    return i < 0 ? null : { i: FINGER_ORDER[i % 8], k: Math.sin(((tt - keys[i]) / 0.2) * PI) };
+  };
   // boca acompanhando a letra nos compassos 5–6
   const sing = (t) => {
     if (t < 16 || t >= 23.5) return 0;
@@ -1323,6 +1347,14 @@ export function buildB() {
     s.armR.rig.pose('relax', smooth(clamp01((lookBody(t) - 0.2) / 0.5)), 'mouse');
     if (hu > 0) s.armL.hand.rotateX(-0.35 * nodB(t - 0.1) * hu);
     s.armL.hand.rotateX(0.15 * keyAt(t) * (1 - hu));
+    // cada tecla é um dedo que desce (indicador, médio, anelar...), não a mão inteira
+    const kp = keyFinger(t);
+    if (kp && hu < 0.05 && gs < 0.05) {
+      const [f1, f2] = s.armL.rig.fingers[kp.i];
+      f1.rotation.z -= 0.42 * kp.k;
+      f2.rotation.z -= 0.25 * kp.k;
+    }
+    boilFigure(s, a.pose, 200, [[chainG, 0.02]]);
   }
 
   return { group: s.root, update, head: s.head, rig: s };
