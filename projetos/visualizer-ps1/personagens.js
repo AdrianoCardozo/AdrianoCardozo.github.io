@@ -146,7 +146,14 @@ function headTex(skin, o) {
         g.lineTo(28, 45.5);
         g.quadraticCurveTo(21, 46, 20, 31);
       } else {
-        g.ellipse(32, 48, 4, 4, 0, 0, PI * 2); // cavanhaque
+        // cavanhaque: tufo macio no queixo
+        g.fill();
+        const tuft = g.createRadialGradient(32, 48.5, 0.3, 32, 48.5, 4.6);
+        tuft.addColorStop(0, 'rgba(26,16,11,0.85)');
+        tuft.addColorStop(1, 'rgba(26,16,11,0)');
+        g.fillStyle = tuft;
+        g.beginPath();
+        g.ellipse(32, 48.5, 2.8, 4.6, 0, 0, PI * 2);
       }
       g.fill();
     }
@@ -379,14 +386,48 @@ function shadesTex() {
 }
 
 // ---------------- esqueleto ----------------
+// Mão de boneco articulada: palma, quatro dedos com duas falanges e polegar.
+// Pivô da mão pende em -Y; a palma olha para -x (mão esquerda) / +x (direita).
+const HAND_POSES = {
+  relax: { curl: [0.55, 0.6, 0.7, 0.8], tip: 0.55, spread: 0.04, thumb: 0.5 },
+  keys: { curl: [0.45, 0.4, 0.45, 0.5], tip: 0.55, spread: 0.06, thumb: 0.35 },
+  mouse: { curl: [0.3, 0.3, 0.45, 0.55], tip: 0.35, spread: 0.02, thumb: 0.6 },
+  cig: { curl: [0.25, 0.25, 1.35, 1.45], tip: [0.25, 0.2, 1.2, 1.2], spread: [0.1, -0.08, 0, 0], thumb: 0.9 },
+  open: { curl: [0.05, 0.03, 0.05, 0.08], tip: 0.05, spread: 0.12, thumb: 0.15 },
+  drape: { curl: [0.5, 0.55, 0.6, 0.65], tip: 0.45, spread: 0.05, thumb: 0.4 },
+  push: { curl: [0.05, 1.3, 1.4, 1.45], tip: [0.1, 1.2, 1.2, 1.2], spread: 0.02, thumb: 1.0 },
+};
 function hand(parent, skinM, side) {
-  // palma + dedos dobrados + polegar, com o pino do pulso aparente
-  add(parent, tube(0.022, 0.022, 0.03, skinM, 10), 0, 0.0, 0);
-  add(parent, rbox(0.035, 0.085, 0.075, skinM, 0.014), 0, -0.05, 0);
-  const f = add(parent, rbox(0.03, 0.06, 0.07, skinM, 0.012), side * -0.008, -0.1, 0.004);
-  f.rotation.z = side * -0.45;
-  const th = add(parent, rbox(0.022, 0.05, 0.022, skinM, 0.009), side * -0.012, -0.05, 0.042);
-  th.rotation.x = 0.5;
+  add(parent, tube(0.022, 0.022, 0.03, skinM, 10), 0, 0.0, 0); // pino do pulso
+  add(parent, rbox(0.032, 0.078, 0.072, skinM, 0.013), 0, -0.047, 0);
+  const fingers = [];
+  const zs = [0.026, 0.009, -0.009, -0.025];
+  const lens = [0.042, 0.046, 0.043, 0.035];
+  zs.forEach((z, i) => {
+    const f1 = pivot(parent, 0, -0.084, z);
+    add(f1, rbox(0.017, lens[i] * 0.55, 0.016, skinM, 0.007), 0, -lens[i] * 0.27, 0);
+    const f2 = pivot(f1, 0, -lens[i] * 0.55, 0);
+    add(f2, rbox(0.015, lens[i] * 0.45, 0.015, skinM, 0.007), 0, -lens[i] * 0.22, 0);
+    fingers.push([f1, f2]);
+  });
+  const th = pivot(parent, side * -0.006, -0.03, 0.036);
+  add(th, rbox(0.018, 0.045, 0.018, skinM, 0.008), 0, -0.02, 0.006);
+  const at = (v, i) => (Array.isArray(v) ? v[i] : v);
+  const pose = (name, k = 1, from = 'relax') => {
+    const A = HAND_POSES[from];
+    const B = HAND_POSES[name];
+    const mix = (x, y) => x + (y - x) * k;
+    fingers.forEach(([f1, f2], i) => {
+      // dobra em direção à palma (-x na esquerda, +x na direita)
+      f1.rotation.set(0, 0, 0);
+      f1.rotation.z = -side * mix(A.curl[i], B.curl[i]);
+      f1.rotation.x = mix(at(A.spread, i), at(B.spread, i)) * (1.5 - i);
+      f2.rotation.z = -side * mix(at(A.tip, i), at(B.tip, i));
+    });
+    th.rotation.set(0.45 + 0.4 * mix(A.thumb, B.thumb), 0, -side * 0.5 * mix(A.thumb, B.thumb));
+  };
+  pose('relax', 0);
+  return { pose, fingers };
 }
 
 function shoe(parent, upperM, soleM, accentM) {
@@ -420,8 +461,8 @@ function skeleton({ skin, torsoMat, sleeveMat, pantsMat, shoeMats, torsoR = 0.26
     add(el, tube(0.068, 0.06, 0.27, sleeveMat), 0, -0.13, 0);
     add(el, tube(0.063, 0.063, 0.03, sleeveMat), 0, -0.265, 0); // punho
     const hd = pivot(el, 0, -0.29, 0);
-    hand(hd, skinM, side);
-    return { sh, el, hand: hd };
+    const rig = hand(hd, skinM, side);
+    return { sh, el, hand: hd, rig };
   };
   const leg = (side) => {
     const th = pivot(hips, side * 0.11, -0.03, 0);
@@ -442,10 +483,12 @@ function sculptHead(s, skin, tex) {
   const sk = s.skinM;
   const headM = plastic({ map: tex });
   const h = add(s.head, ball(0.108, 0.135, 0.12, headM, 28), 0, 0.135, 0);
-  add(s.head, ball(0.075, 0.05, 0.07, headM, 16), 0, 0.045, 0.035); // mandíbula
-  const nose = add(s.head, rbox(0.032, 0.05, 0.03, sk, 0.012), 0, 0.118, 0.113);
-  nose.rotation.x = -0.2;
-  add(s.head, ball(0.024, 0.014, 0.016, sk), 0, 0.097, 0.118); // ponta do nariz
+  add(s.head, ball(0.072, 0.046, 0.062, headM, 16), 0, 0.052, 0.03); // mandíbula (rente ao crânio)
+  const nose = add(s.head, rbox(0.026, 0.042, 0.022, sk, 0.01), 0, 0.12, 0.112);
+  nose.rotation.x = -0.22;
+  add(s.head, ball(0.019, 0.012, 0.013, sk), 0, 0.1, 0.116); // ponta do nariz
+  const nostril = plastic({ color: 0x2a140c, spec: 0.1 });
+  for (const sx of [1, -1]) add(s.head, ball(0.005, 0.003, 0.004, nostril, 8), sx * 0.008, 0.094, 0.121);
   for (const sx of [1, -1]) {
     add(s.head, ball(0.016, 0.034, 0.024, sk), sx * 0.106, 0.13, -0.005);
   }
@@ -466,15 +509,16 @@ function chain(parent, color, y, w, z = 0.16) {
 
 // Corrente com pivô no pescoço: balança com atraso (mola) quando o tronco quica.
 function chainRig(parent, color, y, w, z = 0.16) {
-  const g = pivot(parent, 0, y, z - 0.02);
-  const m = metal({ color });
+  const g = pivot(parent, 0, y, z - 0.005);
+  const m = metal({ color, spec: 1.1, shine: 90 });
   const r = rand(4);
-  for (let i = 0; i < 13; i++) {
-    const a = (i / 12) * PI;
-    const l = add(g, rbox(0.024, 0.016, 0.014, m, 0.006), Math.cos(a) * w, -Math.sin(a) * 0.13 + (r() - 0.5) * 0.004, 0.02);
-    l.rotation.z = a - PI / 2 + (i % 2) * 0.5;
+  const N = 26;
+  for (let i = 0; i < N; i++) {
+    const a = (i / (N - 1)) * PI;
+    const l = add(g, rbox(0.013, 0.009, 0.007, m, 0.003), Math.cos(a) * w, -Math.sin(a) * 0.12 + (r() - 0.5) * 0.002, 0.008);
+    l.rotation.z = a - PI / 2 + (i % 2) * 0.6;
   }
-  add(g, rbox(0.045, 0.055, 0.016, m, 0.01), 0, -0.155, 0.025); // pingente
+  add(g, rbox(0.026, 0.032, 0.008, m, 0.005), 0, -0.14, 0.012); // pingente
   return g;
 }
 
@@ -491,7 +535,7 @@ function headPoint(u, v, out = 0.0) {
   );
 }
 
-function faceRig(s, skin, { lids = false, brows = false } = {}) {
+function faceRig(s, skin, { lids = false, brows = false, browV = 25.2 } = {}) {
   const rig = {};
   const lidM = plastic({ color: skin, spec: 0.3 });
   if (lids) {
@@ -507,7 +551,7 @@ function faceRig(s, skin, { lids = false, brows = false } = {}) {
   if (brows) {
     const bm = fabric({ color: 0x120c09 });
     rig.brows = [25, 39].map((ex) => {
-      const p = headPoint(ex / 128, 25.2 / 64, 0.004);
+      const p = headPoint(ex / 128, browV / 64, 0.004);
       const b = add(s.head, rbox(0.034, 0.0065, 0.008, bm, 0.003), p.x, p.y, p.z);
       b.rotation.y = (ex < 32 ? -1 : 1) * 0.33;
       b.userData = { base: p.clone(), side: ex < 32 ? -1 : 1 };
@@ -516,7 +560,7 @@ function faceRig(s, skin, { lids = false, brows = false } = {}) {
   }
   // boca: interior escuro que abre (os lábios estão pintados por cima)
   const mp = headPoint(0.25, 42.3 / 64, -0.002);
-  rig.mouth = add(s.head, ball(0.021, 0.009, 0.006, mat({ color: 0x1a0806, spec: 0.2 }), 14), mp.x, mp.y, mp.z);
+  rig.mouth = add(s.head, ball(0.026, 0.011, 0.004, mat({ color: 0x1a0806, spec: 0.2 }), 14), mp.x, mp.y, mp.z - 0.002);
   rig.mouth.userData.base = mp.clone();
   rig.mouth.userData.s0 = rig.mouth.scale.clone();
   rig.set = ({ blink = 0, open = 0, round = 0, browUp = 0, browIn = 0 } = {}) => {
@@ -535,8 +579,8 @@ function faceRig(s, skin, { lids = false, brows = false } = {}) {
         b.rotation.z = b.userData.side * (0.12 + 0.35 * browIn);
       });
     }
-    const w = 1 - 0.45 * round;
-    const h = 0.12 + 1.15 * open + 0.6 * round;
+    const w = 1 - 0.4 * round;
+    const h = 0.12 + 1.2 * open + 1.25 * round;
     const m0 = rig.mouth.userData.s0;
     rig.mouth.scale.set(m0.x * w, m0.y * Math.min(h, 1.6), m0.z);
     rig.mouth.visible = open + round > 0.04;
@@ -578,91 +622,101 @@ export function buildA() {
     shoeMats: [plastic({ color: 0x8c806c, spec: 0.15 }), plastic({ color: 0xd9d2c3, spec: 0.1 }), fabric({ color: 0x5d544a })],
     torsoR: 0.27,
   });
-  add(s.torso, ball(0.19, 0.085, 0.09, sleeve), 0, 0.6, -0.15); // capuz caído nas costas
+  // capuz caído nas costas, embolado em volta do pescoço
+  add(s.torso, ball(0.19, 0.085, 0.09, sleeve), 0, 0.6, -0.15);
+  const hoodRim = new THREE.Mesh(new THREE.TorusGeometry(0.11, 0.028, 8, 20, PI * 1.25), sleeve);
+  hoodRim.rotation.set(PI / 2, 0, PI * 0.875);
+  add(s.torso, hoodRim, 0, 0.615, -0.02);
   const pocket = fabric({ map: denim('#4c4736', 22) });
   add(s.legL.th, rbox(0.035, 0.14, 0.13, pocket, 0.01), 0.1, -0.27, 0);
   add(s.legR.th, rbox(0.035, 0.14, 0.13, pocket, 0.01), -0.1, -0.27, 0);
-  const chainG = chainRig(s.torso, 0xd8dde6, 0.62, 0.11);
+  const chainG = chainRig(s.torso, 0xb9bec7, 0.62, 0.105);
 
-  const headMesh = sculptHead(s, skin, headTex(skin, { eyes: false, beard: 'goatee', lips: '#6e3d2d', seed: 5 }));
-  const face = faceRig(s, skin);
+  const headMesh = sculptHead(s, skin, headTex(skin, { eyes: false, beard: 'goatee', lips: '#6e3d2d', seed: 5, browMesh: true }));
+  // sobrancelhas aparecem por cima dos óculos — o rosto consegue atuar
+  const face = faceRig(s, skin, { brows: true, browV: 22.4 });
   const hairM = fabric({ color: 0x100c0a });
   const scalp = new THREE.Mesh(new THREE.SphereGeometry(1, 24, 12, 0, PI * 2, 0, PI / 2), hairM);
   scalp.scale.set(0.114, 0.11, 0.126);
   add(s.head, scalp, 0, 0.165, -0.004);
 
-  // dreads: presos ao topo da cabeça, caindo até o pescoço
+  // dreads: presos ao topo da cabeça, caindo até o pescoço (orientados no
+  // mundo com gravidade; ver update)
   const dreadM = fabric({ map: dreadTex() });
-  const bead = metal({ color: 0xd8dde6 });
+  const cuff = metal({ color: 0x8d8f92, spec: 0.8, shine: 60 });
   const dreads = [];
   const r = rand(77);
   const N = 30;
   for (let i = 0; i < N; i++) {
     const row = i % 2;
     const a = -PI * 0.8 + (i / (N - 1)) * PI * 1.6; // 0 = nuca, deixa a testa livre
-    const len = 0.25 + r() * 0.08 - row * 0.04;
+    const len = 0.23 + r() * 0.09 - row * 0.04;
     const rad = 0.098 - row * 0.03;
     const p = pivot(s.head, Math.sin(a) * rad, 0.235 + row * 0.03, -Math.cos(a) * rad * 1.1);
-    const d = add(p, tube(0.021, 0.018, len, dreadM, 8), 0, -len / 2, 0);
+    const th = 0.019 + r() * 0.005;
+    const d = add(p, tube(th, th * 0.78, len, dreadM, 8), 0, -len / 2, 0);
     d.rotation.y = r() * PI;
-    add(p, ball(0.019, 0.016, 0.019, dreadM, 8), 0, -len, 0);
-    if (i % 5 === 2) add(p, tube(0.025, 0.025, 0.025, bead, 12), 0, -len + 0.05, 0);
-    p.userData = { a, out: 0.1 + r() * 0.08 + row * 0.1, ph: r(), w: 0.7 + r() * 0.6 };
+    add(p, ball(th * 0.85, th * 0.75, th * 0.85, dreadM, 8), 0, -len, 0);
+    if (i % 6 === 2) add(p, tube(th + 0.004, th + 0.004, 0.022, cuff, 12), 0, -len + 0.06, 0);
+    p.userData = { a, out: 0.1 + r() * 0.08 + row * 0.1, ph: r(), w: 0.7 + r() * 0.6, len };
     dreads.push(p);
   }
 
-  // óculos escuro estiloso (lente envolvente espelhada)
-  const lens = mat({ map: shadesTex(), emissive: 0.35, spec: 2.2, shine: 90 });
-  const frameM = metal({ color: 0xc9ccd2 });
+  // óculos escuros: lente quase preta, reflexo só no ângulo (fresnel), armação grafite
+  const lens = mat({ color: 0x07080b, spec: 2.6, shine: 140 });
+  const frameM = metal({ color: 0x3b3e44, spec: 1.2 });
   const shades = pivot(s.head, 0, 0.158, 0.118);
   for (const sx of [1, -1]) {
     const l = add(shades, rbox(0.092, 0.046, 0.01, lens, 0.012), sx * 0.05, 0, 0);
     l.rotation.y = sx * 0.22;
-    add(shades, rbox(0.006, 0.008, 0.17, frameM, 0.002), sx * 0.104, 0.016, -0.085);
+    // haste acompanhando a lateral da cabeça
+    const arm = add(shades, rbox(0.005, 0.007, 0.15, frameM, 0.002), sx * 0.106, 0.012, -0.075);
+    arm.rotation.y = -sx * 0.08;
   }
-  add(shades, rbox(0.2, 0.007, 0.012, frameM, 0.003), 0, 0.026, 0.004);
+  add(shades, rbox(0.19, 0.006, 0.01, frameM, 0.003), 0, 0.025, 0.004);
 
-  // cigarro entre o indicador e o médio da mão direita
-  const cig = pivot(s.armR.hand, 0.0, -0.1, 0.03);
-  cig.rotation.set(PI / 2 - 0.3, 0, 0);
+  // cigarro preso entre o indicador e o médio; filtro do lado da palma (+x na mão direita)
+  const cig = pivot(s.armR.hand, 0.0, -0.112, 0.0175);
+  cig.rotation.set(0, 0, PI / 2);
   add(cig, tube(0.0055, 0.0055, 0.075, mat({ color: 0xf0ece2, spec: 0.05 }), 8), 0, 0.03, 0);
   add(cig, tube(0.006, 0.006, 0.02, mat({ color: 0xc58a3c }), 8), 0, -0.012, 0);
   const emberM = mat({ color: 0xff5a14, emissive: 1.6, unlit: true });
   const ember = add(cig, tube(0.0058, 0.0058, 0.008, emberM, 8), 0, 0.071, 0);
   add(cig, tube(0.0058, 0.0058, 0.006, mat({ color: 0x77736c }), 8), 0, 0.064, 0); // cinza
-  const filterLocal = new THREE.Vector3(0, -0.1 - 0.02, 0.03 + 0.005); // ponta do filtro, no espaço da mão (aprox.)
+  const filterLocal = new THREE.Vector3(0.024, -0.112, 0.0175); // ponta do filtro, espaço da mão
 
-  const ring = metal({ color: 0xd8dde6 });
-  add(s.armR.hand, tube(0.026, 0.026, 0.012, ring, 12), 0, -0.1, 0);
-  add(s.armL.hand, tube(0.026, 0.026, 0.012, ring, 12), 0, -0.1, 0);
+  const ring = metal({ color: 0xc9ccd2 });
+  add(s.armR.hand, tube(0.026, 0.026, 0.01, ring, 12), 0, -0.07, 0);
+  add(s.armL.hand, tube(0.026, 0.026, 0.01, ring, 12), 0, -0.07, 0);
 
   const mouth = pivot(s.head, 0, 0.07, 0.115);
 
   // ---------- atuação (em batidas; loop de 32) ----------
   const P = 32;
-  // tragadas nas batidas 4 e 20: sobe (0.75), puxa (1.25), desce (0.6), solta fumaça
-  const puff = curve([[0, 0], [4, 0], [4.75, 1, 'inOut'], [6.0, 1, 'linear'], [6.6, 0, 'inOut'], [20, 0], [20.75, 1, 'inOut'], [22.0, 1, 'linear'], [22.6, 0, 'inOut']], P);
-  const drag = curve([[0, 0], [4.7, 0], [4.9, 1, 'out'], [5.95, 1, 'linear'], [6.05, 0, 'in'], [20.7, 0], [20.9, 1, 'out'], [21.95, 1, 'linear'], [22.05, 0, 'in']], P);
-  const exhaleC = curve([[0, 0], [6.4, 0], [6.8, 1, 'out'], [8.4, 0.35, 'inOut'], [9.2, 0, 'inOut'], [22.4, 0], [22.8, 1, 'out'], [24.4, 0.35, 'inOut'], [25.2, 0, 'inOut']], P);
+  // tragadas nas batidas 6 e 20: sobe, puxa, desce; a baforada cai dentro dos closes
+  const puff = curve([[0, 0], [5.8, 0], [6.6, 1, 'inOut'], [7.85, 1, 'linear'], [8.5, 0, 'inOut'], [19.8, 0], [20.6, 1, 'inOut'], [21.85, 1, 'linear'], [22.5, 0, 'inOut']], P);
+  const drag = curve([[0, 0], [6.6, 0], [6.8, 1, 'out'], [7.8, 1, 'linear'], [7.9, 0, 'in'], [20.6, 0], [20.8, 1, 'out'], [21.8, 1, 'linear'], [21.9, 0, 'in']], P);
+  const exhaleC = curve([[0, 0], [8.25, 0], [8.65, 1, 'out'], [10.2, 0.4, 'inOut'], [11.1, 0, 'inOut'], [22.25, 0], [22.65, 1, 'out'], [24.2, 0.4, 'inOut'], [25.1, 0, 'inOut']], P);
   // respiração acompanha a tragada: puxa na tragada, solta com a fumaça
-  const breath = curve([[0, 0.3], [2, 0.7], [4, 0.2], [5.9, 1, 'inOut'], [8.6, 0, 'inOut'], [11, 0.7], [13.5, 0.15], [16, 0.6], [18, 0.2], [21.9, 1, 'inOut'], [24.6, 0, 'inOut'], [27, 0.7], [29.5, 0.15]], P);
-  // olhar: no teto; desce um pouco na tragada; vira levemente na batida 26–30
-  const lookUp = curve([[0, 1], [3.6, 1], [4.6, 0.45, 'inOut'], [6.1, 0.55], [6.9, 1.12, 'out'], [9, 1], [19.6, 1], [20.6, 0.45, 'inOut'], [22.1, 0.55], [22.9, 1.12, 'out'], [25, 1]], P);
-  const turn = curve([[0, -0.05], [10, -0.05], [11.5, 0.18, 'inOut'], [15, 0.12], [16.5, -0.05, 'inOut'], [26, -0.05], [27.5, -0.22, 'inOut'], [30.5, -0.15], [31.8, -0.05, 'inOut']], P);
-  // bater cinza do cigarro (dois toques do indicador)
+  const breath = curve([[0, 0.4], [2.5, 0.8], [5, 0.2], [7.85, 1, 'inOut'], [10.6, 0, 'inOut'], [13, 0.7], [15.5, 0.15], [18, 0.6], [19.8, 0.25], [21.85, 1, 'inOut'], [24.6, 0, 'inOut'], [27, 0.7], [29.5, 0.15]], P);
+  // olhar: no teto; desce para a tragada; volta mais pra cima soltando a fumaça
+  const lookUp = curve([[0, 1], [5.6, 1], [6.6, 0.45, 'inOut'], [8.1, 0.55], [8.9, 1.12, 'out'], [11, 1], [19.6, 1], [20.6, 0.45, 'inOut'], [22.1, 0.55], [22.9, 1.12, 'out'], [25, 1]], P);
+  const turn = curve([[0, -0.05], [11.6, -0.05], [12.6, 0.2, 'inOut'], [15, 0.14], [16.5, -0.05, 'inOut'], [26, -0.05], [27.5, -0.22, 'inOut'], [30.5, -0.15], [31.8, -0.05, 'inOut']], P);
+  // bater a cinza (dois toques do indicador), com o queixo apontando pro B
   const flick = curve([[0, 0], [12.5, 0], [12.58, 1, 'out'], [12.7, 0, 'in'], [12.78, 1, 'out'], [12.92, 0, 'in'], [28.5, 0], [28.58, 1, 'out'], [28.7, 0, 'in'], [28.78, 1, 'out'], [28.92, 0, 'in']], P);
-  // intensidade do balanço por batida no compasso (o 1 e o 3 pesam mais)
+  // sobrancelhas: relaxadas; sobem satisfeitas soltando a fumaça
+  const browUp = curve([[0, 0.1], [8.6, 0.1], [9.0, 0.9, 'out'], [10.6, 0.2, 'inOut'], [22.6, 0.1], [23.0, 0.9, 'out'], [24.6, 0.2, 'inOut']], P);
   const accent = (beat) => [1, 0.65, 1.15, 0.7][beat % 4];
   const tapCurve = curve([[0, 0], [0.1, 0, 'linear'], [0.48, 1, 'out'], [0.8, 0.82, 'inOut'], [0.97, 0, 'in']], 1);
-  // cabeça: nod com o pescoço e a cabeça um pouco atrasada (sobreposição)
   const nodA = (t) => {
     const b = Math.floor(t);
     return nodCurve(t - b) * accent(((b % 4) + 4) % 4);
   };
   const headPitch = (t) => 0.13 * nodA(t) + 0.06 * nodA(t - 0.07);
-  const dreadSpring = periodicSpring(headPitch, P, { stiffness: 140, damping: 7 });
+  // mola bem amortecida (ζ≈0,65) e pequena: cabelo pesado, não chicote
+  const dreadSpring = periodicSpring(headPitch, P, { stiffness: 140, damping: 15 });
   const bodyBob = (t) => 0.02 * nodA(t - 0.03);
-  const chainSpring = periodicSpring(bodyBob, P, { stiffness: 110, damping: 6 });
+  const chainSpring = periodicSpring(bodyBob, P, { stiffness: 110, damping: 13 });
 
   const W = new THREE.Vector3();
   const tmp = new THREE.Vector3();
@@ -671,6 +725,15 @@ export function buildA() {
   const upW = new THREE.Vector3();
   const pole = new THREE.Vector3();
   const qW = new THREE.Quaternion();
+  const qH = new THREE.Quaternion();
+  const qInv = new THREE.Quaternion();
+  const dv = new THREE.Vector3();
+  const pw = new THREE.Vector3();
+  const hc = new THREE.Vector3();
+  const hf = new THREE.Vector3();
+  const out = new THREE.Vector3();
+  const DOWN_LOCAL = new THREE.Vector3(0, -1, 0);
+  const eul = new THREE.Euler();
 
   function update(a) {
     const t = a.beatF;
@@ -696,17 +759,47 @@ export function buildA() {
     s.head.rotation.set(-0.28 * lu + 0.06 * n2, 0.5 * turn(t), 0.03 * Math.sin((t / 4) * PI * 2 + 0.6));
     s.head.updateMatrixWorld(true);
 
-    // rosto: boca em "O" soltando fumaça, lábios fechados no filtro
-    face.set({ open: 0.15 * ex, round: ex });
+    // rosto: boca em "O" soltando fumaça; sobrancelhas sobem satisfeitas
+    face.set({ open: 0.15 * ex, round: ex, browUp: browUp(t) });
 
-    // dreads e corrente: mola atrasada em relação à cabeça/tronco
-    const lag = dreadSpring(t) - headPitch(t);
+    // dreads: direção de repouso (penteado) misturada com a gravidade no
+    // mundo, mola pequena e colisão com rosto, ombros e parede
+    const lag = THREE.MathUtils.clamp(dreadSpring(t) - headPitch(t), -0.12, 0.12);
+    s.head.getWorldQuaternion(qH);
+    qInv.copy(qH).invert();
+    s.head.localToWorld(hc.set(0, 0.135, 0));
+    hf.set(0, 0, 1).applyQuaternion(qH);
+    const shoulderY = s.neck.getWorldPosition(tmp2).y - 0.03;
     dreads.forEach((p) => {
-      const { a: ang, out, w } = p.userData;
-      p.rotation.x = Math.cos(ang) * out + 0.18 - lag * 2.2 * w;
-      p.rotation.z = Math.sin(ang) * out * 1.15 + Math.sin(ang) * lag * 0.6;
+      const { a: ang, out: o, w, len } = p.userData;
+      eul.set(Math.cos(ang) * o + 0.18, 0, Math.sin(ang) * o * 1.15);
+      dv.set(0, -1, 0).applyEuler(eul).applyQuaternion(qH); // penteado (no mundo)
+      dv.lerp(tmp.set(0, -1, 0), 0.62).normalize(); // gravidade
+      dv.addScaledVector(hf, -lag * 0.9 * w).normalize(); // inércia do balanço
+      p.getWorldPosition(pw);
+      // não atravessa a cabeça nem cai na frente do rosto
+      out.subVectors(pw, hc).normalize();
+      const dOut = dv.dot(out);
+      if (dOut < 0.2) dv.addScaledVector(out, 0.2 - dOut).normalize();
+      const tipF = pw.clone().addScaledVector(dv, len).sub(hc).dot(hf);
+      if (tipF > 0.03) dv.addScaledVector(hf, -(tipF - 0.03) / len).normalize();
+      // pontas param no ombro e não entram na parede
+      const tipY = pw.y + dv.y * len;
+      if (tipY < shoulderY) {
+        const need = (shoulderY - pw.y) / len;
+        const hz = Math.sqrt(Math.max(0, 1 - need * need));
+        const hlen = Math.hypot(dv.x, dv.z) || 1;
+        dv.set((dv.x / hlen) * hz, need, (dv.z / hlen) * hz);
+      }
+      if (pw.x + dv.x * len > 2.03) {
+        dv.x = (2.03 - pw.x) / len; // folga do raio do dread até a parede
+        dv.normalize();
+      }
+      dv.applyQuaternion(qInv);
+      p.quaternion.setFromUnitVectors(DOWN_LOCAL, dv);
     });
-    chainG.rotation.x = -(chainSpring(t) - bodyBob(t)) * 9;
+    // corrente: balança só pra fora do peito, pouco
+    chainG.rotation.x = Math.min(0, -(chainSpring(t) - bodyBob(t)) * 3);
 
     // pernas: pés plantados no chão (IK); o direito bate o bico no tempo
     fwd.copy(dirW(0, 0, 1));
@@ -719,7 +812,6 @@ export function buildA() {
     solveIK(s.legL.th, s.legL.kn, s.legL.ft, footL, pole, LEG[0], LEG[1], -1);
     pole.copy(fwd).addScaledVector(dirW(-1, 0, 0), 0.2).normalize();
     solveIK(s.legR.th, s.legR.kn, s.legR.ft, footR, pole, LEG[0], LEG[1], -1);
-    // pés: chapados apontando pra frente (um pouco abertos); o direito levanta o bico
     qW.copy(g.quaternion).multiply(new THREE.Quaternion().setFromAxisAngle(tmp2.set(0, 1, 0), 0.25));
     setWorldQuat(s.legL.ft, qW);
     qW.copy(g.quaternion)
@@ -727,34 +819,34 @@ export function buildA() {
       .multiply(new THREE.Quaternion().setFromAxisAngle(tmp2.set(1, 0, 0), -toe));
     setWorldQuat(s.legR.ft, qW);
 
-    // braço esquerdo largado sobre o encosto, dedos marcando o tempo
-    // (braço quase esticado ao longo do topo do encosto, mão pendendo na ponta)
-    solveIK(s.armL.sh, s.armL.el, s.armL.hand, L(0.66, 1.0, -0.47), dirW(0.1, -1, -0.35).normalize(), ARM[0], ARM[1], 1);
-    setWorldQuat(s.armL.hand, handQuat(dirW(0.75, -0.65, -0.1), dirW(0, -1, 0.2), 1));
-    s.armL.hand.rotateX(0.2 * nodA(t - 0.12));
+    // braço esquerdo pousado no topo do encosto, mão caindo por cima da borda
+    solveIK(s.armL.sh, s.armL.el, s.armL.hand, L(0.47, 0.985, -0.48), dirW(0.35, 1, -0.4).normalize(), ARM[0], ARM[1], 1);
+    setWorldQuat(s.armL.hand, handQuat(dirW(0.75, -0.3, -0.25), dirW(0.1, -1, -0.15), 1));
+    s.armL.hand.rotateZ(-0.22 * nodA(t - 0.12)); // dedos marcando o tempo
+    s.armL.rig.pose('drape');
 
-    // braço direito: cigarro descansando na altura do peito / levado à boca
+    // braço direito: mão apoiada na coxa com o cigarro em pé / levado à boca
     mouth.getWorldPosition(tmp2);
     const mouthW = tmp2.clone();
-    const faceN = new THREE.Vector3(0, 0, 1).applyQuaternion(s.head.getWorldQuaternion(new THREE.Quaternion()));
-    // mão em repouso: cotovelo apoiado no braço do sofá, antebraço levantado
-    const restWrist = L(-0.36, 0.86 + 0.012 * n, 0.2);
-    const restQ = handQuat(dirW(0.15, 1, 0.35), dirW(1, 0.1, 0.2), -1);
-    // na boca: dedos pra cima, cigarro saindo da boca pra fora
+    const faceN = new THREE.Vector3(0, 0, 1).applyQuaternion(qH);
+    const restWrist = L(-0.17, 0.615 + 0.006 * n, 0.16);
+    const restQ = handQuat(dirW(0, -0.25, 1), tmp.set(0, -1, 0), -1).clone();
     const mouthQ = (() => {
       const fingers = upW.clone().addScaledVector(faceN, -0.35).normalize();
-      const palm = faceN.clone().negate().addScaledVector(dirW(1, 0, 0), 0.3).normalize();
+      const palm = faceN.clone().negate().addScaledVector(dirW(1, 0, 0), 0.25).normalize();
       return handQuat(fingers, palm, -1).clone();
     })();
-    const handQ = restQ.clone().slerp(mouthQ, easeInOut(pf));
+    const k = easeInOut(pf);
+    const handQ = restQ.clone().slerp(mouthQ, k);
     const filterW = filterLocal.clone().applyQuaternion(handQ);
-    const mouthWrist = mouthW.clone().addScaledVector(faceN, 0.012).sub(filterW);
+    const mouthWrist = mouthW.clone().addScaledVector(faceN, 0.006).sub(filterW);
     // arco: a mão passa por fora, não atravessa o peito
-    const arc = dirW(-1, 0, 0.6).multiplyScalar(0.12 * Math.sin(pf * PI));
-    const wrist = restWrist.clone().lerp(mouthWrist, easeInOut(pf)).add(arc);
-    solveIK(s.armR.sh, s.armR.el, s.armR.hand, wrist, dirW(-1, -0.6, -0.3).normalize(), ARM[0], ARM[1], 1);
+    const arc = dirW(-1, 0.2, 0.5).multiplyScalar(0.14 * Math.sin(pf * PI));
+    const wrist = restWrist.clone().lerp(mouthWrist, k).add(arc);
+    solveIK(s.armR.sh, s.armR.el, s.armR.hand, wrist, dirW(-1, -0.7, -0.2).normalize(), ARM[0], ARM[1], 1);
     setWorldQuat(s.armR.hand, handQ);
-    s.armR.hand.rotateX(-0.35 * flick(t));
+    s.armR.hand.rotateX(-0.3 * flick(t));
+    s.armR.rig.pose('cig');
 
     // brasa: acende forte quando ele puxa
     const glow = 0.55 + 0.2 * Math.sin(t * PI * 3) + 0.3 * a.high + 2.2 * dr;
@@ -764,7 +856,9 @@ export function buildA() {
     return { ember: tmp.clone(), glow, mouth: mouthW, faceN, exhale: ex, puffing: pf };
   }
 
-  return { group: s.root, update, head: s.head, headMesh, foot: s.legR.ft };
+  // janelas (em batidas) em que a boca solta fumaça
+  const exhaleWindows = [[8.35, 10.9], [22.35, 24.9]];
+  return { group: s.root, update, head: s.head, headMesh, foot: s.legR.ft, exhaleC, exhaleWindows };
 }
 
 // ---------------- personagem B ----------------
@@ -793,13 +887,24 @@ export function buildB() {
   const face = faceRig(s, skin, { lids: true, brows: true });
   // boné de beisebol virado pra trás
   const capM = fabric({ map: clothTex('#121212', 51), spec: 0.04 });
-  const capRed = plastic({ color: 0x9e1620, spec: 0.12 });
+  const capRed = plastic({ color: 0x7a1219, spec: 0.05, shine: 12 });
   const dome = new THREE.Mesh(new THREE.SphereGeometry(1, 24, 12, 0, PI * 2, 0, PI / 2), capM);
   dome.scale.set(0.121, 0.1, 0.133);
   add(s.head, dome, 0, 0.19, -0.004);
   add(s.head, ball(0.012, 0.007, 0.012, capM), 0, 0.29, -0.004);
-  const bill = add(s.head, rbox(0.17, 0.012, 0.12, capRed, 0.005), 0, 0.2, -0.17);
-  bill.rotation.x = -0.12;
+  // aba curva (perfil arredondado, com espessura e curvatura lateral)
+  const billShape = new THREE.Shape();
+  billShape.moveTo(-0.085, 0);
+  billShape.quadraticCurveTo(-0.09, 0.1, 0, 0.115);
+  billShape.quadraticCurveTo(0.09, 0.1, 0.085, 0);
+  billShape.lineTo(-0.085, 0);
+  const billGeo = new THREE.ExtrudeGeometry(billShape, { depth: 0.008, bevelEnabled: true, bevelSize: 0.002, bevelThickness: 0.002, bevelSegments: 2, curveSegments: 12 });
+  const bp = billGeo.attributes.position;
+  for (let i = 0; i < bp.count; i++) bp.setZ(i, bp.getZ(i) - 0.9 * bp.getX(i) * bp.getX(i)); // curvatura
+  billGeo.computeVertexNormals();
+  const bill = new THREE.Mesh(billGeo, capRed);
+  bill.rotation.set(-PI / 2 - 0.45, 0, 0); // aponta pra trás e cai em direção à nuca
+  add(s.head, bill, 0, 0.205, -0.115);
   add(s.head, rbox(0.06, 0.012, 0.008, plastic({ color: 0xbdbdbd }), 0.003), 0, 0.212, 0.128);
 
   // óculos de grau: armação grossa de acetato preto com detalhe dourado
@@ -817,13 +922,16 @@ export function buildB() {
   }
   add(gl, rbox(0.02, 0.007, 0.012, gold, 0.003), 0, 0.018, 0.002);
   const glBase = gl.position.clone();
-  add(s.armL.el, tube(0.068, 0.068, 0.035, gold, 16), 0, -0.24, 0); // relógio
+  add(s.armL.el, tube(0.064, 0.064, 0.02, gold, 16), 0, -0.245, 0); // relógio
+  add(s.armL.el, rbox(0.03, 0.03, 0.012, gold, 0.006), 0, -0.245, 0.064);
 
   // ---------- atuação (em batidas; loop de 32) ----------
   const P = 32;
   // olha pro amigo no fim de cada frase (batidas 12–16 e 28–32), com a mão no ar
-  const look = curve([[0, 0], [11.6, 0], [12.3, 1, 'inOut'], [15.2, 1, 'linear'], [15.85, 0, 'inOut'], [27.6, 0], [28.3, 1, 'inOut'], [31.2, 1, 'linear'], [31.85, 0, 'inOut']], P);
-  const handUp = curve([[0, 0], [12.4, 0], [12.9, 1, 'back'], [15.0, 1, 'linear'], [15.7, 0, 'inOut'], [28.4, 0], [28.9, 1, 'back'], [31.0, 1, 'linear'], [31.7, 0, 'inOut']], P);
+  // cabeça vira primeiro, ombros depois; a mão sobe com antecipação e desce por último
+  const look = curve([[0, 0], [12.0, 0], [12.5, 1, 'inOut'], [15.0, 1, 'linear'], [15.55, 0, 'inOut'], [28.0, 0], [28.5, 1, 'inOut'], [31.0, 1, 'linear'], [31.55, 0, 'inOut']], P);
+  const lookBody = curve([[0, 0], [12.15, 0], [12.85, 1, 'inOut'], [15.2, 1, 'linear'], [15.8, 0, 'inOut'], [28.15, 0], [28.85, 1, 'inOut'], [31.2, 1, 'linear'], [31.8, 0, 'inOut']], P);
+  const handUp = curve([[0, 0], [12.45, 0], [12.6, -0.08, 'inOut'], [13.05, 1, 'back'], [15.15, 1, 'linear'], [15.9, 0, 'inOut'], [28.45, 0], [28.6, -0.08, 'inOut'], [29.05, 1, 'back'], [31.15, 1, 'linear'], [31.9, 0, 'inOut']], P);
   // ajeita os óculos na batida 18
   const glasses = curve([[0, 0], [17.7, 0], [18.25, 1, 'inOut'], [18.7, 1, 'linear'], [19.3, 0, 'inOut']], P);
   // "cara de grave" no 3 dos compassos pares
@@ -884,7 +992,8 @@ export function buildB() {
     // corpo
     s.hips.position.set(0, 0.635, 0);
     s.hips.rotation.set(0, 0, 0);
-    s.torso.rotation.set(0.16 - 0.08 * lk + 0.05 * n + 0.03 * st, -0.22 * lk, 0.02 * Math.sin((t / 2) * PI));
+    const lb = lookBody(t);
+    s.torso.rotation.set(0.16 - 0.08 * lb + 0.05 * n + 0.03 * st, -0.22 * lb, 0.02 * Math.sin((t / 2) * PI));
     s.torso.scale.set(1 + 0.01 * br, 1 + 0.005 * br, 1 + 0.015 * br);
     s.neck.rotation.set(-0.1 + 0.2 * n + 0.08 * st, -0.35 * lk, 0);
     s.head.rotation.set(-0.06 + 0.08 * nodB(t - 0.06) + 0.06 * st, -0.75 * lk + 0.05 * Math.sin((t / 8) * PI * 2), -0.04 * Math.sin((t / 2) * PI) - 0.08 * lk);
@@ -929,12 +1038,18 @@ export function buildB() {
     let wristL = kbWrist.clone();
     if (gs > 0) wristL.lerp(glassesW, easeInOut(gs));
     if (hu > 0) wristL.lerp(airW, Math.min(1, hu));
+    if (hu < 0) wristL.add(tmp.set(0, 0.03 * hu, 0)); // antecipação: afunda antes de subir
     solveIK(s.armL.sh, s.armL.el, s.armL.hand, wristL, dirW(0.7, -1, -0.4).normalize(), ARM[0], ARM[1], 1);
     const qKb = handQuat(fwdDown, tmp.set(0, -1, 0), 1).clone();
     const qUp = handQuat(dirW(0, 1, 0.2), dirW(-0.2, 0, 1), 1).clone();
     const qGl = handQuat(dirW(-0.2, 1, -0.2), dirW(0, 0, -1), 1).clone();
-    const qL = qKb.clone().slerp(qGl, easeInOut(gs)).slerp(qUp, Math.min(1, hu));
+    const qL = qKb.clone().slerp(qGl, easeInOut(gs)).slerp(qUp, Math.max(0, Math.min(1, hu)));
     setWorldQuat(s.armL.hand, qL);
+    // poses dos dedos: teclas / empurrando os óculos / mão aberta no ar
+    if (hu > 0.05) s.armL.rig.pose('open', Math.min(1, hu), 'keys');
+    else if (gs > 0.05) s.armL.rig.pose('push', gs, 'keys');
+    else s.armL.rig.pose('keys');
+    s.armR.rig.pose('mouse');
     if (hu > 0) s.armL.hand.rotateX(-0.35 * nodB(t - 0.1) * hu);
     s.armL.hand.rotateX(0.15 * keyAt(t) * (1 - hu));
   }

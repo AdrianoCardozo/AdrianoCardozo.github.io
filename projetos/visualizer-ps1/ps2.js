@@ -25,6 +25,7 @@ export const shared = {
 
 const vert = /* glsl */ `
   uniform float uFogNear, uFogFar;
+  uniform mat3 uUvT;
   varying vec3 vWorld;
   varying vec3 vNormal;
   varying vec2 vUv;
@@ -33,7 +34,7 @@ const vert = /* glsl */ `
     vec4 wp = modelMatrix * vec4(position, 1.0);
     vWorld = wp.xyz;
     vNormal = normalize(mat3(modelMatrix) * normal);
-    vUv = uv;
+    vUv = (uUvT * vec3(uv, 1.0)).xy; // respeita offset/repeat da textura
     vec4 mv = viewMatrix * wp;
     vFog = smoothstep(uFogNear, uFogFar, -mv.z);
     gl_Position = projectionMatrix * mv;
@@ -151,6 +152,7 @@ export function mat({
     uniforms: {
       ...shared,
       map: { value: map },
+      uUvT: { value: map ? (map.updateMatrix(), map.matrix) : new THREE.Matrix3() },
       uHasMap: { value: map ? 1 : 0 },
       uColor: { value: new THREE.Vector3(c.r, c.g, c.b) },
       uEmissive: { value: e },
@@ -184,8 +186,9 @@ export function canvasTex(w, h, draw, { scale = S, filter = true } = {}) {
   if (draw) draw(g, w, h);
   const t = new THREE.CanvasTexture(cv);
   t.magFilter = THREE.LinearFilter;
-  t.minFilter = draw && filter ? THREE.LinearMipmapLinearFilter : THREE.LinearFilter;
-  t.generateMipmaps = !!(draw && filter);
+  // telas dinâmicas também com mipmaps: sem serrilhado quando vistas de lado
+  t.minFilter = filter ? THREE.LinearMipmapLinearFilter : THREE.LinearFilter;
+  t.generateMipmaps = !!filter;
   t.anisotropy = 8;
   t.colorSpace = THREE.NoColorSpace;
   t.wrapS = t.wrapT = THREE.RepeatWrapping;

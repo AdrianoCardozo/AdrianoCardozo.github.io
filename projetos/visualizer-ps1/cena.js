@@ -517,7 +517,7 @@ export function buildRoom(scene) {
 
   // ---------- sofá de couro (parede direita) ----------
   const sofa = new THREE.Group();
-  sofa.position.set(1.64, 0, 0.0);
+  sofa.position.set(1.66, 0, 0.0); // encostado na parede (sem fresta de luz)
   sofa.rotation.y = -PI / 2;
   room.add(sofa);
   const lt = leatherTex();
@@ -617,10 +617,17 @@ export function buildRoom(scene) {
 
   // criado-mudo + luminária de lava
   put(room, rbox(0.4, 0.5, 0.4, plastic({ color: 0x1d1a1f, spec: 0.15 }), 0.015), -W / 2 + 0.25, 0.25, -1.2);
-  const lavaM = mat({ color: 0xff3a10, emissive: 1.2, unlit: true });
-  const lava = put(room, tube(0.035, 0.05, 0.26, lavaM, 18), -W / 2 + 0.25, 0.65, -1.2);
-  put(room, tube(0.06, 0.07, 0.08, metal({ color: 0x9a9aa0 }), 18), -W / 2 + 0.25, 0.54, -1.2);
-  put(room, tube(0.035, 0.05, 0.04, metal({ color: 0x9a9aa0 }), 18), -W / 2 + 0.25, 0.8, -1.2);
+  // luminária de lava: base cônica de metal, vidro com líquido e bolhas de cera
+  const LX = -W / 2 + 0.25;
+  const LZ = -1.2;
+  const lampMetal = metal({ color: 0x5e5f66, spec: 0.9 });
+  put(room, tube(0.045, 0.075, 0.1, lampMetal, 20), LX, 0.55, LZ);
+  const lavaM = mat({ color: 0xc8340f, emissive: 0.45, unlit: true });
+  put(room, tube(0.028, 0.044, 0.2, lavaM, 20), LX, 0.7, LZ);
+  put(room, tube(0.031, 0.047, 0.205, mat({ color: 0xffd2b0, opacity: 0.25, spec: 2.2, shine: 120 }), 20), LX, 0.7, LZ);
+  put(room, tube(0.022, 0.03, 0.045, lampMetal, 20), LX, 0.82, LZ);
+  const waxM = mat({ color: 0xff8a2a, emissive: 1.1, unlit: true });
+  const blobs = [0, 1, 2].map((i) => put(room, ball(0.016 - i * 0.003, 0.022 - i * 0.004, 0.016 - i * 0.003, waxM, 12), LX, 0.65, LZ));
 
   // ---------- parede direita: neon e pôsteres ----------
   const neonT = neonTex();
@@ -789,12 +796,12 @@ export function buildRoom(scene) {
     }
     vuT.needsUpdate = true;
 
-    // TV: chuvisco + caveira piscando no tempo
-    for (let y = 0; y < 30; y += 1)
-      for (let x = 0; x < 40; x += 1) {
-        const v = Math.floor(hash(x * 13.1 + y * 71.7 + a.frame * 3.3) * 150 * (0.45 + a.high));
+    // TV: chuvisco fino + linhas de varredura + caveira piscando no tempo
+    for (let y = 0; y < 30; y += 0.5)
+      for (let x = 0; x < 40; x += 0.5) {
+        const v = Math.floor(hash(x * 13.1 + y * 71.7 + a.pose * 3.3) * 150 * (0.45 + a.high));
         tvC.fillStyle = `rgb(${v * 0.85 | 0},${v * 0.9 | 0},${v})`;
-        tvC.fillRect(x, y, 1, 1);
+        tvC.fillRect(x, y, 0.5, 0.5);
       }
     if (a.beat % 2 === 0 || a.section === 2) {
       tvC.fillStyle = a.section === 2 ? '#a0ff40' : '#ff2020';
@@ -810,6 +817,13 @@ export function buildRoom(scene) {
       tvC.fillRect(19.4, 16, 1.2, 1.5);
       for (const x of [17, 19.5, 22]) tvC.fillRect(x, 19.5, 0.8, 3);
     }
+    tvC.fillStyle = 'rgba(0,0,0,0.28)';
+    for (let y = 0; y < 30; y += 1) tvC.fillRect(0, y, 40, 0.35);
+    const vg = tvC.createRadialGradient(20, 15, 8, 20, 15, 26);
+    vg.addColorStop(0, 'rgba(0,0,0,0)');
+    vg.addColorStop(1, 'rgba(0,0,0,0.6)');
+    tvC.fillStyle = vg;
+    tvC.fillRect(0, 0, 40, 30);
     tvT.needsUpdate = true;
 
     // janela: prédios à noite, luz piscando em vermelho
@@ -866,7 +880,14 @@ export function buildRoom(scene) {
     ledM.uniforms.uEmissive.value.setScalar(0.25 + 1.6 * a.bass);
     const flick = hash(Math.floor(a.beatF * 4) + 0.5) > 0.88 ? 0.3 : 1;
     neonM.uniforms.uColor.value.set(1, 0.12, 0.35).multiplyScalar(flick * (0.8 + 0.6 * a.mid));
-    lavaM.uniforms.uEmissive.value.setScalar(0.8 + 0.3 * Math.sin(a.beatF * PI * 0.25));
+    lavaM.uniforms.uEmissive.value.setScalar(0.4 + 0.08 * Math.sin(a.beatF * PI * 0.25));
+    blobs.forEach((b, i) => {
+      // cera sobe e desce devagar (períodos que fecham no loop de 32 batidas)
+      const ph = (a.beatF / 16 + i / 3) * PI * 2;
+      b.position.y = 0.7 + 0.075 * Math.sin(ph);
+      b.position.x = LX + 0.006 * Math.sin(ph * 2 + i);
+      b.scale.y = (0.022 - i * 0.004) * (1 + 0.25 * Math.cos(ph));
+    });
     return { flick };
   }
 
