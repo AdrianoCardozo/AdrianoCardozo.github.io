@@ -7,7 +7,7 @@
 //     Na cadeira do computador, produzindo e balançando a cabeça.
 import * as THREE from './three.module.min.js';
 import { mat, plastic, fabric, metal, canvasTex, rbox, tube, ball, grain, weave, rand, hash } from './ps2.js';
-import { curve, nodCurve, solveIK, setWorldQuat, quatFromAxes, periodicSpring, easeInOut } from './rig.js';
+import { curve, nodCurve, nodAccent, solveIK, setWorldQuat, quatFromAxes, periodicSpring, easeInOut } from './rig.js';
 
 const PI = Math.PI;
 
@@ -872,7 +872,8 @@ export function buildA() {
   // ---------- atuação (em batidas; loop de 32) ----------
   const P = 32;
   // tragadas nas batidas 6 e 20: sobe, puxa, desce; a baforada cai dentro dos closes
-  const puff = curve([[0, 0], [5.8, 0], [6.6, 1, 'inOut'], [7.85, 1, 'linear'], [8.5, 0, 'inOut'], [19.8, 0], [20.6, 1, 'inOut'], [21.85, 1, 'linear'], [22.5, 0, 'inOut']], P);
+  // leva o cigarro à boca em ~0,55 s e devolve em ~0,57 s (antes: 0,4 s com easing dobrado = salto de 30 cm por pose)
+  const puff = curve([[0, 0], [5.5, 0], [6.55, 1, 'inOut'], [7.85, 1, 'linear'], [8.95, 0, 'inOut'], [19.5, 0], [20.55, 1, 'inOut'], [21.85, 1, 'linear'], [22.95, 0, 'inOut']], P);
   const drag = curve([[0, 0], [6.6, 0], [6.8, 1, 'out'], [7.8, 1, 'linear'], [7.9, 0, 'in'], [20.6, 0], [20.8, 1, 'out'], [21.8, 1, 'linear'], [21.9, 0, 'in']], P);
   const exhaleC = curve([[0, 0], [8.25, 0], [8.65, 1, 'out'], [10.2, 0.4, 'inOut'], [11.1, 0, 'inOut'], [22.25, 0], [22.65, 1, 'out'], [24.2, 0.4, 'inOut'], [25.1, 0, 'inOut']], P);
   // respiração acompanha a tragada: puxa na tragada, solta com a fumaça
@@ -886,10 +887,7 @@ export function buildA() {
   const browUp = curve([[0, 0.1], [8.6, 0.1], [9.0, 0.9, 'out'], [10.6, 0.2, 'inOut'], [22.6, 0.1], [23.0, 0.9, 'out'], [24.6, 0.2, 'inOut']], P);
   const accent = (beat) => [1, 0.65, 1.15, 0.7][beat % 4];
   const tapCurve = curve([[0, 0], [0.1, 0, 'linear'], [0.48, 1, 'out'], [0.8, 0.82, 'inOut'], [0.97, 0, 'in']], 1);
-  const nodA = (t) => {
-    const b = Math.floor(t);
-    return nodCurve(t - b) * accent(((b % 4) + 4) % 4);
-  };
+  const nodA = (t) => nodAccent(t, accent);
   const headPitch = (t) => 0.13 * nodA(t) + 0.06 * nodA(t - 0.07);
   // mola bem amortecida (ζ≈0,65) e pequena: cabelo pesado, não chicote
   const dreadSpring = periodicSpring(headPitch, P, { stiffness: 140, damping: 15 });
@@ -1014,14 +1012,17 @@ export function buildA() {
       const palm = faceN.clone().negate().addScaledVector(dirW(1, 0, 0), 0.25).normalize();
       return handQuat(fingers, palm, -1).clone();
     })();
-    const k = easeInOut(pf);
+    const k = pf; // a curva já tem easing
     const handQ = restQ.clone().slerp(mouthQ, k);
     const filterW = filterLocal.clone().applyQuaternion(handQ);
     const mouthWrist = mouthW.clone().addScaledVector(faceN, 0.006).sub(filterW);
     // arco: a mão passa por fora, não atravessa o peito
     const arc = dirW(-1, 0.2, 0.5).multiplyScalar(0.14 * Math.sin(pf * PI));
     const wrist = restWrist.clone().lerp(mouthWrist, k).add(arc);
-    solveIK(s.armR.sh, s.armR.el, s.armR.hand, wrist, dirW(-1, -0.7, -0.2).normalize(), ARM[0], ARM[1], 1);
+    // polo do cotovelo: atrás/fora no repouso → à frente/baixo com a mão na boca.
+    // (um polo fixo ficava quase oposto à direção ombro→boca e o cotovelo virava de lado numa pose)
+    const poleR = dirW(-1, -0.7, -0.2).normalize().lerp(dirW(0, -0.6, 1).normalize(), k).normalize();
+    solveIK(s.armR.sh, s.armR.el, s.armR.hand, wrist, poleR, ARM[0], ARM[1], 1);
     setWorldQuat(s.armR.hand, handQ);
     s.armR.hand.rotateX(-0.3 * flick(t));
     s.armR.rig.pose('cig');
@@ -1036,7 +1037,7 @@ export function buildA() {
 
   // janelas (em batidas) em que a boca solta fumaça
   const exhaleWindows = [[8.35, 10.9], [22.35, 24.9]];
-  return { group: s.root, update, head: s.head, headMesh, foot: s.legR.ft, exhaleC, exhaleWindows };
+  return { group: s.root, update, head: s.head, headMesh, foot: s.legR.ft, exhaleC, exhaleWindows, rig: s };
 }
 
 // ---------------- personagem B ----------------
@@ -1114,13 +1115,14 @@ export function buildB() {
   const P = 32;
   // olha pro amigo no fim de cada frase (batidas 12–16 e 28–32), com a mão no ar
   // cabeça vira primeiro, ombros depois; a mão sobe com antecipação e desce por último
-  const look = curve([[0, 0], [12.0, 0], [12.5, 1, 'inOut'], [15.0, 1, 'linear'], [15.55, 0, 'inOut'], [28.0, 0], [28.5, 1, 'inOut'], [31.0, 1, 'linear'], [31.55, 0, 'inOut']], P);
-  const lookBody = curve([[0, 0], [12.15, 0], [12.85, 1, 'inOut'], [15.2, 1, 'linear'], [15.8, 0, 'inOut'], [28.15, 0], [28.85, 1, 'inOut'], [31.2, 1, 'linear'], [31.8, 0, 'inOut']], P);
-  const handUp = curve([[0, 0], [12.45, 0], [12.6, -0.08, 'inOut'], [13.05, 1, 'back'], [15.15, 1, 'linear'], [15.9, 0, 'inOut'], [28.45, 0], [28.6, -0.08, 'inOut'], [29.05, 1, 'back'], [31.15, 1, 'linear'], [31.9, 0, 'inOut']], P);
+  const look = curve([[0, 0], [11.85, 0], [12.6, 1, 'inOut'], [14.95, 1, 'linear'], [15.7, 0, 'inOut'], [27.85, 0], [28.6, 1, 'inOut'], [30.95, 1, 'linear'], [31.7, 0, 'inOut']], P);
+  const lookBody = curve([[0, 0], [12.0, 0], [12.95, 1, 'inOut'], [15.1, 1, 'linear'], [15.95, 0, 'inOut'], [28.0, 0], [28.95, 1, 'inOut'], [31.1, 1, 'linear'], [31.95, 0, 'inOut']], P);
+  // sobe em ~0,35 s (senoidal), passa 6% do ponto e assenta — sem estalo de 17 cm por pose
+  const handUp = curve([[0, 0], [12.3, 0], [12.5, -0.06, 'inOut'], [13.15, 1.06, 'inOut'], [13.45, 1, 'inOut'], [15.1, 1, 'linear'], [15.95, 0, 'inOut'], [28.3, 0], [28.5, -0.06, 'inOut'], [29.15, 1.06, 'inOut'], [29.45, 1, 'inOut'], [31.1, 1, 'linear'], [31.95, 0, 'inOut']], P);
   // ajeita os óculos na batida 18
-  const glasses = curve([[0, 0], [17.7, 0], [18.25, 1, 'inOut'], [18.7, 1, 'linear'], [19.3, 0, 'inOut']], P);
+  const glasses = curve([[0, 0], [17.45, 0], [18.25, 1, 'inOut'], [18.7, 1, 'linear'], [19.45, 0, 'inOut']], P);
   // "cara de grave" no 3 dos compassos pares
-  const stank = curve([[0, 0], [5.9, 0], [6.05, 1, 'out'], [6.7, 0, 'inOut'], [13.9, 0], [14.05, 1, 'out'], [14.7, 0, 'inOut'], [21.9, 0], [22.05, 1, 'out'], [22.7, 0, 'inOut'], [29.9, 0], [30.05, 1, 'out'], [30.7, 0, 'inOut']], P);
+  const stank = curve([[0, 0], [5.8, 0], [6.08, 1, 'smooth'], [6.75, 0, 'inOut'], [13.8, 0], [14.08, 1, 'smooth'], [14.75, 0, 'inOut'], [21.8, 0], [22.08, 1, 'smooth'], [22.75, 0, 'inOut'], [29.8, 0], [30.08, 1, 'smooth'], [30.75, 0, 'inOut']], P);
   // piscadas em tempos irregulares
   const blinks = [2.3, 6.9, 9.6, 14.4, 17.3, 21.8, 25.1, 27.4, 30.6];
   const blinkAt = (t) => {
@@ -1147,10 +1149,7 @@ export function buildB() {
     return hash(e * 3.17) > 0.35 ? Math.sin(ph * PI) * (0.4 + 0.6 * hash(e * 1.7)) : 0;
   };
   const accent = (beat) => [1, 0.7, 1.2, 0.75][beat % 4];
-  const nodB = (t) => {
-    const b = Math.floor(t);
-    return nodCurve(t - b) * accent(((b % 4) + 4) % 4);
-  };
+  const nodB = (t) => nodAccent(t, accent);
   const headPitch = (t) => 0.2 * nodB(t) + 0.08 * nodB(t - 0.06);
   const bodyBob = (t) => 0.02 * nodB(t - 0.03);
   const chainSpring = periodicSpring(bodyBob, P, { stiffness: 110, damping: 6 });
@@ -1180,7 +1179,7 @@ export function buildB() {
     const lb = lookBody(t);
     s.torso.rotation.set(0.16 - 0.08 * lb + 0.05 * n + 0.03 * st, -0.22 * lb, 0.02 * Math.sin((t / 2) * PI));
     s.torso.scale.set(1 + 0.01 * br, 1 + 0.005 * br, 1 + 0.015 * br);
-    s.neck.rotation.set(-0.1 + 0.2 * n + 0.08 * st, -0.35 * lk, 0);
+    s.neck.rotation.set(-0.1 + 0.15 * n + 0.07 * st, -0.35 * lk, 0);
     s.head.rotation.set(-0.06 + 0.08 * nodB(t - 0.06) + 0.06 * st, -0.75 * lk + 0.05 * Math.sin((t / 8) * PI * 2), -0.04 * Math.sin((t / 2) * PI) - 0.08 * lk);
     face.set({ blink: blinkAt(t), open: Math.max(sing(t), 0.35 * st), browIn: st, browUp: 0.7 * hu });
     gl.position.copy(glBase).add(tmp.set(0, 0.004 * Math.sin(gs * PI), 0));
@@ -1221,14 +1220,16 @@ export function buildB() {
     const glassesW = gl.getWorldPosition(new THREE.Vector3()).add(dirW(0.02, -0.11, 0.06));
     const airW = L(0.3, 1.32 + 0.05 * n, 0.22);
     let wristL = kbWrist.clone();
-    if (gs > 0) wristL.lerp(glassesW, easeInOut(gs));
-    if (hu > 0) wristL.lerp(airW, Math.min(1, hu));
+    if (gs > 0) wristL.lerp(glassesW, gs);
+    if (hu > 0) wristL.lerp(airW, hu); // hu > 1 = passa um pouco do ponto
     if (hu < 0) wristL.add(tmp.set(0, 0.03 * hu, 0)); // antecipação: afunda antes de subir
-    solveIK(s.armL.sh, s.armL.el, s.armL.hand, wristL, dirW(0.7, -1, -0.4).normalize(), ARM[0], ARM[1], 1);
+    // com a mão no alto o polo "pra baixo" ficaria oposto ao alvo (cotovelo virava): vai pro lado
+    const poleL = dirW(0.7, -1, -0.4).normalize().lerp(dirW(1, -0.15, 0.35).normalize(), Math.max(0, Math.min(1, hu))).normalize();
+    solveIK(s.armL.sh, s.armL.el, s.armL.hand, wristL, poleL, ARM[0], ARM[1], 1);
     const qKb = handQuat(fwdDown, tmp.set(0, -1, 0), 1).clone();
     const qUp = handQuat(dirW(0, 1, 0.2), dirW(-0.2, 0, 1), 1).clone();
     const qGl = handQuat(dirW(-0.2, 1, -0.2), dirW(0, 0, -1), 1).clone();
-    const qL = qKb.clone().slerp(qGl, easeInOut(gs)).slerp(qUp, Math.max(0, Math.min(1, hu)));
+    const qL = qKb.clone().slerp(qGl, gs).slerp(qUp, Math.max(0, Math.min(1, hu)));
     setWorldQuat(s.armL.hand, qL);
     // poses dos dedos: teclas / empurrando os óculos / mão aberta no ar
     if (hu > 0.05) s.armL.rig.pose('open', Math.min(1, hu), 'keys');
@@ -1239,5 +1240,5 @@ export function buildB() {
     s.armL.hand.rotateX(0.15 * keyAt(t) * (1 - hu));
   }
 
-  return { group: s.root, update, head: s.head };
+  return { group: s.root, update, head: s.head, rig: s };
 }

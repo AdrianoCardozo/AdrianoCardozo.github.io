@@ -12,7 +12,12 @@ export const easeIn = (k) => k * k * k;
 // sai devagar, chega rápido e passa um pouco do ponto antes de assentar
 export const backOut = (k, s = 1.4) => 1 + (s + 1) * (k - 1) ** 3 + s * (k - 1) ** 2;
 
-const EASE = { linear: (k) => k, smooth, inOut: easeInOut, out: easeOut, in: easeIn, back: backOut };
+// easing das curvas de atuação: senoidal (pico de velocidade 1,57×, não 3× como
+// o cúbico — o cúbico concentrava o movimento em 2–3 poses e lia como "tween" de CG)
+export const sineInOut = (k) => 0.5 - 0.5 * Math.cos(Math.PI * k);
+// "back" com saída suave (sem largar já na velocidade máxima) e leve passada do ponto
+const backSoft = (k) => backOut(smooth(k), 1.2);
+const EASE = { linear: (k) => k, smooth, inOut: sineInOut, cubic: easeInOut, out: easeOut, in: easeIn, back: backSoft };
 
 // Curva periódica de quadros-chave: keys = [[tempo, valor, easing?], ...] em
 // batidas; o último segmento volta ao primeiro valor (período `period`).
@@ -39,18 +44,30 @@ export function curve(keys, period) {
 
 // Pulso de balanço de cabeça com antecipação (sobe um pouco antes), batida
 // rápida pra baixo, leve rebote e assentamento. phase em [0,1).
+// A descida começa antes da batida (acelerando) e chega no fundo logo depois
+// dela: ~3 poses em vez de 1 (descer 20° numa pose lia como estalo).
 const NOD = curve(
   [
-    [0.0, 0.0, 'inOut'],
-    [0.09, 1.0, 'out'],
-    [0.22, 0.72, 'inOut'],
+    [0.0, 0.56, 'in'],
+    [0.08, 1.0, 'out'],
+    [0.22, 0.74, 'inOut'],
     [0.36, 0.82, 'inOut'],
     [0.62, 0.22, 'inOut'],
-    [0.86, -0.12, 'inOut'],
+    [0.84, -0.1, 'inOut'],
+    [0.93, 0.06, 'in'],
   ],
   1
 );
 export const nodCurve = (phase) => NOD(phase);
+// Balanço com intensidade por batida (acento) sem degrau na virada da batida:
+// no fim de cada batida a intensidade já passa para a da próxima.
+export const nodAccent = (t, accent) => {
+  const b = Math.floor(t);
+  const ph = t - b;
+  const w = smooth(clamp01((ph - 0.7) / 0.3));
+  const ac = (k) => accent(((k % 4) + 4) % 4);
+  return NOD(ph) * lerp(ac(b), ac(b + 1), w);
+};
 
 // ---------- IK de dois ossos ----------
 const _S = new THREE.Vector3();
