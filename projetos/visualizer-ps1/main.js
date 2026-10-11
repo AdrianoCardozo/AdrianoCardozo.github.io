@@ -762,6 +762,9 @@ function renderAt(t) {
   // direção da câmera: a baforada sai atravessando o quadro (nas câmeras de cima o rosto
   // virado pro teto aponta pra lente, e a fumaça voava direto no vidro / no desfoque)
   const camF = v3c.set(0, 0, -1).applyQuaternion(camera.quaternion);
+  // ele sopra de lado (pra direita do quadro, sobre o fundo escuro dos dreads): com o rosto
+  // virado pro teto, soprar "pra frente" passava por cima do nariz e parecia sair da testa
+  const camR = new THREE.Vector3(1, 0, 0).applyQuaternion(camera.quaternion);
   exhaleP.forEach((s, idx) => {
     const wi = Math.floor(idx / EXHALE_N);
     const i = idx % EXHALE_N;
@@ -777,8 +780,8 @@ function renderAt(t) {
     const sec = age * beatLen;
     const seed = i * 2.31 + wi * 7.7;
     const strength = 0.55 + 0.45 * (1 - (born - w0) / (w1 - w0)); // primeiras saem mais fortes
-    const dir = v3b.copy(src.faceN).addScaledVector(camF, -0.6 * src.faceN.dot(camF)).normalize();
-    dir.add(v3.set(Math.sin(seed) * 0.18, 0.15, Math.cos(seed * 1.7) * 0.18)).normalize();
+    const dir = v3b.copy(src.faceN).addScaledVector(camF, -0.8 * src.faceN.dot(camF)).normalize().multiplyScalar(0.45);
+    dir.addScaledVector(camR, 0.8).add(v3.set(Math.sin(seed) * 0.12, 0.12, Math.cos(seed * 1.7) * 0.12)).normalize();
     // nuvem que se forma na frente da boca e cresce (no close o quadro tem ~40 cm: alcance curto)
     const reach = 0.17 * strength * (1 - Math.exp(-sec * 1.5)); // arrasto
     const lift = 0.035 * sec * sec / (0.6 + sec); // empuxo só depois que o sopro perde força
@@ -789,10 +792,10 @@ function renderAt(t) {
     s.position.z += 0.04 * k * Math.cos(sec * 1.6 + seed);
     const vel = dir.clone().multiplyScalar(0.17 * strength * 1.5 * Math.exp(-sec * 1.5)).add(v3.set(0, 0.035, 0));
     orient(s, vel, 0.3 * Math.sin(seed));
-    const sz = 0.022 + Math.pow(k, 0.6) * 0.22;
+    const sz = 0.03 + Math.pow(k, 0.6) * 0.22;
     s.scale.set(sz, sz * 1.35, 1);
     const nearCam = THREE.MathUtils.smoothstep(s.position.distanceTo(camera.position), 0.25, 0.55);
-    s.material.uniforms.uOpacity.value = 0.5 * (1 - k) ** 1.6 * Math.min(1, age * 6) * nearCam;
+    s.material.uniforms.uOpacity.value = 0.52 * (1 - k) ** 1.6 * Math.min(1, age * 14) * nearCam;
   });
 
   // sombra da lâmpada: profundidade vista da lâmpada
